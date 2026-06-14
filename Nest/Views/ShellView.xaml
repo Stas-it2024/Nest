@@ -5,8 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Nest.Views"
         mc:Ignorable="d"
-        Title="ShellView" Height="450" Width="800">
+        Title="Hotel Management System" 
+        Height="650" Width="900"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanMinimize">
     <Grid>
-        
+        <ContentControl x:Name="ActiveItem"/>
     </Grid>
 </Window>

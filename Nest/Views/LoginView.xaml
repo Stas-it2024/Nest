@@ -1,0 +1,102 @@
+﻿<UserControl x:Class="Nest.Views.LoginView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Nest.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="650" d:DesignWidth="900">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.45*" />
+            <ColumnDefinition Width="0.55*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Linke Panel -->
+        <Border Grid.Column="0"
+                Background="#234D87">
+
+            <StackPanel VerticalAlignment="Center"
+                        HorizontalAlignment="Center">
+
+                <TextBlock Text="Grand&#10;Horizon&#10;Hotel"
+                           Foreground="White"
+                           FontSize="48"
+                           Margin="0,-80,0,0"
+                           FontWeight="Bold"
+                           TextAlignment="Center"
+                           HorizontalAlignment="Center"/>
+
+                <TextBlock Text="Management System"
+                           Margin="0,40,0,0"
+                           Foreground="#D8E4F5"
+                           FontSize="20"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Rechten Panel -->
+        <Grid Grid.Column="1"
+              Background="#F5F5F5">
+
+            <StackPanel Width="380"
+                        VerticalAlignment="Center" Cursor="">
+
+                <TextBlock Text="Mitarbeiter-Login"
+                           FontSize="42"
+                           FontWeight="Bold"
+                           Foreground="#234D87"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,40"/>
+
+                <!-- Benutzername -->
+                <TextBlock Text="Benutzername"
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,10"/>
+
+                <TextBox Height="38"
+                         FontSize="18"
+                         Margin="0,0,0,25"
+                         VerticalContentAlignment="Center"/>
+
+                <!-- Passwort -->
+                <TextBlock Text="Passwort"
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,10"/>
+
+                <PasswordBox Height="38"
+                             FontSize="18"
+                             VerticalContentAlignment="Center"/>
+
+                <CheckBox Content="Passwort anzeigen"
+                          Margin="0,15,0,25"
+                          FontSize="16"/>
+
+                <!-- Eintrittaste -->
+                <Button Content="ANMELDEN"
+                        Style="{StaticResource BlueButton}"/>
+
+                <!-- Registrieren -->
+                <Button Content="Konto erstellen"
+                        Style="{StaticResource LinkButton}"
+                        Margin="0,12,0,15"/>
+
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Margin="0,0,0,20">
+
+                    <TextBlock Text="------ GASTBEREICH ------"
+                               Foreground="#C0C0C0"
+                               FontSize="14"/>
+
+                </StackPanel>
+
+                <!-- Taste für User -->
+                <Button Content="Als Gast buchen (Kundenportal)"
+                        Style="{StaticResource GreenButton}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

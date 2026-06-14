@@ -7,7 +7,11 @@ using System.Threading.Tasks;
 
 namespace Nest.ViewModels
 {
-    public class ShellViewModel : Screen
+    public class ShellViewModel : Conductor<object>
     {
+        public ShellViewModel()
+        {
+            ActivateItemAsync(new LoginViewModel());
+        }
     }
 }
