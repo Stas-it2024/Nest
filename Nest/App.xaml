@@ -15,11 +15,11 @@
 
                 <Setter Property="Background" Value="#234D87"/>
                 <Setter Property="Foreground" Value="White"/>
-                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="FontSize" Value="18"/>
                 <Setter Property="FontWeight" Value="Bold"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="Height" Value="55"/>
+                <Setter Property="Height" Value="45"/>
 
                 <Setter Property="Template">
                     <Setter.Value>
@@ -27,8 +27,8 @@
 
                             <Border Background="{TemplateBinding Background}">
                                 <ContentPresenter
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"/>
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
                             </Border>
 
                             <ControlTemplate.Triggers>
@@ -56,7 +56,7 @@
                 <Setter Property="Foreground" Value="White"/>
                 <Setter Property="FontSize" Value="18"/>
                 <Setter Property="FontWeight" Value="Bold"/>
-                <Setter Property="Height" Value="55"/>
+                <Setter Property="Height" Value="45"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="Cursor" Value="Hand"/>
 
@@ -66,8 +66,8 @@
 
                             <Border Background="{TemplateBinding Background}">
                                 <ContentPresenter
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"/>
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
                             </Border>
 
                             <ControlTemplate.Triggers>
@@ -102,10 +102,12 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
 
-                            <Border Background="{TemplateBinding Background}">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
                                 <ContentPresenter
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"/>
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
                             </Border>
 
                             <ControlTemplate.Triggers>
@@ -123,7 +125,6 @@
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
-
             </Style>
         </ResourceDictionary>
     </Application.Resources>

@@ -1,0 +1,111 @@
+﻿<UserControl x:Class="Nest.Views.CustomerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:cal="http://www.caliburnproject.org"
+             xmlns:local="clr-namespace:Nest.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="650" d:DesignWidth="900">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.45*" />
+            <ColumnDefinition Width="0.55*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Linke Panel -->
+        <Border Grid.Column="0"
+                Background="#234D87">
+
+            <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+
+                <TextBlock Text="Grand&#10;Horizon&#10;Hotel"
+                           Foreground="White"
+                           FontSize="48"
+                           FontWeight="Bold"
+                           TextAlignment="Center"
+                           HorizontalAlignment="Center"/>
+                
+                <TextBlock Text="Ihr Komfort ist unsere Prioritaet"                    FontSize="18"
+                           Margin="0,20,0,0"
+                           Foreground="#D6E2F3"
+                           FontStyle="Italic"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"/>
+
+                <TextBlock Text="Zimmer buchen&#10;Auto mieten&#10;Taxi bestellen&#10;Restaurant reservieren"
+                           FontSize="18"
+                           Margin="0,60,0,0"
+                           Foreground="#D6E2F3"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"/>
+
+            </StackPanel>
+        </Border>
+
+        <!-- Rechte Panel -->
+        <Border Grid.Column="1"
+        Background="#F7F7F7">
+
+            <Grid>
+
+                <StackPanel Width="380"
+                    VerticalAlignment="Center">
+
+                    <TextBlock Text="Willkommen, Gast!"
+                               FontSize="34"
+                               FontWeight="Bold"
+                               Foreground="#214F8B"
+                               Margin="0,32,0,15"/>
+
+                    <TextBlock Text="Kein Konto erforderlich - geben Sie einfach&#10;Ihren Namen ein und buchen Sie sofort!"
+                               FontSize="16"
+                               Foreground="#888888"
+                               Margin="0,0,0,60"/>
+
+                    <TextBlock Text="Ihr Name (optional)"
+                               FontWeight="Bold"
+                               FontSize="16"
+                               Margin="0,0,0,10"/>
+
+                    <TextBox Height="30"
+                             FontSize="16"
+                             VerticalContentAlignment="Center"
+                             Padding="10,0"
+                             Margin="0,0,0,40"/>
+
+                    <!-- BLUE BUTTON -->
+                    <Button Content="BUCHUNGSPORTAL BETRETEN"
+                            Style="{StaticResource BlueButton}"/>
+
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Margin="0,40,0,20">
+
+                        <TextBlock Text="------ oder ------"
+                                Foreground="#C0C0C0"
+                                FontSize="16"/>
+
+                    </StackPanel>
+
+                    <!-- LINK BUTTON -->
+                    <Button Content="Mitarbeiter-Login"
+                        Style="{StaticResource LinkButton}"
+                        cal:Message.Attach="ShowLogin"
+                        Height="45"
+                        BorderBrush="#214F8B"
+                        BorderThickness="2" Cursor="Hand"/>
+
+                    <TextBlock Text="Grand Horizon Hotel - Buchungssystem v1.0"
+                       Margin="0,20,0,0"
+                       FontSize="14"
+                       Foreground="#D0D0D0"
+                       HorizontalAlignment="Center"/>
+
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

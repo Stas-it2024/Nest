@@ -6,20 +6,19 @@ using System.Threading.Tasks;
 
 namespace Nest.ViewModels
 {
-    public class LoginViewModel
+    public class CustomerViewModel
     {
         private readonly ShellViewModel _shell;
 
-        public LoginViewModel(ShellViewModel shell)
+        public CustomerViewModel(ShellViewModel shell)
         {
             _shell = shell;
         }
 
-
-        public async Task ShowCustomer()
+        public async Task ShowLogin()
         {
-            _shell.WindowTitle = "Hotel Management System - Kundenportal";
-            _shell.ShowCustomer();
+            _shell.WindowTitle = "Hotel Management System - Login";
+            _shell.ShowLogin();
         }
     }
 }
