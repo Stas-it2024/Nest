@@ -15,10 +15,18 @@ namespace Nest.ViewModels
             _shell = shell;
         }
 
-        public async Task ShowLogin()
+        public void ShowLogin()
         {
             _shell.WindowTitle = "Hotel Management System - Login";
             _shell.ShowLogin();
+
+
+        }
+
+        public void ShowCustomerPortal()
+        {
+            _shell.WindowTitle = "Hotel Management System - Kundenportal";
+            _shell.ShowCustomerPortal();
         }
     }
 }

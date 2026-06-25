@@ -36,5 +36,21 @@ namespace Nest.ViewModels
         {
             ActivateItemAsync(new LoginViewModel(this));
         }
+
+        // für Reception hinzufügen
+        public void ShowReception()
+        {
+            ActivateItemAsync(new ReceptionViewModel(this));
+        }
+
+        public void ShowCustomerPortal()
+        {
+            ActivateItemAsync(new CustomerPortalViewModel(this));
+        }
+
+        internal void ShowAdmin()
+        {
+            ActivateItemAsync(new AdminViewModel(this));
+        }
     }
 }

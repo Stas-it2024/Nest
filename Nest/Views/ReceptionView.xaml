@@ -1,0 +1,360 @@
+﻿<UserControl x:Class="Nest.Views.ReceptionView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Nest.Views"
+        mc:Ignorable="d"
+        Height="auto" Width="1200">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="350"/>
+            <ColumnDefinition Width="600"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="#0A1E3D">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="70"/>
+                    <RowDefinition Height="1"/>
+                    <RowDefinition Height="44"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="92"/>
+                </Grid.RowDefinitions>
+
+                <!-- Logo -->
+                <Label Grid.Row="0" 
+
+                       Content="Grand Horizon Hotel"
+
+                       FontWeight="Bold"
+
+                       FontSize="13"
+
+                       Foreground="White"
+
+                       HorizontalContentAlignment="Center"
+
+                       VerticalContentAlignment="Center"/>
+
+                <!-- Divider -->
+                <Border Grid.Row="1" Background="#325078" Height="1"/>
+
+                <!-- Logged User -->
+                <Label Grid.Row="2"
+
+                       Content="Reception"
+
+                       FontSize="15"
+
+                       Foreground="#B4D2F0"
+
+                       HorizontalContentAlignment="Center"
+
+                       VerticalContentAlignment="Center"/>
+
+                <!-- Navigation Buttons mit Click-Events -->
+                <StackPanel Grid.Row="3" Margin="0,10,0,0">
+                    <Button Name="btnReservations"
+
+                            Style="{StaticResource RecBlueButton}"
+
+                            Content="  Reservierungen"
+
+                            />
+
+                    <Button Name="btnGuests"
+
+                            Style="{StaticResource RecBlueButton}"
+
+                            Content="  Gaeste"
+
+                            />
+
+                    <Button Name="btnAllRes"
+
+                            Style="{StaticResource RecBlueButton}"
+
+                            Content="  Alle Buchungen"
+
+                            />
+
+                    <Button Name="btnPortal"
+
+                            Style="{StaticResource RecBlueButton}"
+
+                            Content="  Kundenportal"
+
+                            />
+                </StackPanel>
+
+                <!-- Bottom Bar -->
+                <Border Grid.Row="4" >
+                    <StackPanel>
+                        <Button Name="btnLogout"
+
+                                Background="#0F284B"
+
+                                Foreground="#FFFF7676"
+
+                                Style="{StaticResource RecBlueButton}"
+
+                                Content="  Abmelden"
+
+                                />
+
+                        <Button Name="btnExit"
+
+                                Background="#0F284B"
+
+                                Style="{StaticResource RecBlueButton}"
+
+                                Content="  Beenden"
+
+                                />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Gastinformationen -->
+        <Border Grid.Column="1" Background="#F0F4F8">
+            <Grid Margin="15,3,15,3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Title: Gästinformationen -->
+                <TextBlock Grid.Row="0" 
+
+                   Text="Gästinformationen" 
+
+                   FontSize="16" 
+
+                   FontWeight="Bold" 
+
+                   Foreground="#FF174A92"
+                   Margin="0,0,0,3"/>
+
+                <!-- Row 1: Vorname * | Nachname * -->
+                <Grid Grid.Row="1" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Vorname *"/>
+                        <TextBox Style="{StaticResource RecTextBox}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Nachname *"/>
+                        <TextBox Style="{StaticResource RecTextBox}"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Row 2: E-Mail | Telefon -->
+                <Grid Grid.Row="2" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="E-Mail"/>
+                        <TextBox Style="{StaticResource RecTextBox}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Telefon"/>
+                        <TextBox Style="{StaticResource RecTextBox}"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Row 3: Ausweistyp | Ausweisnummer -->
+                <Grid Grid.Row="3" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Ausweistyp"/>
+                        <ComboBox Style="{StaticResource RecComboBox}">
+                            <ComboBoxItem Content="Reisepass"/>
+                            <ComboBoxItem Content="Personalausweis"/>
+                            <ComboBoxItem Content="Führerschein"/>
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Ausweisnummer"/>
+                        <TextBox Style="{StaticResource RecTextBox}"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Row 4: Nationalität (full width) -->
+                <Grid Grid.Row="4" Margin="0,0,0,3">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Nationalität"/>
+                        <TextBox Style="{StaticResource RecTextBox}"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Divider Line -->
+                <Border Grid.Row="5" Background="#D0D0D0" Height="1" Margin="0,2,0,2"/>
+
+                <!-- Title: Zimmer Aufenthalt -->
+                <TextBlock Grid.Row="6" 
+
+                   Text="Zimmer Aufenthalt" 
+
+                   FontSize="14" 
+
+                   FontWeight="Bold" 
+
+                   Foreground="#FF174A92"
+                   Margin="0,0,0,3"/>
+
+                <!-- Zimmer * (full width) -->
+                <Grid Grid.Row="7" Margin="0,0,0,3">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Zimmer *"/>
+                        <ComboBox Style="{StaticResource RecComboBox}">
+                            <ComboBoxItem Content="101 - Standard (€59.99/Nacht)"/>
+                            <ComboBoxItem Content="102 - Standard (€59.99/Nacht)"/>
+                            <ComboBoxItem Content="201 - Deluxe (€89.99/Nacht)"/>
+                            <ComboBoxItem Content="202 - Deluxe (€89.99/Nacht)"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Check-in & Check-out -->
+                <Grid Grid.Row="8" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Check-in *"/>
+                        <DatePicker Style="{StaticResource RecDatePicker}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Check-out *"/>
+                        <DatePicker Style="{StaticResource RecDatePicker}"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Nächte & Preis -->
+                <Grid Grid.Row="9" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Nächte"/>
+                        <TextBox Style="{StaticResource RecTextBox}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Preis (€)"/>
+                        <TextBox Style="{StaticResource RecTextBox}" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Erwachsene & Kinder -->
+                <Grid Grid.Row="10" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Erwachsene"/>
+                        <ComboBox Style="{StaticResource RecComboBox}" SelectedIndex="1">
+                            <ComboBoxItem Content="0"/>
+                            <ComboBoxItem Content="1"/>
+                            <ComboBoxItem Content="2"/>
+                            <ComboBoxItem Content="3"/>
+                            <ComboBoxItem Content="4"/>
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Kinder"/>
+                        <ComboBox Style="{StaticResource RecComboBox}" SelectedIndex="0">
+                            <ComboBoxItem Content="0"/>
+                            <ComboBoxItem Content="1"/>
+                            <ComboBoxItem Content="2"/>
+                            <ComboBoxItem Content="3"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Zahlungsmethode & Anzahlung -->
+                <Grid Grid.Row="11" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Zahlungsmethode"/>
+                        <ComboBox Style="{StaticResource RecComboBox}" SelectedIndex="0">
+                            <ComboBoxItem Content="Bar"/>
+                            <ComboBoxItem Content="Kreditkarte"/>
+                            <ComboBoxItem Content="PayPal"/>
+                            <ComboBoxItem Content="Überweisung"/>
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Anzahlung (€)"/>
+                        <TextBox Style="{StaticResource RecTextBox}" Text="0,00"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Sonderwünsche -->
+                <TextBlock Grid.Row="12" Text="Sonderwünsche" FontSize="12" Foreground="#333" Margin="0,0,0,0"/>
+                <TextBox Grid.Row="13" Style="{StaticResource RecTextBox}" Height="30" 
+
+                 TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+
+                <!-- RESERVIERUNG SPEICHERN Button -->
+                <Button Grid.Row="14" 
+
+                Style="{StaticResource BlueButton}"
+
+                Content="RESERVIERUNG SPEICHERN"
+
+                Height="40"
+
+                FontSize="13"
+                />
+            </Grid>
+        </Border>
+
+        <!-- Content Panel -->
+        <Border Grid.Column="2" Background="#F0F4F8">
+            <Grid>
+                <!-- hir kommen die datenbank-tabelle -->
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
+ 

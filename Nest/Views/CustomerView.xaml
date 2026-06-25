@@ -26,8 +26,9 @@
                            FontWeight="Bold"
                            TextAlignment="Center"
                            HorizontalAlignment="Center"/>
-                
-                <TextBlock Text="Ihr Komfort ist unsere Prioritaet"                    FontSize="18"
+
+                <TextBlock Text="Ihr Komfort ist unsere Prioritaet"                    
+                           FontSize="18"
                            Margin="0,20,0,0"
                            Foreground="#D6E2F3"
                            FontStyle="Italic"
@@ -77,7 +78,8 @@
 
                     <!-- BLUE BUTTON -->
                     <Button Content="BUCHUNGSPORTAL BETRETEN"
-                            Style="{StaticResource BlueButton}"/>
+                            Style="{StaticResource BlueButton}"
+                            x:Name="ShowCustomerPortal"/>
 
 
                     <StackPanel Orientation="Horizontal"
@@ -93,7 +95,7 @@
                     <!-- LINK BUTTON -->
                     <Button Content="Mitarbeiter-Login"
                         Style="{StaticResource LinkButton}"
-                        cal:Message.Attach="ShowLogin"
+                        x:Name="ShowLogin"
                         Height="45"
                         BorderBrush="#214F8B"
                         BorderThickness="2" Cursor="Hand"/>

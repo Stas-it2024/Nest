@@ -55,9 +55,11 @@
                            FontWeight="SemiBold"
                            Margin="0,0,0,10"/>
 
-                <TextBox Height="30"
-                         FontSize="18"
+                <TextBox Text="{Binding UserName}"
+                         Height="30"
+                         FontSize="16"
                          Margin="0,0,0,25"
+                         Padding="5,-2,0,0"
                          VerticalContentAlignment="Center"/>
 
                 <!-- Passwort -->
@@ -66,8 +68,11 @@
                            FontWeight="SemiBold"
                            Margin="0,0,0,10"/>
 
-                <PasswordBox Height="30"
+                <PasswordBox cal:Message.Attach="[Event PasswordChanged] = [Action SetPassword($source)]"
+                             Visibility="{Binding PasswordBoxVisibility}"
+                             Height="30"
                              FontSize="16"
+                             Padding="5,-2,0,0"
                              VerticalContentAlignment="Center"/>
 
                 <CheckBox Content="Passwort anzeigen"
@@ -76,7 +81,8 @@
 
                 <!-- Eintrittaste -->
                 <Button Content="ANMELDEN"
-                        Style="{StaticResource BlueButton}"/>
+                        Style="{StaticResource BlueButton}"
+                        x:Name="Login"/>
 
                 <!-- Registrieren -->
                 <Button Content="Konto erstellen"
@@ -96,7 +102,7 @@
                 <!-- Taste für User -->
                 <Button Content="Als Gast buchen (Kundenportal)"
                         Style="{StaticResource GreenButton}"
-                        cal:Message.Attach="ShowCustomer"/>
+                        x:Name="ShowCustomer"/>
             </StackPanel>
         </Grid>
     </Grid>

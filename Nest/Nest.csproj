@@ -10,10 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Caliburn.Micro" Version="5.0.258" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Models\" />
+    <PackageReference Include="MySql.Data" Version="9.7.0" />
   </ItemGroup>
 
 </Project>

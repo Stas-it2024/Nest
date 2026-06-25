@@ -1,0 +1,309 @@
+﻿<UserControl x:Class="Nest.Views.CustomerPortalView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Height="650" Width="900">
+
+    <UserControl.Resources>
+        <!-- Einheitlicher Stil für alle Hauptschaltflächen (Blau) -->
+        <Style x:Key="PrimaerAktionButtonStil" TargetType="Button">
+            <Setter Property="Background" Value="#1F497D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,10,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="DarkSlateGray" BorderThickness="1"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Stil für die Abmelden-Schaltfläche (Rot) -->
+        <Style x:Key="AbmeldenButtonStil" TargetType="Button">
+            <Setter Property="Background" Value="DarkRed"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="DarkRed" BorderThickness="1"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Kopfzeile (Title + Logout button) -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" FontSize="24" FontWeight="Bold" 
+                       Margin="0,0,0,10" Foreground="#1F497D" VerticalAlignment="Center">
+                Grand Horizon Hotel - Kundenportal
+            </TextBlock>
+            <Button Grid.Column="1" Content="Abmelden"
+                    Command="{Binding AbmeldenBefehl}"
+                    Style="{StaticResource AbmeldenButtonStil}"
+                    VerticalAlignment="Center" Margin="10,0,0,0"/>
+        </Grid>
+
+        <!-- TabControl mit allen Diensten -->
+        <TabControl Grid.Row="1" FontWeight="Bold">
+
+            <!-- =============== 1. ZIMMER BUCHEN =============== -->
+            <TabItem Header="Zimmer buchen">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+
+                        <!-- Kontaktdaten -->
+                        <GroupBox Header="Ihre Kontaktdaten">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Vorname *" Margin="5,5,5,0"/>
+                                <TextBox Grid.Row="0" Grid.Column="1" 
+                                         Text="{Binding ZimmerBuchen.Vorname, UpdateSourceTrigger=PropertyChanged}" 
+                                         Margin="5"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Nachname *" Margin="5"/>
+                                <TextBox Grid.Row="1" Grid.Column="1" 
+                                         Text="{Binding ZimmerBuchen.Nachname, UpdateSourceTrigger=PropertyChanged}" 
+                                         Margin="5"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Nationalität" Margin="5"/>
+                                <TextBox Grid.Row="2" Grid.Column="1" 
+                                         Text="{Binding ZimmerBuchen.Nationalitaet}" 
+                                         Margin="5"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="E-Mail" Margin="5"/>
+                                <TextBox Grid.Row="3" Grid.Column="1" 
+                                         Text="{Binding ZimmerBuchen.Email}" 
+                                         Margin="5"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Telefon" Margin="5"/>
+                                <TextBox Grid.Row="4" Grid.Column="1" 
+                                         Text="{Binding ZimmerBuchen.Telefon}" 
+                                         Margin="5"/>
+                            </Grid>
+                        </GroupBox>
+
+                        <!-- Zimmerbuchung -->
+                        <GroupBox Header="Zimmerbuchung" Margin="0,10,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Verfügbare Zimmer *"/>
+                                <ComboBox ItemsSource="{Binding ZimmerBuchen.VerfuegbareZimmer}"
+                                          SelectedItem="{Binding ZimmerBuchen.AusgewaehltesZimmer}"
+                                          DisplayMemberPath="AnzeigeText"
+                                          Margin="0,5,0,10"/>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Check-in *"/>
+                                        <DatePicker SelectedDate="{Binding ZimmerBuchen.Anreise}" Margin="0,5,10,5"/>
+                                        <TextBlock Text="Check-out *"/>
+                                        <DatePicker SelectedDate="{Binding ZimmerBuchen.Abreise}" Margin="0,5,10,5"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="Erwachsene *"/>
+                                        <TextBox Text="{Binding ZimmerBuchen.Erwachsene}" Margin="0,5,0,5"/>
+                                        <TextBlock Text="Kinder"/>
+                                        <TextBox Text="{Binding ZimmerBuchen.Kinder}" Margin="0,5,0,5"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Text="Sonderwünsche" Margin="0,10,0,0"/>
+                                <TextBox Text="{Binding ZimmerBuchen.Sonderwuensche}" 
+                                         AcceptsReturn="True" Height="60" TextWrapping="Wrap"/>
+
+                                <TextBlock Text="{Binding ZimmerBuchen.GesamtbetragText}" 
+                                           FontSize="16" FontWeight="Bold" Margin="0,15,0,5" Foreground="#1F497D"/>
+
+                                <Button Content="ZIMMER JETZT BUCHEN"
+                                        Command="{Binding ZimmerBuchen.ZimmerBuchenBefehl}"
+                                        Style="{StaticResource PrimaerAktionButtonStil}"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- =============== 2. AUTO MIETEN =============== -->
+            <TabItem Header="Auto mieten">
+                <StackPanel Margin="10">
+                    <GroupBox Header="Fahrzeug mieten">
+                        <StackPanel>
+                            <TextBlock Text="Ihr Name *"/>
+                            <TextBox Text="{Binding AutoMieten.FahrerName}" Margin="0,5,0,10"/>
+
+                            <TextBlock Text="Telefon *"/>
+                            <TextBox Text="{Binding AutoMieten.Telefon}" Margin="0,5,0,10"/>
+
+                            <TextBlock Text="Fahrzeugkategorie *"/>
+                            <ComboBox ItemsSource="{Binding AutoMieten.Kategorien}"
+                                      SelectedItem="{Binding AutoMieten.AusgewaehlteKategorie}"
+                                      DisplayMemberPath="AnzeigeText"
+                                      Margin="0,5,0,10"/>
+
+                            <TextBlock Text="Abholdatum"/>
+                            <DatePicker SelectedDate="{Binding AutoMieten.Abholdatum}" Margin="0,5,0,10"/>
+
+                            <TextBlock Text="Rückgabedatum"/>
+                            <DatePicker SelectedDate="{Binding AutoMieten.Rueckgabedatum}" Margin="0,5,0,10"/>
+
+                            <TextBlock Text="{Binding AutoMieten.PreisInfo}" 
+                                       FontWeight="Bold" Margin="0,10,0,5" Foreground="#1F497D"/>
+
+                            <Button Content="AUTO JETZT MIETEN"
+                                    Command="{Binding AutoMieten.AutoMietenBefehl}"
+                                    Style="{StaticResource PrimaerAktionButtonStil}"/>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </TabItem>
+
+            <!-- =============== 3. TAXI BESTELLEN =============== -->
+            <TabItem Header="Taxi bestellen">
+                <StackPanel Margin="10">
+                    <GroupBox Header="Taxi bestellen">
+                        <StackPanel>
+                            <TextBlock Text="Ihr Name *"/>
+                            <TextBox Text="{Binding TaxiBestellen.KundenName}" Margin="0,5,0,10"/>
+
+                            <TextBlock Text="Abholort *"/>
+                            <TextBox Text="{Binding TaxiBestellen.Abholort}" Margin="0,5,0,10"/>
+
+                            <TextBlock Text="Zielort *"/>
+                            <TextBox Text="{Binding TaxiBestellen.Zielort}" Margin="0,5,0,10"/>
+
+                            <TextBlock Text="Abholzeit *"/>
+                            <DatePicker SelectedDate="{Binding TaxiBestellen.Abholdatum}" Margin="0,5,0,5"/>
+                            <TextBox Text="{Binding TaxiBestellen.Abholzeit}" Margin="0,5,0,10" ToolTip="z.B. 11:41"/>
+
+                            <TextBlock Text="Fahrzeugtyp"/>
+                            <ComboBox ItemsSource="{Binding TaxiBestellen.Fahrzeugtypen}"
+                                      SelectedItem="{Binding TaxiBestellen.AusgewaehlterFahrzeugtyp}"
+                                      DisplayMemberPath="AnzeigeText"
+                                      Margin="0,5,0,10"/>
+
+                            <Button Content="TAXI JETZT BESTELLEN"
+                                    Command="{Binding TaxiBestellen.TaxiBestellenBefehl}"
+                                    Style="{StaticResource PrimaerAktionButtonStil}"/>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </TabItem>
+
+            <!-- =============== 4. RESTAURANT =============== -->
+            <TabItem Header="Restaurant">
+                <StackPanel Margin="10">
+                    <GroupBox Header="Tischreservierung">
+                        <StackPanel>
+                            <TextBlock Text="Ihr Name *"/>
+                            <TextBox Text="{Binding RestaurantReservierung.KundenName}" Margin="0,5,0,10"/>
+
+                            <TextBlock Text="Datum / Uhrzeit *"/>
+                            <DatePicker SelectedDate="{Binding RestaurantReservierung.Reservierungsdatum}" Margin="0,5,0,5"/>
+                            <TextBox Text="{Binding RestaurantReservierung.Reservierungszeit}" Margin="0,5,0,10" ToolTip="z.B. 19:00"/>
+
+                            <TextBlock Text="Personenanzahl *"/>
+                            <TextBox Text="{Binding RestaurantReservierung.AnzahlGaeste}" Margin="0,5,0,10"/>
+
+                            <TextBlock Text="Anlass"/>
+                            <ComboBox ItemsSource="{Binding RestaurantReservierung.Anlaesse}"
+                                      SelectedItem="{Binding RestaurantReservierung.AusgewaehlterAnlass}"
+                                      DisplayMemberPath="AnzeigeText"
+                                      Margin="0,5,0,10"/>
+
+                            <TextBlock Text="Sonderwünsche"/>
+                            <TextBox Text="{Binding RestaurantReservierung.Sonderwuensche}" 
+                                     AcceptsReturn="True" Height="60" TextWrapping="Wrap"/>
+
+                            <Button Content="TISCH RESERVIEREN"
+                                    Command="{Binding RestaurantReservierung.TischReservierenBefehl}"
+                                    Style="{StaticResource PrimaerAktionButtonStil}"/>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </TabItem>
+
+            <!-- =============== 5. EVENTS & TICKETS =============== -->
+            <TabItem Header="Events &amp; Tickets">
+                <StackPanel Margin="10">
+                    <GroupBox Header="Aktuelle Hotel-Events">
+                        <StackPanel>
+                            <!-- Jetzt ebenfalls in Blau -->
+                            <Button Content="Aktualisieren"
+                                    Command="{Binding Veranstaltungen.LadeVeranstaltungenBefehl}"
+                                    Width="120" Height="35" Margin="0,0,0,10"
+                                    Background="#1F497D" Foreground="White"
+                                    FontWeight="Bold" Cursor="Hand"
+                                    HorizontalAlignment="Left"/>
+
+                            <ItemsControl ItemsSource="{Binding Veranstaltungen.Veranstaltungen}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="LightGray" BorderThickness="1" Margin="0,0,0,10" Padding="10" CornerRadius="5">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Titel}" FontWeight="Bold" FontSize="16" Foreground="#1F497D"/>
+                                                <TextBlock Text="{Binding Beschreibung}" TextWrapping="Wrap" Margin="0,5,0,5"/>
+                                                <TextBlock Text="{Binding Datum, StringFormat={}{0:dd.MM.yyyy HH:mm}}" FontSize="12" Foreground="DarkGray"/>
+
+                                                <Button Content="Tickets buchen"
+                                                        Command="{Binding DataContext.Veranstaltungen.TicketKaufenBefehl, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource PrimaerAktionButtonStil}"
+                                                        Width="140" Height="30" FontSize="12"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </TabItem>
+
+        </TabControl>
+
+        <!-- Abmelden-Button wurde in die Kopfzeile verschoben (oben rechts) -->
+    </Grid>
+</UserControl>
