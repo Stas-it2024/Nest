@@ -6,7 +6,7 @@
              xmlns:cal="http://www.caliburnproject.org"
              xmlns:local="clr-namespace:Nest.Views"
              mc:Ignorable="d" 
-             d:DesignHeight="650" d:DesignWidth="900">
+             d:DesignHeight="520" d:DesignWidth="800">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.45*" />
@@ -40,7 +40,7 @@
         <Grid Grid.Column="1"
               Background="#F5F5F5">
 
-            <StackPanel Width="380"
+            <StackPanel Margin="40"
                         VerticalAlignment="Center" Cursor="">
 
                 <TextBlock Text="Mitarbeiter-Login"

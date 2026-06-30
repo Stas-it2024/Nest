@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Nest.Views"
         mc:Ignorable="d"
-        Height="auto" Width="1200">
+        d:Height="auto" d:Width="1920">
 
     <Grid>
         <Grid.ColumnDefinitions>

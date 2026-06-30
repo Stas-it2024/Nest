@@ -6,9 +6,10 @@
         xmlns:local="clr-namespace:Nest.Views"
         mc:Ignorable="d"
         Title="{Binding WindowTitle}" 
-        Height="650" Width="900"
-        WindowStartupLocation="CenterScreen"
-        ResizeMode="CanMinimize">
+        Width="820"
+        Height="600"
+        ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen">
     <Grid>
         <ContentControl x:Name="ActiveItem"/>
     </Grid>

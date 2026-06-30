@@ -5,13 +5,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media.Media3D;
 
 namespace Nest.ViewModels
 {
     public class ShellViewModel : Conductor<object>
     {
-        private string _windowTitle = "Hotel Management System";
-
+        private string _windowTitle;
+        
         public string WindowTitle
         {
             get => _windowTitle;
@@ -34,22 +36,44 @@ namespace Nest.ViewModels
 
         public void ShowLogin()
         {
+            var window = Application.Current.MainWindow;
+
+            window.WindowState = WindowState.Normal;
+            window.Width = 820;
+            window.Height = 600;
+            window.ResizeMode = ResizeMode.CanMinimize;
+
             ActivateItemAsync(new LoginViewModel(this));
         }
 
         // für Reception hinzufügen
         public void ShowReception()
         {
+            var window = Application.Current.MainWindow;
+
+            window.WindowState = WindowState.Maximized;
+            window.ResizeMode = ResizeMode.CanResize;
+
             ActivateItemAsync(new ReceptionViewModel(this));
         }
 
         public void ShowCustomerPortal()
         {
+            var window = Application.Current.MainWindow;
+
+            window.WindowState = WindowState.Maximized;
+            window.ResizeMode = ResizeMode.CanResize;
+
             ActivateItemAsync(new CustomerPortalViewModel(this));
         }
 
         internal void ShowAdmin()
         {
+            var window = Application.Current.MainWindow;
+
+            window.WindowState = WindowState.Maximized;
+            window.ResizeMode = ResizeMode.CanResize;
+
             ActivateItemAsync(new AdminViewModel(this));
         }
     }
