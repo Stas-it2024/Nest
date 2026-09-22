@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,13 +17,13 @@ namespace Nest.Models
 
         public DateTime DateAdded { get; set; }
         public DateTime? DateDelete { get; set; }
-        public int Id
-        {
+        public int Id 
+        { 
             get => _id;
-            set
-            {
-                _id = value;
-            }
+            set 
+            { 
+                _id = value; 
+            } 
         }
 
         public string UserName

@@ -1,10 +1,5 @@
-﻿using Caliburn.Micro;
-using Nest.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Caliburn.Micro;
+using Nest.ViewModels.Shell;
 using System.Windows;
 
 namespace Nest

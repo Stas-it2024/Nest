@@ -1,0 +1,1386 @@
+﻿<UserControl x:Class="Nest.Views.CustomerPortal.CustomerPortalView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:cal="http://www.caliburnproject.org"
+             mc:Ignorable="d" 
+             d:DesignHeight="1080" d:DesignWidth="1920"
+             Background="#F4F7FB"
+             FontFamily="Segoe UI">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <!-- ===== Stil für moderne Outlined-Textboxen (aus deinem neuen Design) ===== -->
+        <Style x:Key="OutlinedTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="CaretBrush" Value="#1F2937"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Grid>
+                            <Border BorderBrush="#8A8A8A"
+                                    BorderThickness="1"
+                                    CornerRadius="0"
+                                    Margin="0,12,0,0"/>
+                            <Grid Margin="-1,0,50,0"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Top"
+                                  Height="14">
+                                <Border Background="White"
+                                        Width="200"
+                                        Padding="5,0">
+                                    <TextBlock Text="{TemplateBinding Tag}"
+                                               Foreground="#666"
+                                               FontSize="12"/>
+                                </Border>
+                            </Grid>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="5,10,8,0"
+                                          VerticalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Stil für Hauptschaltflächen (dein vorhandener) -->
+        <Style x:Key="PrimaerAktionButtonStil" TargetType="Button">
+            <Setter Property="Background" Value="#1F497D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,10,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="DarkSlateGray" BorderThickness="1"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Lokales Gestaltungssystem für Auto, Taxi und Restaurant. -->
+        <Style x:Key="KundenFormKartenStil" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#D8E1EC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#22364D"
+                                      BlurRadius="10"
+                                      ShadowDepth="2"
+                                      Opacity="0.08"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="KundenFormTitelStil" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#173A67"/>
+        </Style>
+
+        <Style x:Key="KundenFormLabelStil" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#28384A"/>
+            <Setter Property="Margin" Value="0,0,0,7"/>
+        </Style>
+
+        <Style x:Key="KundenFormTextBoxStil" TargetType="TextBox">
+            <Setter Property="MinHeight" Value="44"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#B8C5D4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="EingabeRahmen"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="Stretch"
+                                          VerticalAlignment="Stretch"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="EingabeRahmen" Property="BorderBrush" Value="#7794B5"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="EingabeRahmen" Property="BorderBrush" Value="#1F497D"/>
+                                <Setter TargetName="EingabeRahmen" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="EingabeRahmen" Property="Background" Value="#EEF2F6"/>
+                                <Setter Property="Foreground" Value="#7B8794"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="KundenFormMehrzeiligTextBoxStil"
+               TargetType="TextBox"
+               BasedOn="{StaticResource KundenFormTextBoxStil}">
+            <Setter Property="MinHeight" Value="100"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="VerticalContentAlignment" Value="Top"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        </Style>
+
+        <Style x:Key="KundenFormAuswahlStil" TargetType="Control">
+            <Setter Property="MinHeight" Value="44"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#B8C5D4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="#7794B5"/>
+                </Trigger>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="BorderBrush" Value="#1F497D"/>
+                    <Setter Property="BorderThickness" Value="2"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#EEF2F6"/>
+                    <Setter Property="Foreground" Value="#7B8794"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Der interne Datumstext bleibt auch in der Standard-DatePicker-Vorlage mittig. -->
+        <Style TargetType="{x:Type DatePickerTextBox}">
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="KundenFormZusammenfassungStil" TargetType="Border">
+            <Setter Property="Background" Value="#EEF5FC"/>
+            <Setter Property="BorderBrush" Value="#C8D9EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Padding" Value="16,13"/>
+        </Style>
+
+        <Style x:Key="KundenPortalBereichStil" TargetType="GroupBox">
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#D8E1EC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="HeaderTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}"
+                                   Foreground="#173A67"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Margin="4,0,4,4"/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ZimmerVorschauKartenStil" TargetType="Border">
+            <Setter Property="Background" Value="#F7F9FC"/>
+            <Setter Property="BorderBrush" Value="#D8E1EC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="9"/>
+            <Setter Property="Padding" Value="14"/>
+        </Style>
+
+        <Style x:Key="EventKartenStil" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#D8E1EC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <Style x:Key="KundenFormAktionStil"
+               TargetType="Button">
+            <Setter Property="Height" Value="52"/>
+            <Setter Property="Background" Value="#1F497D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#1F497D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="17"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#173C6E"/>
+                    <Setter Property="BorderBrush" Value="#173C6E"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#102C50"/>
+                    <Setter Property="BorderBrush" Value="#102C50"/>
+                </Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="#76A9DC"/>
+                    <Setter Property="BorderThickness" Value="3"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#A9B5C3"/>
+                    <Setter Property="BorderBrush" Value="#A9B5C3"/>
+                    <Setter Property="Foreground" Value="#F5F7FA"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="KundenPortalTabStil" TargetType="TabItem">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Margin" Value="0,0,3,0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="TabRahmen"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="Transparent"
+                                BorderThickness="0,0,0,3"
+                                CornerRadius="6,6,0,0"
+                                TextElement.Foreground="{TemplateBinding Foreground}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabRahmen" Property="Background" Value="#E4EDF7"/>
+                                <Setter TargetName="TabRahmen" Property="TextElement.Foreground" Value="#173A67"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="TabRahmen" Property="Background" Value="#1F497D"/>
+                                <Setter TargetName="TabRahmen" Property="BorderBrush" Value="#163A68"/>
+                                <Setter TargetName="TabRahmen" Property="TextElement.Foreground" Value="White"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="TabRahmen" Property="Background" Value="#173C6E"/>
+                            </MultiTrigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="TabRahmen" Property="BorderBrush" Value="#76A9DC"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Stil für Abmelden-Button (dein vorhandener) -->
+        <Style x:Key="AbmeldenButtonStil" TargetType="Button">
+            <Setter Property="Background" Value="DarkRed"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="DarkRed" BorderThickness="1"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Kopfzeile im gemeinsamen Stil der Administrationsseiten -->
+        <Grid Grid.Row="0"
+              Background="#224E87"
+              Visibility="{Binding ShowPortalHeader, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0"
+                       Text="{Binding Begruessung}"
+                       FontSize="30"
+                       FontWeight="Bold"
+                       Margin="25,0"
+                       Foreground="White"
+                       VerticalAlignment="Center"/>
+            <Button Grid.Column="1" Content="Abmelden"
+                    x:Name="Abmelden"
+                    Style="{StaticResource AbmeldenButtonStil}"
+                    VerticalAlignment="Center" Margin="10,0,0,0"/>
+        </Grid>
+
+        <!-- TabControl -->
+        <TabControl Grid.Row="1"
+                    Background="#F4F7FB"
+                    BorderBrush="#D8E1EC"
+                    BorderThickness="1"
+                    ItemContainerStyle="{StaticResource KundenPortalTabStil}">
+
+            <!-- =============== 1. ZIMMER BUCHEN (NEUES DESIGN) =============== -->
+            <TabItem Header="Zimmer buchen">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              HorizontalContentAlignment="Stretch"
+                              Background="#F4F7FB">
+                    <!-- Der Tab arbeitet mit dem untergeordneten ViewModel für Zimmerbuchungen. -->
+                    <StackPanel DataContext="{Binding ZimmerBuchung}" Margin="10">
+
+                        <!-- Kontaktdaten (modern) -->
+                        <GroupBox Header="Ihre Kontaktdaten"
+                                  Margin="0,0,0,15"
+                                  Style="{StaticResource KundenPortalBereichStil}">
+                            <Grid Margin="15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Margin="5">
+                                    <TextBox Style="{StaticResource OutlinedTextBoxStyle}"
+                                             Tag="Vorname *"
+                                             Text="{Binding Vorname, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Margin="5">
+                                    <TextBox Style="{StaticResource OutlinedTextBoxStyle}"
+                                             Tag="Nachname *"
+                                             Text="{Binding Nachname, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Margin="5">
+                                    <TextBox Style="{StaticResource OutlinedTextBoxStyle}"
+                                             Tag="Nationalität"
+                                             Text="{Binding Nationalitaet}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1" Margin="5">
+                                    <TextBox Style="{StaticResource OutlinedTextBoxStyle}"
+                                             Tag="E-Mail"
+                                             Text="{Binding Email}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="5">
+                                    <TextBox Style="{StaticResource OutlinedTextBoxStyle}"
+                                             Tag="Telefon"
+                                             Text="{Binding Telefon}"/>
+                                </StackPanel>
+                            </Grid>
+                        </GroupBox>
+
+                        <!-- Zimmerbuchung (modern) -->
+                        <GroupBox Header="Zimmerbuchung"
+                                  Style="{StaticResource KundenPortalBereichStil}">
+                            <Grid Margin="15">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Verfügbare Zimmer (aus DB) -->
+                                <Grid Margin="5">
+                                    <!-- ItemsSource liefert die Liste; SelectedItem hält die aktuelle Auswahl im ViewModel. -->
+                                    <ComboBox Height="30"
+                                              Margin="0,15,0,0"
+                                              VerticalAlignment="Center"
+                                              Padding="5,7,0,0"
+                                               ItemsSource="{Binding VerfuegbareZimmer}"
+                                               SelectedItem="{Binding AusgewaehltesZimmer}"
+                                               DisplayMemberPath="DisplayText"
+                                               Foreground="#1F2937"
+                                               Background="White"/>
+                                    <Border Background="White"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Margin="0"
+                                            Padding="5,0,100,0"
+                                            Panel.ZIndex="1">
+                                        <TextBlock Text="Verfügbare Zimmer"
+                                                   FontSize="12"
+                                                   Foreground="#666"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding VerfuegbarkeitsHinweis}"
+                                               Margin="2,52,0,0"
+                                               VerticalAlignment="Top"
+                                               Foreground="#B42318"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               TextWrapping="Wrap">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <Trigger Property="Text" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+
+                                <!-- Lokale Vorschau der ausgewählten Zimmerkategorie. -->
+                                <Border Grid.Row="1"
+                                        Margin="5,18,5,0"
+                                        Style="{StaticResource ZimmerVorschauKartenStil}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="3*"/>
+                                            <ColumnDefinition Width="20"/>
+                                            <ColumnDefinition Width="2*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Grid.Column="0"
+                                                MinHeight="280"
+                                                MaxHeight="350"
+                                                Background="#E7EDF4"
+                                                CornerRadius="8"
+                                                ClipToBounds="True">
+                                            <Grid>
+                                                <Image Source="{Binding ZimmerBildQuelle}"
+                                                       Stretch="Uniform"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       MaxHeight="350">
+                                                    <Image.Style>
+                                                        <Style TargetType="Image">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IstZimmerBildVerfuegbar}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Image.Style>
+                                                </Image>
+                                                <TextBlock Text="Zimmerbild nicht verfügbar"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="#5B6472"
+                                                           FontWeight="SemiBold">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IstZimmerBildVerfuegbar}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Grid>
+                                        </Border>
+
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                            <TextBlock Text="Zimmer-Vorschau"
+                                                       Foreground="#173A67"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding ZimmerVorschauTitel}"
+                                                       Margin="0,5,0,0"
+                                                       Foreground="#1F2937"
+                                                       FontSize="20"
+                                                       FontWeight="SemiBold"
+                                                       TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding AusgewaehltesZimmer.DisplayText}"
+                                                       Margin="0,8,0,0"
+                                                       Foreground="#5B6472"
+                                                       FontSize="14"
+                                                       TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding AusgewaehltesZimmer.Description}"
+                                                       Margin="0,8,0,0"
+                                                       Foreground="#5B6472"
+                                                       TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding MaxPersonenInfo}"
+                                                       Margin="0,10,0,0"
+                                                       Foreground="#1F497D"
+                                                       FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Anreise / Abreise (Zeitraum der Buchung) -->
+                                <Grid Grid.Row="2" Margin="0,20,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="2*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Anreise -->
+                                    <Grid Margin="5">
+                                        <DatePicker Height="32"
+                                           Margin="0,14,0,0"
+                                           Padding="5,5,0,0"
+                                           SelectedDate="{Binding Anreise}"
+                                           DisplayDateStart="{Binding FruehestesAnreisedatum, Mode=OneWay}"
+                                           Foreground="#1F2937"/>
+                                        <Border Background="White"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Padding="5,0,50,0"
+                                            Panel.ZIndex="1">
+                                            <TextBlock Text="Anreise *"
+                                                FontSize="12"
+                                                 Foreground="#666"/>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Abreise -->
+                                    <Grid Grid.Column="1" Margin="5">
+                                        <DatePicker Height="32"
+                                                    Margin="0,14,0,0"
+                                                    Padding="5,5,0,0"
+                                                   SelectedDate="{Binding Abreise}"
+                                                   DisplayDateStart="{Binding FruehestesAbreisedatum, Mode=OneWay}"
+                                                   Foreground="#1F2937"/>
+                                        <Border Background="White"
+                                                     HorizontalAlignment="Left"
+                                                      VerticalAlignment="Top"
+                                                      Padding="5,0,50,0"
+                                                     Panel.ZIndex="1">
+                                            <TextBlock Text="Abreise *"
+                       FontSize="12"
+                       Foreground="#666"/>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Gesamtbetrag (Anzahl Nächte) -->
+                                    <TextBlock Grid.Column="2"
+                                          Text="{Binding GesamtbetragText}"
+                                          VerticalAlignment="Bottom"
+                                          FontSize="18"
+                                          FontStyle="Italic"
+                                          Foreground="#173A67"
+                                          Margin="5,0,0,5"/>
+                                </Grid>
+
+                                <!-- Erwachsene / Kinder -->
+                                <Grid Grid.Row="3" Margin="0,20,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="200"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid Margin="5" Grid.Column="0">
+                                        <TextBox Style="{StaticResource OutlinedTextBoxStyle}"
+                                                 Tag="Erwachsene *"
+                                                 Text="{Binding Erwachsene, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Grid>
+
+                                    <Grid Margin="5" Grid.Column="1">
+                                        <TextBox Style="{StaticResource OutlinedTextBoxStyle}"
+                                                 Tag="Kinder"
+                                                 Text="{Binding Kinder, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Grid>
+                                </Grid>
+
+                                <!-- Sonderwünsche -->
+                                <StackPanel Grid.Row="4" Margin="0,20,0,0">
+                                    <TextBox Height="60"
+                                             AcceptsReturn="True"
+                                             TextWrapping="Wrap"
+                                             Style="{StaticResource OutlinedTextBoxStyle}"
+                                             Tag="Sonderwünsche"
+                                             Text="{Binding Sonderwuensche}"/>
+                                </StackPanel>
+
+                                <!-- Gesamtbetrag (unten) -->
+                                <DockPanel Grid.Row="5" Margin="0,20,0,0">
+                                    <TextBlock FontSize="24"
+                                               FontWeight="Bold"
+                                               Foreground="#163A68"
+                                               Text="{Binding GesamtbetragText}"/>
+                                </DockPanel>
+                            </Grid>
+                        </GroupBox>
+                        <!-- Message.Attach löst die Aktion im untergeordneten DataContext aus. -->
+                        <Button Content="ZIMMER JETZT BUCHEN"
+                                cal:Message.Attach="[Action ZimmerBuchen]"
+                                Height="50"
+                                Margin="0,15,0,0"
+                                Background="#1F4D86"
+                                Foreground="White"
+                                FontWeight="Bold"
+                                FontSize="20"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- =============== 2. AUTO MIETEN =============== -->
+            <TabItem Header="Auto mieten">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              HorizontalContentAlignment="Stretch"
+                              Background="#F4F7FB">
+                    <!-- Jeder Funktionsbereich erhält sein eigenes untergeordnetes ViewModel und bleibt dadurch übersichtlich. -->
+                    <Grid DataContext="{Binding AutoMieten}"
+                          Margin="14"
+                          HorizontalAlignment="Stretch">
+                        <Border Style="{StaticResource KundenFormKartenStil}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                           Text="Fahrzeug mieten"
+                                           Style="{StaticResource KundenFormTitelStil}"/>
+
+                                <Grid Grid.Row="1" Margin="0,22,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="24"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                            <Run Text="Ihr Name"/><Run Text=" *" Foreground="#B42318"/>
+                                        </TextBlock>
+                                        <TextBox Text="{Binding FahrerName, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                            <Run Text="Telefon"/><Run Text=" *" Foreground="#B42318"/>
+                                        </TextBlock>
+                                        <TextBox Text="{Binding Telefon, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Grid.Row="2" Margin="0,20,0,0">
+                                    <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                        <Run Text="Fahrzeugkategorie"/><Run Text=" *" Foreground="#B42318"/>
+                                    </TextBlock>
+                                    <ComboBox ItemsSource="{Binding Kategorien}"
+                                              SelectedItem="{Binding AusgewaehlteKategorie}"
+                                              DisplayMemberPath="AnzeigeText"
+                                              Style="{StaticResource KundenFormAuswahlStil}"/>
+                                </StackPanel>
+
+                                <Grid Grid.Row="3" Margin="0,20,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="24"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                            <Run Text="Abholdatum"/><Run Text=" *" Foreground="#B42318"/>
+                                        </TextBlock>
+                                        <DatePicker SelectedDate="{Binding Abholdatum}"
+                                                    DisplayDateStart="{Binding FruehestesAbholdatum, Mode=OneWay}"
+                                                    Style="{StaticResource KundenFormAuswahlStil}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                            <Run Text="Rückgabedatum"/><Run Text=" *" Foreground="#B42318"/>
+                                        </TextBlock>
+                                        <DatePicker SelectedDate="{Binding Rueckgabedatum}"
+                                                    DisplayDateStart="{Binding FruehestesRueckgabedatum, Mode=OneWay}"
+                                                    Style="{StaticResource KundenFormAuswahlStil}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Grid.Row="4"
+                                        Margin="0,22,0,0"
+                                        Style="{StaticResource KundenFormZusammenfassungStil}">
+                                    <TextBlock Text="{Binding PreisInfo}"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="#1F497D"
+                                               TextWrapping="Wrap"/>
+                                </Border>
+
+                                <Button Grid.Row="5"
+                                        Content="AUTO JETZT MIETEN"
+                                        cal:Message.Attach="[Action AutoMieten]"
+                                        Style="{StaticResource KundenFormAktionStil}"
+                                        Margin="0,24,0,0"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- =============== 3. TAXI BESTELLEN =============== -->
+            <TabItem Header="Taxi bestellen">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              HorizontalContentAlignment="Stretch"
+                              Background="#F4F7FB">
+                    <Grid DataContext="{Binding TaxiBestellen}"
+                          Margin="14"
+                          HorizontalAlignment="Stretch">
+                        <Border Style="{StaticResource KundenFormKartenStil}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                           Text="Taxi bestellen"
+                                           Style="{StaticResource KundenFormTitelStil}"/>
+
+                                <StackPanel Grid.Row="1" Margin="0,22,0,0">
+                                    <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                        <Run Text="Ihr Name"/><Run Text=" *" Foreground="#B42318"/>
+                                    </TextBlock>
+                                    <TextBox Text="{Binding KundenName, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource KundenFormTextBoxStil}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="2" Margin="0,20,0,0">
+                                    <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                        <Run Text="Abholort"/><Run Text=" *" Foreground="#B42318"/>
+                                    </TextBlock>
+                                    <TextBox Text="{Binding Abholort, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource KundenFormTextBoxStil}"/>
+                                </StackPanel>
+
+                                <Grid Grid.Row="3" Margin="0,20,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="24"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                            <Run Text="Abholdatum"/><Run Text=" *" Foreground="#B42318"/>
+                                        </TextBlock>
+                                        <DatePicker SelectedDate="{Binding Abholdatum}"
+                                                    DisplayDateStart="{Binding FruehestesAbholdatum, Mode=OneWay}"
+                                                    Style="{StaticResource KundenFormAuswahlStil}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                            <Run Text="Abholzeit"/><Run Text=" *" Foreground="#B42318"/>
+                                        </TextBlock>
+                                        <TextBox Text="{Binding Abholzeit, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"
+                                                 ToolTip="z. B. 11:41"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Grid.Row="4" Margin="0,20,0,0">
+                                    <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                        <Run Text="Fahrzeugtyp"/><Run Text=" *" Foreground="#B42318"/>
+                                    </TextBlock>
+                                    <ComboBox ItemsSource="{Binding Fahrzeugtypen}"
+                                              SelectedItem="{Binding AusgewaehlterFahrzeugtyp}"
+                                              DisplayMemberPath="AnzeigeText"
+                                              Style="{StaticResource KundenFormAuswahlStil}"/>
+                                </StackPanel>
+
+                                <Button Grid.Row="5"
+                                        Content="TAXI JETZT BESTELLEN"
+                                        cal:Message.Attach="[Action TaxiBestellen]"
+                                        Style="{StaticResource KundenFormAktionStil}"
+                                        Margin="0,24,0,0"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- =============== 4. RESTAURANT =============== -->
+            <TabItem Header="Restaurant">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              HorizontalContentAlignment="Stretch"
+                              Background="#F4F7FB">
+                    <Grid DataContext="{Binding RestaurantReservierung}"
+                          Margin="14"
+                          HorizontalAlignment="Stretch">
+                        <Border Style="{StaticResource KundenFormKartenStil}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                           Text="Tischreservierung"
+                                           Style="{StaticResource KundenFormTitelStil}"/>
+
+                                <StackPanel Grid.Row="1" Margin="0,22,0,0">
+                                    <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                        <Run Text="Ihr Name"/><Run Text=" *" Foreground="#B42318"/>
+                                    </TextBlock>
+                                    <TextBox Text="{Binding KundenName, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource KundenFormTextBoxStil}"/>
+                                </StackPanel>
+
+                                <Grid Grid.Row="2" Margin="0,20,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="24"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                            <Run Text="Reservierungsdatum"/><Run Text=" *" Foreground="#B42318"/>
+                                        </TextBlock>
+                                        <DatePicker SelectedDate="{Binding Reservierungsdatum}"
+                                                    Style="{StaticResource KundenFormAuswahlStil}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                            <Run Text="Reservierungszeit"/><Run Text=" *" Foreground="#B42318"/>
+                                        </TextBlock>
+                                        <TextBox Text="{Binding Reservierungszeit, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"
+                                                 ToolTip="z. B. 19:00"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid Grid.Row="3" Margin="0,20,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="24"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                            <Run Text="Personenanzahl"/><Run Text=" *" Foreground="#B42318"/>
+                                        </TextBlock>
+                                        <TextBox Text="{Binding AnzahlGaeste, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"/>
+                                        <TextBlock Text="{Binding AnzahlGaesteHinweis}"
+                                                   Foreground="#B42318"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   MinHeight="20"
+                                                   Margin="2,6,0,0"
+                                                   TextWrapping="Wrap"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Style="{StaticResource KundenFormLabelStil}">
+                                            <Run Text="Anlass"/><Run Text=" *" Foreground="#B42318"/>
+                                        </TextBlock>
+                                        <ComboBox ItemsSource="{Binding Anlaesse}"
+                                                  SelectedItem="{Binding AusgewaehlterAnlass}"
+                                                  DisplayMemberPath="AnzeigeText"
+                                                  Style="{StaticResource KundenFormAuswahlStil}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Grid.Row="4" Margin="0,20,0,0">
+                                    <TextBlock Text="Sonderwünsche"
+                                               Style="{StaticResource KundenFormLabelStil}"/>
+                                    <TextBox Text="{Binding Sonderwuensche}"
+                                             Style="{StaticResource KundenFormMehrzeiligTextBoxStil}"/>
+                                </StackPanel>
+
+                                <Button Grid.Row="5"
+                                        Content="TISCH RESERVIEREN"
+                                        cal:Message.Attach="[Action TischReservieren]"
+                                        Style="{StaticResource KundenFormAktionStil}"
+                                        Margin="0,24,0,0"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- =============== 5. EVENTS & TICKETS =============== -->
+            <TabItem Header="Events &amp; Tickets">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              HorizontalContentAlignment="Stretch"
+                              Background="#F4F7FB">
+                    <StackPanel DataContext="{Binding Veranstaltungen}" Margin="14">
+                        <Border Style="{StaticResource KundenFormKartenStil}"
+                                Margin="0,0,0,14">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                           Text="Ticketbuchung"
+                                           Style="{StaticResource KundenFormTitelStil}"/>
+
+                                <Grid Grid.Row="1" Margin="0,18,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="1.5*"/>
+                                        <ColumnDefinition Width="0.8*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                        <TextBlock Text="Name *"
+                                                   Style="{StaticResource KundenFormLabelStil}"/>
+                                        <TextBox Text="{Binding KundenName, UpdateSourceTrigger=PropertyChanged}"
+                                                 AutomationProperties.AutomationId="EventGuestName"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Margin="8,0">
+                                        <TextBlock Text="E-Mail *"
+                                                   Style="{StaticResource KundenFormLabelStil}"/>
+                                        <TextBox Text="{Binding KundenEmail, UpdateSourceTrigger=PropertyChanged}"
+                                                 AutomationProperties.AutomationId="EventGuestEmail"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2" Margin="8,0">
+                                        <TextBlock Text="Telefon *"
+                                                   Style="{StaticResource KundenFormLabelStil}"/>
+                                        <TextBox Text="{Binding KundenTelefon, UpdateSourceTrigger=PropertyChanged}"
+                                                 AutomationProperties.AutomationId="EventGuestPhone"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="3" Margin="8,0,0,0">
+                                        <TextBlock Text="Anzahl *"
+                                                   Style="{StaticResource KundenFormLabelStil}"/>
+                                        <TextBox Text="{Binding AnzahlTickets, UpdateSourceTrigger=PropertyChanged}"
+                                                 AutomationProperties.AutomationId="EventTicketQuantity"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Grid.Row="2"
+                                           Text="{Binding Statusmeldung}"
+                                           Margin="0,14,0,0"
+                                           Foreground="#173A67"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap"/>
+                            </Grid>
+                        </Border>
+
+                        <GroupBox Header="Aktuelle Hotel-Events"
+                                  Style="{StaticResource KundenPortalBereichStil}">
+                            <StackPanel>
+                                <Button Content="Aktualisieren"
+                                        cal:Message.Attach="[Action LadeVeranstaltungen]"
+                                        Width="120" Height="35" Margin="0,0,0,10"
+                                        Background="#1F497D" Foreground="White"
+                                        FontWeight="Bold" Cursor="Hand"
+                                        HorizontalAlignment="Left"/>
+
+                                <ItemsControl ItemsSource="{Binding Veranstaltungen}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource EventKartenStil}">
+                                                <StackPanel>
+                                                    <DockPanel>
+                                                        <TextBlock Text="{Binding PreisText}"
+                                                                   DockPanel.Dock="Right"
+                                                                   Foreground="#173A67"
+                                                                   FontWeight="Bold"
+                                                                   FontSize="15"/>
+                                                        <TextBlock Text="{Binding Titel}"
+                                                                   FontWeight="Bold"
+                                                                   FontSize="18"
+                                                                   Foreground="#173A67"/>
+                                                    </DockPanel>
+
+                                                    <TextBlock Text="{Binding Beschreibung}"
+                                                               TextWrapping="Wrap"
+                                                               Margin="0,8,0,10"
+                                                               Foreground="#1F2937"/>
+
+                                                    <WrapPanel Margin="0,0,0,4">
+                                                        <TextBlock Text="Datum: "
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="#5B6472"/>
+                                                        <TextBlock Text="{Binding DatumText}"
+                                                                   Foreground="#5B6472"
+                                                                   Margin="0,0,22,0"/>
+                                                        <TextBlock Text="Uhrzeit: "
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="#5B6472"/>
+                                                        <TextBlock Text="{Binding UhrzeitText}"
+                                                                   Foreground="#5B6472"
+                                                                   Margin="0,0,22,0"/>
+                                                        <TextBlock Text="Ort: "
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="#5B6472"/>
+                                                        <TextBlock Text="{Binding Ort}"
+                                                                   Foreground="#5B6472"/>
+                                                    </WrapPanel>
+
+                                                    <TextBlock Margin="0,4,0,0"
+                                                               Foreground="#2F6B3B"
+                                                               FontWeight="SemiBold">
+                                                        <Run Text="Verfügbare Tickets: "/>
+                                                        <Run Text="{Binding VerfuegbareTickets, Mode=OneWay}"/>
+                                                        <Run Text=" von "/>
+                                                        <Run Text="{Binding MaximaleTickets, Mode=OneWay}"/>
+                                                    </TextBlock>
+
+                                                    <!-- $dataContext übergibt genau die Veranstaltung dieser Kartenzeile an die Aktion des Eltern-ViewModels. -->
+                                                    <Button Content="Tickets buchen"
+                                                            cal:Message.Attach="[Action TicketKaufen($dataContext)]"
+                                                            cal:Action.TargetWithoutContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
+                                                            Style="{StaticResource PrimaerAktionButtonStil}"
+                                                            Width="140" Height="34" FontSize="12"
+                                                            HorizontalAlignment="Left"
+                                                            Margin="0,10,0,0"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- =============== 6. ONLINE BEZAHLEN =============== -->
+            <TabItem Header="Online bezahlen">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              HorizontalContentAlignment="Stretch"
+                              Background="#F4F7FB">
+                    <Grid DataContext="{Binding OnlineZahlung}" Margin="14">
+                        <Border Style="{StaticResource KundenFormKartenStil}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                           Text="Online-Zahlung"
+                                           Style="{StaticResource KundenFormTitelStil}"/>
+
+                                <Border Grid.Row="1"
+                                        Background="#FFF8E6"
+                                        BorderBrush="#E8D49B"
+                                        BorderThickness="1"
+                                        CornerRadius="7"
+                                        Padding="14,11"
+                                        Margin="0,12,0,0">
+                                    <TextBlock Text="Demo-Zahlung – es findet keine reale Banktransaktion statt."
+                                               Foreground="#654F18"
+                                               TextWrapping="Wrap"/>
+                                </Border>
+
+                                <TextBlock Grid.Row="2"
+                                           Text="Reservierung"
+                                           FontSize="17"
+                                           FontWeight="SemiBold"
+                                           Foreground="#173A67"
+                                           Margin="0,24,0,12"/>
+
+                                <Grid Grid.Row="3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="210"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Reservierungscode *"
+                                                   Style="{StaticResource KundenFormLabelStil}"/>
+                                        <!-- Die sofortige Übergabe erlaubt dem ViewModel, den Code zu normalisieren und alte Anzeigedaten zu leeren. -->
+                                        <TextBox Text="{Binding Reservierungscode, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"
+                                                 CharacterCasing="Upper"/>
+                                    </StackPanel>
+
+                                    <Button Grid.Column="1"
+                                            Content="RESERVIERUNG LADEN"
+                                            cal:Message.Attach="[Action ReservierungLaden]"
+                                            Style="{StaticResource PrimaerAktionButtonStil}"
+                                            Height="44"
+                                            Margin="12,26,0,0"/>
+                                </Grid>
+
+                                <Border Grid.Row="4"
+                                        Style="{StaticResource KundenFormZusammenfassungStil}"
+                                        Margin="0,18,0,0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,12">
+                                            <TextBlock Text="Reservierungscode" Foreground="#5B6472" FontSize="12"/>
+                                            <TextBlock Text="{Binding GeladenerReservierungscode}"
+                                                       Foreground="#173A67" FontWeight="SemiBold" FontSize="15"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="12,0,0,12">
+                                            <TextBlock Text="Gast" Foreground="#5B6472" FontSize="12"/>
+                                            <TextBlock Text="{Binding GastInfo}"
+                                                       Foreground="#1F2937" FontWeight="SemiBold" FontSize="15"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,12,12">
+                                            <TextBlock Text="Zimmer" Foreground="#5B6472" FontSize="12"/>
+                                            <TextBlock Text="{Binding ZimmerInfo}"
+                                                       Foreground="#1F2937" FontWeight="SemiBold" FontSize="15"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="12,0,0,12">
+                                            <TextBlock Text="Reservierungsstatus" Foreground="#5B6472" FontSize="12"/>
+                                            <TextBlock Text="{Binding ReservierungsstatusText}"
+                                                       Foreground="#1F2937" FontWeight="SemiBold" FontSize="15"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,12,12">
+                                            <TextBlock Text="Gesamtbetrag" Foreground="#5B6472" FontSize="12"/>
+                                            <TextBlock Text="{Binding GesamtbetragText}"
+                                                       Foreground="#1F2937" FontWeight="SemiBold" FontSize="16"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="12,0,0,12">
+                                            <TextBlock Text="Bereits bezahlt" Foreground="#5B6472" FontSize="12"/>
+                                            <TextBlock Text="{Binding BereitsBezahltText}"
+                                                       Foreground="#1F2937" FontWeight="SemiBold" FontSize="16"/>
+                                        </StackPanel>
+                                        <Border Grid.Row="3" Grid.ColumnSpan="2"
+                                                Background="#DCEBFA"
+                                                CornerRadius="6"
+                                                Padding="12,9">
+                                            <DockPanel>
+                                                <TextBlock Text="Offener Betrag"
+                                                           Foreground="#173A67"
+                                                           FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding OffenerBetragText}"
+                                                           Foreground="#173A67"
+                                                           FontWeight="Bold"
+                                                           FontSize="18"
+                                                           HorizontalAlignment="Right"/>
+                                            </DockPanel>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <TextBlock Grid.Row="5"
+                                           Text="Zahlungsdaten"
+                                           FontSize="17"
+                                           FontWeight="SemiBold"
+                                           Foreground="#173A67"
+                                           Margin="0,24,0,12"/>
+
+                                <Grid Grid.Row="6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,16">
+                                        <TextBlock Text="Kontoinhaber *"
+                                                   Style="{StaticResource KundenFormLabelStil}"/>
+                                        <TextBox Text="{Binding Kontoinhaber, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Margin="8,0,0,16">
+                                        <TextBlock Text="Bank *"
+                                                   Style="{StaticResource KundenFormLabelStil}"/>
+                                        <TextBox Text="{Binding Bankname, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,8,16">
+                                        <TextBlock Text="IBAN *"
+                                                   Style="{StaticResource KundenFormLabelStil}"/>
+                                        <TextBox Text="{Binding Iban, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"
+                                                 CharacterCasing="Upper"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="8,0,0,16">
+                                        <TextBlock Text="Betrag *"
+                                                   Style="{StaticResource KundenFormLabelStil}"/>
+                                        <Grid>
+                                            <TextBox Text="{Binding Zahlungsbetrag, UpdateSourceTrigger=PropertyChanged}"
+                                                     Style="{StaticResource KundenFormTextBoxStil}"
+                                                     Padding="12,0,42,0"/>
+                                            <TextBlock Text="€"
+                                                       Foreground="#5B6472"
+                                                       FontSize="15"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Right"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,14,0"
+                                                       IsHitTestVisible="False"/>
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="2" Grid.ColumnSpan="2">
+                                        <TextBlock Text="Verwendungszweck"
+                                                   Style="{StaticResource KundenFormLabelStil}"/>
+                                        <TextBox Text="{Binding Verwendungszweck, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource KundenFormTextBoxStil}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Message.Attach ruft die Zahlungslogik im ViewModel auf; die View bleibt ohne Datenbanklogik. -->
+                                <Button Grid.Row="7"
+                                        Content="JETZT ONLINE BEZAHLEN"
+                                        cal:Message.Attach="[Action OnlineBezahlen]"
+                                        Style="{StaticResource KundenFormAktionStil}"
+                                        Margin="0,24,0,0"/>
+
+                                <Border Grid.Row="8"
+                                        Background="#EEF5FC"
+                                        CornerRadius="7"
+                                        Padding="14,11"
+                                        Margin="0,14,0,0">
+                                    <TextBlock Text="{Binding Statusmeldung}"
+                                               Foreground="#173A67"
+                                               FontWeight="SemiBold"
+                                               TextWrapping="Wrap"/>
+                                </Border>
+
+                                <Grid Grid.Row="9" Margin="0,14,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="210"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding LetzterPdfPfadText}"
+                                               Foreground="#5B6472"
+                                               VerticalAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               Margin="0,0,16,0"/>
+
+                                    <!-- Das Öffnen ist eine eigene Aktion, damit ein bereits erzeugter Beleg erneut angezeigt werden kann. -->
+                                    <Button Grid.Column="1"
+                                            Content="PDF-TICKET ÖFFNEN"
+                                            cal:Message.Attach="[Action PdfOeffnen]"
+                                            Style="{StaticResource PrimaerAktionButtonStil}"
+                                            Height="44"
+                                            Margin="0"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
+    </Grid>
+</UserControl>

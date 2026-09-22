@@ -1,0 +1,113 @@
+<UserControl x:Class="Nest.Views.Reception.ReceptionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:Nest.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="1200">
+    <UserControl.Resources>
+        <converters:SectionBackgroundConverter x:Key="SectionBackgroundConverter"/>
+        <Style x:Key="ReceptionMenuButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="20,0,0,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#214676"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#4A76AD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ReceptionBottomButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ReceptionMenuButtonStyle}">
+            <Setter Property="Height" Value="45"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Background="#17345C">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Margin="10,20">
+                    <TextBlock Text="Grand Horizon" FontSize="30" FontWeight="Bold"
+                               Foreground="White" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Hotel" FontSize="26" FontWeight="Bold"
+                               Foreground="White" HorizontalAlignment="Center"/>
+                    <Separator Margin="0,15"/>
+                    <TextBlock Text="Front Desk Staff" Foreground="#B8C6DA" FontSize="15"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="(Rezeptionist)" Foreground="#B8C6DA" FontSize="15"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1">
+                    <Button x:Name="ShowReservations" Content="Reservierungen"
+                            Style="{StaticResource ReceptionMenuButtonStyle}"
+                            Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=Reservations}"/>
+                    <Button x:Name="ShowGuests" Content="Gäste"
+                            Style="{StaticResource ReceptionMenuButtonStyle}"
+                            Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=Guests}"/>
+                    <Button x:Name="ShowAllReservations" Content="Alle Buchungen"
+                            Style="{StaticResource ReceptionMenuButtonStyle}"
+                            Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=AllBookings}"/>
+                    <Button x:Name="ShowCustomerPortal" Content="Kundenportal"
+                            Style="{StaticResource ReceptionMenuButtonStyle}"
+                            Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=CustomerPortal}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Background="#0F284B">
+                    <Button x:Name="Logout" Content="Abmelden" Foreground="#FFB6B6"
+                            Background="#0F284B" Style="{StaticResource ReceptionBottomButtonStyle}"/>
+                    <Button x:Name="Exit" Content="Beenden" Foreground="#B8D8FF"
+                            Background="#0F284B" Style="{StaticResource ReceptionBottomButtonStyle}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1" Background="#F3F5F8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="70"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Border Background="#224E87">
+                <TextBlock Text="{Binding PageTitle}"
+                           VerticalAlignment="Center"
+                           Margin="25,0"
+                           Foreground="White"
+                           FontSize="30"
+                           FontWeight="Bold"/>
+            </Border>
+
+            <ContentControl x:Name="ActiveItem" Grid.Row="1"/>
+        </Grid>
+    </Grid>
+</UserControl>

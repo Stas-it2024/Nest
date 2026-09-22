@@ -1,0 +1,173 @@
+﻿<UserControl x:Class="Nest.Views.Admin.AdminView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:converters="clr-namespace:Nest.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="1200">
+    <UserControl.Resources>
+        <converters:SectionBackgroundConverter x:Key="SectionBackgroundConverter"/>
+
+        <!-- Gemeinsamer Stil für alle Buttons -->
+        <Style x:Key="BaseButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="20,0,0,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <!-- Stil für Menu-Buttons -->
+        <Style x:Key="MenuButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource BaseButtonStyle}">
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}">
+                            <ContentPresenter
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                Margin="{TemplateBinding Padding}"
+                                RecognizesAccessKey="True"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+
+                            <!-- Pressed -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Border"
+                                        Property="Background"
+                                        Value="#4A76AD"/>
+                            </Trigger>
+
+                            <!-- Hover -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border"
+                                        Property="Background"
+                                        Value="#214676"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Stil für untere Button -->
+        <Style x:Key="BottomButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource BaseButtonStyle}">
+            
+            <Setter Property="Height" Value="45"/>
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
+
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- LEFT MENU -->
+        <Border Grid.Column="0" Background="#17345C">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Logo -->
+                <StackPanel Margin="10,20">
+                    <TextBlock Text="Grand Horizon"
+                               FontSize="30"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"/>
+
+                    <TextBlock Text="Hotel"
+                               FontSize="26"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"/>
+
+                    <Separator Margin="0,15"/>
+
+                    <TextBlock Text="System Administrator"
+                               Foreground="#B8C6DA"
+                               FontSize="15"
+                               HorizontalAlignment="Center"/>
+
+                    <TextBlock Text="(Admin)"
+                               Foreground="#B8C6DA"
+                               FontSize="15"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Navigation -->
+                <StackPanel Grid.Row="1">
+
+                    <Button x:Name="ShowDashboard"
+                            Tag="Dashboard"
+                            Content="Dashboard"
+                            Style="{StaticResource MenuButtonStyle}"
+                            Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=Dashboard}"/>
+
+                    <Button x:Name="ShowZimmer"
+                            Tag="Zimmer"
+                            Content="Zimmer"
+                            Style="{StaticResource MenuButtonStyle}"
+                            Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=Zimmer}"/>
+
+                    <Button x:Name="ShowBenutzer"
+                            Tag="Benutzer"
+                            Content="Benutzer"
+                            Style="{StaticResource MenuButtonStyle}"
+                            Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=Benutzer}"/>
+
+                    <Button x:Name="ShowDienstleistungen"
+                            Tag="Dienstleistungen"
+                            Content="Dienstleistungen"
+                            Style="{StaticResource MenuButtonStyle}"
+                            Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=Dienstleistungen}"/>
+
+                    <Button x:Name="ShowEvents"
+                            Tag="Events"
+                            Content="Events"
+                            Style="{StaticResource MenuButtonStyle}"
+                            Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=Events}"/>
+
+                    <Button x:Name="ShowAlleReservierungen"
+                            Tag="AlleReservierungen"
+                            Content="Alle Reservierungen"
+                            Style="{StaticResource MenuButtonStyle}"
+                            Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=AlleReservierungen}"/>
+                </StackPanel>
+
+                <!-- Bottom buttons -->
+                <StackPanel Grid.Row="2" Margin="0" Background="#0F284B">
+                    <Button Content="Abmelden"
+                            Style="{StaticResource BottomButtonStyle}"
+                            Foreground="#FFB6B6"
+                            x:Name="Abmelden"/>
+
+                    <Button Content="Beenden"
+                            Style="{StaticResource BottomButtonStyle}"
+                            Foreground="#B8D8FF"
+                            x:Name="Beenden"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ContentControl x:Name="ActiveItem" Grid.Column="1"/>
+    </Grid>
+</UserControl>
+
+ 

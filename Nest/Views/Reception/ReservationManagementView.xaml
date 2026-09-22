@@ -1,0 +1,329 @@
+﻿<UserControl x:Class="Nest.Views.Reception.ReservationManagementView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:cal="http://www.caliburnproject.org"        mc:Ignorable="d"
+        d:Height="1080" d:Width="1480" Width="1444">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="440"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Gastinformationen -->
+        <Border x:Name="GuestFormPanel" Grid.Column="0" Background="#F0F4F8">
+            <Grid Margin="15,3,15,3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Gästinformationen -->
+                <TextBlock Grid.Row="0"
+                           Text="Gästinformationen"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           Foreground="#FF174A92"
+                           Margin="0,0,0,3"/>
+
+                <Grid Grid.Row="1" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Vorname *"/>
+                        <TextBox Style="{StaticResource RecTextBox}"
+                                 Text="{Binding FirstName, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Nachname *"/>
+                        <TextBox Style="{StaticResource RecTextBox}"
+                                 Text="{Binding LastName, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="2" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="E-Mail"/>
+                        <TextBox Style="{StaticResource RecTextBox}"
+                                 Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Telefon"/>
+                        <TextBox Style="{StaticResource RecTextBox}"
+                                 Text="{Binding Phone, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="3" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Ausweistyp"/>
+                        <ComboBox Style="{StaticResource RecComboBox}"
+                                  ItemsSource="{Binding IdTypeList}"
+                                  SelectedItem="{Binding IdType}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Ausweisnummer"/>
+                        <TextBox Style="{StaticResource RecTextBox}"
+                                 Text="{Binding IdNumber, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="4" Margin="0,0,0,3">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Nationalität"/>
+                        <TextBox Style="{StaticResource RecTextBox}"
+                                 Text="{Binding Nationality, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Border Grid.Row="5" Background="#D0D0D0" Height="1" Margin="0,2,0,2"/>
+
+                <TextBlock Grid.Row="6"
+                           Text="Zimmer Aufenthalt"
+                           FontSize="14"
+                           FontWeight="Bold"
+                           Foreground="#FF174A92"
+                           Margin="0,0,0,3"/>
+
+                <Grid Grid.Row="7" Margin="0,0,0,3">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Zimmer *"/>
+                        <ComboBox Style="{StaticResource RecComboBox}"
+                                  ItemsSource="{Binding RoomList}"
+                                  SelectedItem="{Binding SelectedRoom}"
+                                  DisplayMemberPath="DisplayText"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="8" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Check-in *"/>
+                        <DatePicker Style="{StaticResource RecDatePicker}"
+                                    SelectedDate="{Binding CheckInDate}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Check-out *"/>
+                        <DatePicker Style="{StaticResource RecDatePicker}"
+                                    SelectedDate="{Binding CheckOutDate}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="9" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Nächte"/>
+                        <TextBox Style="{StaticResource RecTextBox}"
+                                 Text="{Binding Nights, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Preis (€)"/>
+                        <TextBox Style="{StaticResource RecTextBox}"
+                                 Text="{Binding Price, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="10" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Erwachsene"/>
+                        <ComboBox Style="{StaticResource RecComboBox}"
+                                  ItemsSource="{Binding AdultOptions}"
+                                  SelectedItem="{Binding Adults}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Kinder"/>
+                        <ComboBox Style="{StaticResource RecComboBox}"
+                                  ItemsSource="{Binding ChildOptions}"
+                                  SelectedItem="{Binding Children}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="11" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Zahlungsmethode"/>
+                        <ComboBox Style="{StaticResource RecComboBox}"
+                                  ItemsSource="{Binding PaymentOptions}"
+                                  SelectedItem="{Binding PaymentType}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource RecLabel}" Text="Anzahlung (€)"/>
+                        <TextBox Style="{StaticResource RecTextBox}"
+                                 Text="{Binding Deposit, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Grid.Row="12" Text="Sonderwünsche" FontSize="12" Foreground="#333"/>
+                <TextBox Grid.Row="13"
+                         Style="{StaticResource RecTextBox}"
+                         Height="30"
+                         Text="{Binding SpecialRequests, UpdateSourceTrigger=PropertyChanged}"
+                         TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"/>
+
+                <Button x:Name="SaveReservation"
+                        Grid.Row="14"
+                        Style="{StaticResource BlueButton}"
+                        Content="RESERVIERUNG SPEICHERN"
+                        Height="40"
+                        FontSize="13"/>
+            </Grid>
+        </Border>
+
+        <!-- Content Panel -->
+        <Border Grid.Column="1" Background="#F0F4F8">
+            <Grid Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <ContentControl cal:View.Model="{Binding ActiveItem}"
+                Grid.Row="0" Grid.RowSpan="2" />
+                
+                <StackPanel Grid.Row="0" Grid.RowSpan="2">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ActiveItem}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <TextBlock Text="Neue Reservierung"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Foreground="#174A92"
+                               Margin="0,0,0,5"/>
+
+                    <TextBlock Text="📋 Aktuelle Reservierungen"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="#FF174A92"
+                               Margin="0,0,0,5"/>
+
+                    <!-- SUCHE -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="Suche:" VerticalAlignment="Center"
+                                   Margin="0,0,10,0" FontWeight="Bold"/>
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="250" Height="30" VerticalContentAlignment="Center"
+                                 Margin="0,0,10,0"/>
+                        <Button x:Name="ClearSearch"
+                                Content="Zurücksetzen"
+                                Width="100" Height="30"
+                                Background="Gray" Foreground="White" FontWeight="Bold"/>
+                    </StackPanel>
+
+                    <!-- AKTIONEN -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button x:Name="CheckIn"
+                                Content="Check-in"
+                                Width="100" Height="32"
+                                Background="#28A745" Foreground="White"
+                                FontWeight="Bold" Margin="0,0,10,0"/>
+                        <Button x:Name="CheckOut"
+                                Content="Check-out"
+                                Width="100" Height="32"
+                                Background="#007ACC" Foreground="White"
+                                FontWeight="Bold" Margin="0,0,10,0"/>
+                        <Button x:Name="CancelReservation"
+                                Content="Stornieren"
+                                Width="100" Height="32"
+                                Background="#DC3545" Foreground="White"
+                                FontWeight="Bold"/>
+                    </StackPanel>
+
+                    <!-- DataGrid -->
+                    <DataGrid ItemsSource="{Binding Reservations}"
+                              SelectedItem="{Binding SelectedReservation}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              IsReadOnly="True"
+                              Background="White"
+                              BorderBrush="#D0D0D0"
+                              BorderThickness="1">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Buchungsnr." Binding="{Binding ReservationCode}" Width="110"/>
+                            <DataGridTextColumn Header="Gast" Binding="{Binding GastName}" Width="120"/>
+                            <DataGridTextColumn Header="Zimmer" Binding="{Binding RoomNumber}" Width="60"/>
+                            <DataGridTextColumn Header="Typ" Binding="{Binding RoomType}" Width="80"/>
+                            <DataGridTextColumn Header="Check-out" Binding="{Binding CheckOut, StringFormat={}{0:dd.MM.yyyy}}" Width="90"/>
+                            <DataGridTextColumn Header="Nächte" Binding="{Binding Nights}" Width="60"/>
+                            <DataGridTextColumn Header="Betrag (€)" Binding="{Binding Amount, StringFormat={}{0:F2}}" Width="80"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Status}" Value="Reserviert">
+                                                <Setter Property="Background" Value="Gold"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Status}" Value="Eingecheckt">
+                                                <Setter Property="Background" Value="LightGreen"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Status}" Value="Ausgecheckt">
+                                                <Setter Property="Background" Value="LightGray"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Status}" Value="Storniert">
+                                                <Setter Property="Background" Value="LightCoral"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

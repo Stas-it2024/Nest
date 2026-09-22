@@ -1,0 +1,251 @@
+<UserControl x:Class="Nest.Views.Admin.ZimmerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:cal="http://www.caliburnproject.org"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Nest.Views.Admin"
+             mc:Ignorable="d" 
+             d:DesignHeight="1080" d:DesignWidth="1920">
+    <UserControl.Resources>
+        
+        <!-- Label -->
+        <Style TargetType="Label">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="8,0"/>
+        </Style>
+        
+        <!-- Combobox -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Margin" Value="10,0,10,10"/>
+            <Setter Property="Height" Value="30"/>
+        </Style>
+        
+        <!-- Button -->
+        <Style TargetType="Button">
+            <Setter Property="Width" Value="135"/>
+            <Setter Property="Padding" Value="10"/>
+        </Style>
+        
+        <!-- Button für textbox-->
+        <Style x:Key="TextBoxTaste" TargetType="Button">
+            <Setter Property="Width" Value="15"/>
+            <Setter Property="Height" Value="12"/>
+            <Setter Property="FontSize" Value="8"/>
+            <Setter Property="Background" Value="#F5F5F5"/>
+        </Style>
+        <!-- TextBox -->
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="10,0,10,10"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Header -->
+        <Border Background="#224E87" Grid.Row="0" Grid.ColumnSpan="2">
+            <TextBlock Text="Zimmerverwaltung"
+                       VerticalAlignment="Center"
+                       Margin="25,0"
+                       Foreground="White"
+                       FontSize="30"
+                       FontWeight="Bold"/>
+        </Border>
+        <ScrollViewer Grid.Row="1" Grid.Column="0"
+                      Background="White"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <Grid >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!--ZimmerNr-->
+                <Label Grid.Row="0" Grid.Column="0"
+                       Content="Zimmernummer *"/>
+                <TextBox Grid.Column="0" Grid.Row="1"
+                         PreviewTextInput="NumberPreviewTextInput"
+                         Text="{Binding RoomNumber}"/>
+
+                <!-- Zimmertyp -->
+                <Label Grid.Column="0" Grid.Row="2"
+                       Content="Zimmertyp *"/>
+                <ComboBox Grid.Column="0" Grid.Row="3" 
+                          VerticalAlignment="Center" 
+                          FontSize="16"
+                          SelectedIndex="{Binding SelectedTypeIndex}">
+                    <ComboBoxItem Content="Standard"/>
+                    <ComboBoxItem Content="Deluxe"/>
+                    <ComboBoxItem Content="Suite"/>
+                    <ComboBoxItem Content="Executive"/>
+                </ComboBox>
+
+                <!-- Kapazität -->
+                <Label Grid.Column="0" Grid.Row="4"
+                       Content="Kapazität (Personen) *"/>
+                <Grid Grid.Column="0" Grid.Row="5">
+                    <TextBox Width="120" 
+                             HorizontalAlignment="Left"
+                             Text="{Binding Capacity, 
+                                    Mode=TwoWay, 
+                                    UpdateSourceTrigger=PropertyChanged}"
+                                    IsReadOnly="True"/>
+
+                    <StackPanel HorizontalAlignment="Center"
+                                Margin="0,3,62,0">
+
+                        <Button x:Name="PersonUp"
+                                Content="▲"
+                                Style="{StaticResource TextBoxTaste}"
+                                Padding="0"/>
+
+                        <Button Content="▼"
+                                x:Name="PersonDown"
+                                Style="{StaticResource TextBoxTaste}"
+                                Padding="0,-2,0,0"/>
+
+                    </StackPanel>
+                </Grid>
+
+                <!-- Preis -->
+                <Label Grid.Column="0" Grid.Row="6"
+                       Content="Preis pro Nacht (€) *"/>
+                <Grid Grid.Column="0" Grid.Row="7">
+                    <TextBox Width="150" 
+                             HorizontalAlignment="Left"
+                             Text="{Binding PriceText,
+                                    Mode=TwoWay,
+                                    UpdateSourceTrigger=PropertyChanged}"
+                                    cal:Message.Attach="[Event LostFocus]=[Action FormatPrice]"
+                                    PreviewTextInput="PricePreviewTextInput"/>
+
+                    <StackPanel HorizontalAlignment="Center"
+                                Margin="0,3,3,0">
+
+                        <Button x:Name="PreisUp"
+                                Content="▲"
+                                Style="{StaticResource TextBoxTaste}"
+                                Padding="0"/>
+
+                        <Button Content="▼"
+                                x:Name="PreisDown"
+                                Style="{StaticResource TextBoxTaste}"
+                                Padding="0,-2,0,0"/>
+
+                    </StackPanel>
+                </Grid>
+                
+                <!-- Status -->
+                <Label Grid.Column="0" Grid.Row="8"
+                       Content="Status *"/>
+                <ComboBox Grid.Column="0" Grid.Row="9" 
+                          VerticalAlignment="Center" 
+                          FontSize="16"
+                          SelectedIndex="{Binding SelectedStatusIndex}">
+                    <ComboBoxItem Content="Verfuegbar"/>
+                    <ComboBoxItem Content="Belegt"/>
+                    <ComboBoxItem Content="Wartung"/>
+                    <ComboBoxItem Content="Reserviert"/>
+                </ComboBox>
+
+                <!-- Beschreibung -->
+                <Label Grid.Column="0" Grid.Row="10"
+                       Content="Beschreibung"/>
+                <TextBox Text="{Binding Beschreibung}"
+                         Grid.Column="0" Grid.Row="11"
+                         Height="60" Margin="10,0"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"
+                         VerticalContentAlignment="Top"/>
+
+                <!-- Button -->
+                <UniformGrid Grid.Row="12"
+                             Rows="2"
+                             Columns="2"
+                             Margin="10">
+
+                    <Button x:Name="Hinzufügen"
+                            Content="Hinzufügen"
+                            Background="#28A745"
+                            Foreground="White"
+                            Margin="0,0,5,5"/>
+                    <Button x:Name="Aktualisieren"
+                            Content="Aktualisieren"
+                            Background="#007ACC"
+                            Foreground="White"
+                            Margin="5,0,0,5"/>
+                    <Button x:Name="Löschen"
+                            Content="Löschen"
+                            Background="#DC3545"
+                            Foreground="White"
+                            Margin="0,5,5,0"/>
+                    <Button x:Name="ClearForm"
+                            Content="Leeren"
+                            Background="#6C757D"
+                            Foreground="White"
+                            Margin="5,5,0,0"/>
+                </UniformGrid>
+                    
+            </Grid>
+        </ScrollViewer>
+        
+        
+        <DataGrid Grid.Row="1" Grid.Column="1"
+                  ItemsSource="{Binding Rooms}"
+                  SelectedItem="{Binding SelectedRoom}"
+                  AutoGenerateColumns="False"
+                  Padding="5" FontSize="14">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Zimmernr."
+                                    Binding="{Binding RoomNumber}" 
+                                    Width="*"
+                                   />
+                <DataGridTextColumn Header="Typ"
+                                    Binding="{Binding Type}" 
+                                    Width="*"
+                                   />
+                <DataGridTextColumn Header="Kapazität"
+                                    Binding="{Binding Capacity}" 
+                                    Width="*"
+                                   />
+                <DataGridTextColumn Header="Preis/Nacht"
+                                    Binding="{Binding PricePerNight}" 
+                                    Width="*"
+                                   />
+                <DataGridTextColumn Header="Status"
+                                    Binding="{Binding Status}" 
+                                    Width="*"
+                                   />
+                <DataGridTextColumn Header="Beschreibung"
+                                    Binding="{Binding Description}" 
+                                    Width="Auto"
+                                   />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

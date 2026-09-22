@@ -1,0 +1,4 @@
+{
+    "dotnet.defaultSolution": "Nest.sln",
+    "dotnet.preferCSharpExtension": true
+}
