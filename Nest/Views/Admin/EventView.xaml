@@ -246,9 +246,8 @@
         </ScrollViewer>
 
 
-        <DataGrid Grid.Row="1" Grid.Column="1"
+        <DataGrid Style="{StaticResource StandardDataGridStyle}" Grid.Row="1" Grid.Column="1"
                   AutoGenerateColumns="False"
-                  Padding="5" FontSize="14"
                   ItemsSource="{Binding Events}"
                   SelectedItem="{Binding SelectedEvent}">
 

@@ -78,14 +78,11 @@
 
             <!-- TAB 1: Zimmer-Reservierungen -->
             <TabItem Header="Zimmer-Reservierungen" FontWeight="Bold" IsSelected="True">
-                <DataGrid ItemsSource="{Binding Reservations}"
+                <DataGrid Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding Reservations}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
                           CanUserDeleteRows="False"
-                          IsReadOnly="True"
-                          Background="White"
-                          BorderBrush="#D0D0D0"
-                          BorderThickness="1">
+                          IsReadOnly="True">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Buchung" Binding="{Binding ReservationCode}" Width="110"/>
                         <DataGridTextColumn Header="Gast" Binding="{Binding Guest}" Width="140"/>
@@ -124,14 +121,11 @@
 
             <!-- TAB 2: Event-Tickets -->
             <TabItem Header="Event-Tickets" FontWeight="Bold">
-                <DataGrid ItemsSource="{Binding TicketOrders}"
+                <DataGrid Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding TicketOrders}"
               AutoGenerateColumns="False"
               CanUserAddRows="False"
               CanUserDeleteRows="False"
-              IsReadOnly="True"
-              Background="White"
-              BorderBrush="#D0D0D0"
-              BorderThickness="1">
+              IsReadOnly="True">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Ticket-Code" Binding="{Binding TicketCode}" Width="160"/>
                         <DataGridTextColumn Header="Gast" Binding="{Binding GuestName}" Width="140"/>

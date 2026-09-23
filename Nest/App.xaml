@@ -10,6 +10,13 @@
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
 
+            <Style x:Key="StandardDataGridStyle" TargetType="DataGrid">
+                <Setter Property="CanUserAddRows" Value="False"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Normal"/>
+                <Setter Property="Padding" Value="5"/>
+            </Style>
+
             <!-- BLUE BUTTON -->
             <Style x:Key="BlueButton" TargetType="Button">
                 <Setter Property="Background" Value="#234D87"/>

@@ -282,15 +282,12 @@
                     </StackPanel>
 
                     <!-- DataGrid -->
-                    <DataGrid ItemsSource="{Binding Reservations}"
+                    <DataGrid Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding Reservations}"
                               SelectedItem="{Binding SelectedReservation}"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
                               CanUserDeleteRows="False"
-                              IsReadOnly="True"
-                              Background="White"
-                              BorderBrush="#D0D0D0"
-                              BorderThickness="1">
+                              IsReadOnly="True">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Buchungsnr." Binding="{Binding ReservationCode}" Width="110"/>
                             <DataGridTextColumn Header="Gast" Binding="{Binding GastName}" Width="120"/>

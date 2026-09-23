@@ -214,11 +214,10 @@
         </ScrollViewer>
         
         
-        <DataGrid Grid.Row="1" Grid.Column="1"
+        <DataGrid Style="{StaticResource StandardDataGridStyle}" Grid.Row="1" Grid.Column="1"
                   ItemsSource="{Binding Rooms}"
                   SelectedItem="{Binding SelectedRoom}"
-                  AutoGenerateColumns="False"
-                  Padding="5" FontSize="14">
+                  AutoGenerateColumns="False">
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Zimmernr."
