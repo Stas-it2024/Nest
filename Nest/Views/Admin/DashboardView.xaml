@@ -7,89 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-        <Style x:Key="DashboardColumnHeaderStyle" TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#224E87"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="5,4"/>
-            <Setter Property="BorderBrush" Value="#E6EFF9"/>
-            <Setter Property="BorderThickness" Value="0,0,1,1"/>
-        </Style>
-        <Style x:Key="DashboardRowStyle" TargetType="DataGridRow">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#202D3D"/>
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#B8D1F5"/>
-                    <Setter Property="Foreground" Value="Black"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="DashboardCellStyle" TargetType="DataGridCell">
-            <Setter Property="Padding" Value="4,2"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#B8D1F5"/>
-                    <Setter Property="Foreground" Value="Black"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="DashboardRowHeaderStyle" TargetType="DataGridRowHeader">
-            <Setter Property="Background" Value="#F0F4F9"/>
-            <Setter Property="BorderBrush" Value="#DCE4EE"/>
-            <Setter Property="BorderThickness" Value="0,0,1,1"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="DataGridRowHeader">
-                        <Border x:Name="RowHeaderBorder" Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}">
-                            <Grid>
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <Path x:Name="SelectionArrow" Data="M 0,0 L 8,5 L 0,10 Z"
-                                      Fill="Black" Width="8" Height="10" Visibility="Collapsed"
-                                      HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      IsHitTestVisible="False"/>
-                                <Thumb x:Name="PART_TopHeaderGripper" Height="3" VerticalAlignment="Top"
-                                       Cursor="SizeNS" Opacity="0"/>
-                                <Thumb x:Name="PART_BottomHeaderGripper" Height="3" VerticalAlignment="Bottom"
-                                       Cursor="SizeNS" Opacity="0"/>
-                            </Grid>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsRowSelected" Value="True">
-                                <Setter TargetName="RowHeaderBorder" Property="Background" Value="#2D6FBE"/>
-                                <Setter TargetName="SelectionArrow" Property="Visibility" Value="Visible"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="DashboardDataGridStyle" TargetType="DataGrid"
-               BasedOn="{StaticResource StandardDataGridStyle}">
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#202D3D"/>
-            <Setter Property="RowHeaderWidth" Value="40"/>
-            <Setter Property="RowHeight" Value="28"/>
-            <Setter Property="ColumnHeaderHeight" Value="30"/>
-            <Setter Property="HeadersVisibility" Value="All"/>
-            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
-            <Setter Property="HorizontalGridLinesBrush" Value="#E1E7EF"/>
-            <Setter Property="BorderBrush" Value="#D5DFEB"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="ColumnHeaderStyle" Value="{StaticResource DashboardColumnHeaderStyle}"/>
-            <Setter Property="RowStyle" Value="{StaticResource DashboardRowStyle}"/>
-            <Setter Property="CellStyle" Value="{StaticResource DashboardCellStyle}"/>
-            <Setter Property="RowHeaderStyle" Value="{StaticResource DashboardRowHeaderStyle}"/>
-        </Style>
         <Style x:Key="DashboardRoomStatusStyle" TargetType="TextBlock">
-            <Setter Property="Padding" Value="4,2"/>
             <Style.Triggers>
                 <Trigger Property="Text" Value="Verfuegbar">
                     <Setter Property="Background" Value="#D9EED6"/>
@@ -100,10 +18,7 @@
                     <Setter Property="Foreground" Value="#24522A"/>
                 </Trigger>
                 <!-- Last trigger takes precedence over the normal status colors. -->
-                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
-                    <Setter Property="Background" Value="#B8D1F5"/>
-                    <Setter Property="Foreground" Value="Black"/>
-                </DataTrigger>
+                <StaticResource ResourceKey="StandardDataGridTextSelectionTrigger"/>
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
@@ -290,7 +205,7 @@
                                FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
                 </Border>
 
-                <DataGrid Grid.Row="1" Style="{StaticResource DashboardDataGridStyle}" AutoGenerateColumns="False"
+                <DataGrid Grid.Row="1" Style="{StaticResource StandardDataGridStyle}" AutoGenerateColumns="False"
                       ItemsSource="{Binding Reservations}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Width="1.2*" Header="Buchung"
@@ -323,7 +238,7 @@
                                FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
                 </Border>
 
-                <DataGrid Grid.Row="1" Style="{StaticResource DashboardDataGridStyle}" AutoGenerateColumns="False"
+                <DataGrid Grid.Row="1" Style="{StaticResource StandardDataGridStyle}" AutoGenerateColumns="False"
                       ItemsSource="{Binding Rooms}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Width="0.9*" Header="Zimmer"

@@ -80,7 +80,6 @@
             <TabItem Header="Zimmer-Reservierungen" FontWeight="Bold" IsSelected="True">
                 <DataGrid Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding Reservations}"
                           AutoGenerateColumns="False"
-                          CanUserAddRows="False"
                           CanUserDeleteRows="False"
                           IsReadOnly="True">
                     <DataGrid.Columns>
@@ -111,6 +110,7 @@
                                         <DataTrigger Binding="{Binding Status}" Value="Storniert">
                                             <Setter Property="Background" Value="LightCoral"/>
                                         </DataTrigger>
+                                        <StaticResource ResourceKey="StandardDataGridTextSelectionTrigger"/>
                                     </Style.Triggers>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
@@ -123,7 +123,6 @@
             <TabItem Header="Event-Tickets" FontWeight="Bold">
                 <DataGrid Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding TicketOrders}"
               AutoGenerateColumns="False"
-              CanUserAddRows="False"
               CanUserDeleteRows="False"
               IsReadOnly="True">
                     <DataGrid.Columns>

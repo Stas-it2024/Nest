@@ -5,17 +5,11 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/DataGridStyles.xaml"/>
                 <ResourceDictionary>
                     <local:Bootstrapper x:Key="Bootstrapper"/>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
-
-            <Style x:Key="StandardDataGridStyle" TargetType="DataGrid">
-                <Setter Property="CanUserAddRows" Value="False"/>
-                <Setter Property="FontSize" Value="14"/>
-                <Setter Property="FontWeight" Value="Normal"/>
-                <Setter Property="Padding" Value="5"/>
-            </Style>
 
             <!-- BLUE BUTTON -->
             <Style x:Key="BlueButton" TargetType="Button">

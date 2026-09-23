@@ -58,7 +58,6 @@
                   ItemsSource="{Binding Guests}"
                   SelectedItem="{Binding SelectedGuest}"
                   AutoGenerateColumns="False"
-                  CanUserAddRows="False"
                   CanUserDeleteRows="False"
                   IsReadOnly="True"
                   MaxHeight="400" Margin="0,123,0,300" Grid.RowSpan="3">
@@ -90,7 +89,6 @@
 
                 <DataGrid Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding GuestHistory}"
                           AutoGenerateColumns="False"
-                          CanUserAddRows="False"
                           CanUserDeleteRows="False"
                           IsReadOnly="True" Margin="0,1,0,37" Grid.RowSpan="2">
                     <DataGrid.Columns>
@@ -109,6 +107,7 @@
                                         <DataTrigger Binding="{Binding Status}" Value="Eingecheckt"><Setter Property="Background" Value="LightGreen"/></DataTrigger>
                                         <DataTrigger Binding="{Binding Status}" Value="Ausgecheckt"><Setter Property="Background" Value="LightGray"/></DataTrigger>
                                         <DataTrigger Binding="{Binding Status}" Value="Storniert"><Setter Property="Background" Value="LightCoral"/></DataTrigger>
+                                        <StaticResource ResourceKey="StandardDataGridTextSelectionTrigger"/>
                                     </Style.Triggers>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>

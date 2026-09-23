@@ -285,7 +285,6 @@
                     <DataGrid Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding Reservations}"
                               SelectedItem="{Binding SelectedReservation}"
                               AutoGenerateColumns="False"
-                              CanUserAddRows="False"
                               CanUserDeleteRows="False"
                               IsReadOnly="True">
                         <DataGrid.Columns>
@@ -312,6 +311,7 @@
                                             <DataTrigger Binding="{Binding Status}" Value="Storniert">
                                                 <Setter Property="Background" Value="LightCoral"/>
                                             </DataTrigger>
+                                            <StaticResource ResourceKey="StandardDataGridTextSelectionTrigger"/>
                                         </Style.Triggers>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
