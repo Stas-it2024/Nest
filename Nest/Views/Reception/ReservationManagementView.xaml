@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Nest.Views.Reception.ReservationManagementView"
+<UserControl x:Class="Nest.Views.Reception.ReservationManagementView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -251,11 +251,9 @@
 
                     <!-- SUCHE -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <TextBlock Text="Suche:" VerticalAlignment="Center"
-                                   Margin="0,0,10,0" FontWeight="Bold"/>
-                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                 Width="250" Height="30" VerticalContentAlignment="Center"
-                                 Margin="0,0,10,0"/>
+                        <TextBlock Style="{StaticResource ToolbarLabelStyle}" Text="Suche:"/>
+                        <TextBox Style="{StaticResource ToolbarSearchTextBoxStyle}" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="250"/>
                         <Button x:Name="ClearSearch"
                                 Content="Zurücksetzen"
                                 Width="100" Height="30"
@@ -297,24 +295,8 @@
                             <DataGridTextColumn Header="Betrag (€)" Binding="{Binding Amount, StringFormat={}{0:F2}}" Width="80"/>
                             <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90">
                                 <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Status}" Value="Reserviert">
-                                                <Setter Property="Background" Value="Gold"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Status}" Value="Eingecheckt">
-                                                <Setter Property="Background" Value="LightGreen"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Status}" Value="Ausgecheckt">
-                                                <Setter Property="Background" Value="LightGray"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Status}" Value="Storniert">
-                                                <Setter Property="Background" Value="LightCoral"/>
-                                            </DataTrigger>
-                                            <StaticResource ResourceKey="StandardDataGridTextSelectionTrigger"/>
-                                        </Style.Triggers>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
+                                <StaticResource ResourceKey="ReservationStatusTextStyle"/>
+                            </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
                         </DataGrid.Columns>
                     </DataGrid>

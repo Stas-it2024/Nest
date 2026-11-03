@@ -23,12 +23,9 @@
         </Border>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,248">
-            <TextBlock Text="Suche:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="Bold"/>
-            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     Width="250"
-                     Height="30"
-                     VerticalContentAlignment="Center"
-                     Margin="0,0,10,0"/>
+            <TextBlock Style="{StaticResource ToolbarLabelStyle}" Text="Suche:"/>
+            <TextBox Style="{StaticResource ToolbarSearchTextBoxStyle}" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     Width="250"/>
             <Button x:Name="SearchGuests"
                     Content="Suchen"
                     Width="80"
@@ -95,15 +92,7 @@
                         <DataGridTextColumn Header="Betrag" Binding="{Binding TotalAmount, StringFormat={}{0:F2} €}" Width="100"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100">
                             <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Status}" Value="Reserviert"><Setter Property="Background" Value="Gold"/></DataTrigger>
-                                        <DataTrigger Binding="{Binding Status}" Value="Eingecheckt"><Setter Property="Background" Value="LightGreen"/></DataTrigger>
-                                        <DataTrigger Binding="{Binding Status}" Value="Ausgecheckt"><Setter Property="Background" Value="LightGray"/></DataTrigger>
-                                        <DataTrigger Binding="{Binding Status}" Value="Storniert"><Setter Property="Background" Value="LightCoral"/></DataTrigger>
-                                        <StaticResource ResourceKey="StandardDataGridTextSelectionTrigger"/>
-                                    </Style.Triggers>
-                                </Style>
+                                <StaticResource ResourceKey="ReservationStatusTextStyle"/>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
                     </DataGrid.Columns>

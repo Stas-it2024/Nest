@@ -8,15 +8,7 @@
              d:DesignHeight="800" d:DesignWidth="1200">
     <UserControl.Resources>
         <converters:SectionBackgroundConverter x:Key="SectionBackgroundConverter"/>
-        <Style x:Key="ReceptionMenuButtonStyle" TargetType="Button">
-            <Setter Property="Height" Value="50"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Padding" Value="20,0,0,0"/>
-            <Setter Property="Cursor" Value="Hand"/>
+        <Style x:Key="ReceptionMenuButtonStyle" TargetType="Button" BasedOn="{StaticResource SidebarMenuButtonBaseStyle}">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -48,7 +40,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="0" Background="#17345C">
+        <Border Grid.Column="0" Background="{StaticResource StaffSidebarBrush}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -57,15 +49,11 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Margin="10,20">
-                    <TextBlock Text="Grand Horizon" FontSize="30" FontWeight="Bold"
-                               Foreground="White" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Hotel" FontSize="26" FontWeight="Bold"
-                               Foreground="White" HorizontalAlignment="Center"/>
+                    <TextBlock Style="{StaticResource StaffBrandTextStyle}" Text="Grand Horizon"/>
+                    <TextBlock Style="{StaticResource StaffHotelTextStyle}" Text="Hotel"/>
                     <Separator Margin="0,15"/>
-                    <TextBlock Text="Front Desk Staff" Foreground="#B8C6DA" FontSize="15"
-                               HorizontalAlignment="Center"/>
-                    <TextBlock Text="(Rezeptionist)" Foreground="#B8C6DA" FontSize="15"
-                               HorizontalAlignment="Center"/>
+                    <TextBlock Style="{StaticResource StaffInfoTextStyle}" Text="Front Desk Staff"/>
+                    <TextBlock Style="{StaticResource StaffInfoTextStyle}" Text="(Rezeptionist)"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="1">
@@ -98,13 +86,8 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Border Background="#224E87">
-                <TextBlock Text="{Binding PageTitle}"
-                           VerticalAlignment="Center"
-                           Margin="25,0"
-                           Foreground="White"
-                           FontSize="30"
-                           FontWeight="Bold"/>
+            <Border Background="{StaticResource PageHeaderBrush}">
+                <TextBlock Style="{StaticResource PageHeaderTextStyle}" Text="{Binding PageTitle}"/>
             </Border>
 
             <ContentControl x:Name="ActiveItem" Grid.Row="1"/>

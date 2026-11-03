@@ -9,25 +9,14 @@
     <UserControl.Resources>
 
         <!-- Label -->
-        <Style TargetType="Label">
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Margin" Value="8,0"/>
-        </Style>
+        <Style TargetType="Label" BasedOn="{StaticResource AdminFormLabelStyle}"/>
 
         <!-- Combobox -->
-        <Style TargetType="ComboBox">
-            <Setter Property="Margin" Value="10,0,10,10"/>
-            <Setter Property="Height" Value="30"/>
-        </Style>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource AdminFormComboBoxStyle}"/>
 
 
         <!-- TextBox -->
-        <Style TargetType="TextBox">
-            <Setter Property="Height" Value="30"/>
-            <Setter Property="Margin" Value="10,0,10,10"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="FontSize" Value="16"/>
-        </Style>
+        <Style TargetType="TextBox" BasedOn="{StaticResource AdminFormTextBoxStyle}"/>
     </UserControl.Resources>
     <Grid>
 
@@ -41,13 +30,8 @@
         </Grid.ColumnDefinitions>
 
         <!-- Header -->
-        <Border Background="#224E87" Grid.Row="0" Grid.ColumnSpan="2">
-            <TextBlock Text="Eventverwaltung"
-                   VerticalAlignment="Center"
-                   Margin="25,0"
-                   Foreground="White"
-                   FontSize="30"
-                   FontWeight="Bold"/>
+        <Border Background="{StaticResource PageHeaderBrush}" Grid.Row="0" Grid.ColumnSpan="2">
+            <TextBlock Style="{StaticResource PageHeaderTextStyle}" Text="Eventverwaltung"/>
         </Border>
         <ScrollViewer Grid.Row="1" Grid.Column="0"
                   Background="White"

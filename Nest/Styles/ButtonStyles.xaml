@@ -1,5 +1,8 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Palette.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
     <!-- Bestehende Aktionsfarben; auch lokale Layout-Styles verwenden diese Palette. -->
     <SolidColorBrush x:Key="PrimaryButtonBackground" Color="#007ACC"/>
     <SolidColorBrush x:Key="SuccessButtonBackground" Color="#28A745"/>
@@ -53,6 +56,18 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <!-- Only the identical menu geometry is shared; each view retains its own template and triggers. -->
+    <Style x:Key="SidebarMenuButtonBaseStyle" TargetType="Button">
+        <Setter Property="Height" Value="50"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="Padding" Value="20,0,0,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
     </Style>
 
     <!-- Sitzungsaktionen: Sidebar-Geometrie mit dem gemeinsamen Button-Template. -->
@@ -137,7 +152,7 @@
 
     <!-- Bestehende Ressourcennamen bleiben für Login und Portal gültig. -->
     <Style x:Key="BlueButton" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
-        <Setter Property="Background" Value="#234D87"/>
+        <Setter Property="Background" Value="{StaticResource EntryBrandBrush}"/>
         <Setter Property="FontSize" Value="18"/>
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="BorderThickness" Value="0"/>

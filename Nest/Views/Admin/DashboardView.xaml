@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Nest.Views.Admin.DashboardView"
+<UserControl x:Class="Nest.Views.Admin.DashboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -28,13 +28,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Border Grid.Row="0" Height="70" Background="#224E87">
-            <TextBlock Text="Dashboard - Gesamtueberblick"
-                       VerticalAlignment="Center"
-                       Margin="25,0"
-                       Foreground="White"
-                       FontSize="30"
-                       FontWeight="Bold"/>
+        <Border Grid.Row="0" Height="70" Background="{StaticResource PageHeaderBrush}">
+            <TextBlock Style="{StaticResource PageHeaderTextStyle}" Text="Dashboard - Gesamtueberblick"/>
         </Border>
 
         <!-- KPI cards -->
@@ -50,7 +45,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Background="#2E5A92" Margin="2,0" Height="125" Padding="8">
+            <Border Style="{StaticResource DashboardMetricCardStyle}" Grid.Column="0" Background="#2E5A92">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -58,16 +53,14 @@
                     </Grid.RowDefinitions>
                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="0,4">
                         <StackPanel>
-                            <TextBlock Text="{Binding RoomCount}" FontSize="40" FontWeight="Bold"
-                                       Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Style="{StaticResource DashboardMetricValueStyle}" Text="{Binding RoomCount}"/>
                         </StackPanel>
                     </Viewbox>
-                    <TextBlock Grid.Row="1" Text="Zimmer Gesamt" FontSize="12" Foreground="White"
-                               TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Style="{StaticResource DashboardMetricLabelStyle}" Grid.Row="1" Text="Zimmer Gesamt"/>
                 </Grid>
             </Border>
 
-            <Border Grid.Column="1" Background="Green" Margin="2,0" Height="125" Padding="8">
+            <Border Style="{StaticResource DashboardMetricCardStyle}" Grid.Column="1" Background="Green">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -75,16 +68,14 @@
                     </Grid.RowDefinitions>
                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="0,4">
                         <StackPanel>
-                            <TextBlock Text="{Binding AvailableRoomCount}" FontSize="40" FontWeight="Bold"
-                                       Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Style="{StaticResource DashboardMetricValueStyle}" Text="{Binding AvailableRoomCount}"/>
                         </StackPanel>
                     </Viewbox>
-                    <TextBlock Grid.Row="1" Text="Verfügbar" FontSize="12" Foreground="White"
-                               TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Style="{StaticResource DashboardMetricLabelStyle}" Grid.Row="1" Text="Verfügbar"/>
                 </Grid>
             </Border>
 
-            <Border Grid.Column="2" Background="#D90000" Margin="2,0" Height="125" Padding="8">
+            <Border Style="{StaticResource DashboardMetricCardStyle}" Grid.Column="2" Background="#D90000">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -92,16 +83,14 @@
                     </Grid.RowDefinitions>
                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="0,4">
                         <StackPanel>
-                            <TextBlock Text="{Binding OccupiedRoomCount}" FontSize="40" FontWeight="Bold"
-                                       Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Style="{StaticResource DashboardMetricValueStyle}" Text="{Binding OccupiedRoomCount}"/>
                         </StackPanel>
                     </Viewbox>
-                    <TextBlock Grid.Row="1" Text="Belegt" FontSize="12" Foreground="White"
-                               TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Style="{StaticResource DashboardMetricLabelStyle}" Grid.Row="1" Text="Belegt"/>
                 </Grid>
             </Border>
 
-            <Border Grid.Column="3" Background="#B8860B" Margin="2,0" Height="125" Padding="8">
+            <Border Style="{StaticResource DashboardMetricCardStyle}" Grid.Column="3" Background="#B8860B">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -109,16 +98,14 @@
                     </Grid.RowDefinitions>
                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="0,4">
                         <StackPanel>
-                            <TextBlock Text="{Binding ReservedRoomCount}" FontSize="40" FontWeight="Bold"
-                                       Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Style="{StaticResource DashboardMetricValueStyle}" Text="{Binding ReservedRoomCount}"/>
                         </StackPanel>
                     </Viewbox>
-                    <TextBlock Grid.Row="1" Text="Reserviert" FontSize="12" Foreground="White"
-                               TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Style="{StaticResource DashboardMetricLabelStyle}" Grid.Row="1" Text="Reserviert"/>
                 </Grid>
             </Border>
 
-            <Border Grid.Column="4" Background="#0E75C7" Margin="2,0" Height="125" Padding="8">
+            <Border Style="{StaticResource DashboardMetricCardStyle}" Grid.Column="4" Background="#0E75C7">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -126,16 +113,14 @@
                     </Grid.RowDefinitions>
                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="0,4">
                         <StackPanel>
-                            <TextBlock Text="{Binding TodayCheckInCount}" FontSize="40" FontWeight="Bold"
-                                       Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Style="{StaticResource DashboardMetricValueStyle}" Text="{Binding TodayCheckInCount}"/>
                         </StackPanel>
                     </Viewbox>
-                    <TextBlock Grid.Row="1" Text="Heute Check-in" FontSize="12" Foreground="White"
-                               TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Style="{StaticResource DashboardMetricLabelStyle}" Grid.Row="1" Text="Heute Check-in"/>
                 </Grid>
             </Border>
 
-            <Border Grid.Column="5" Background="#6A0DAD" Margin="2,0" Height="125" Padding="8">
+            <Border Style="{StaticResource DashboardMetricCardStyle}" Grid.Column="5" Background="#6A0DAD">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -143,16 +128,14 @@
                     </Grid.RowDefinitions>
                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="0,4">
                         <StackPanel>
-                            <TextBlock Text="{Binding TodayCheckOutCount}" FontSize="40" FontWeight="Bold"
-                                       Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Style="{StaticResource DashboardMetricValueStyle}" Text="{Binding TodayCheckOutCount}"/>
                         </StackPanel>
                     </Viewbox>
-                    <TextBlock Grid.Row="1" Text="Heute Check-out" FontSize="12" Foreground="White"
-                               TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Style="{StaticResource DashboardMetricLabelStyle}" Grid.Row="1" Text="Heute Check-out"/>
                 </Grid>
             </Border>
 
-            <Border Grid.Column="6" Background="#0B6B59" Margin="2,0" Height="125" Padding="8">
+            <Border Style="{StaticResource DashboardMetricCardStyle}" Grid.Column="6" Background="#0B6B59">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -160,16 +143,14 @@
                     </Grid.RowDefinitions>
                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="0,4">
                         <StackPanel>
-                            <TextBlock Text="{Binding GuestCount}" FontSize="40" FontWeight="Bold"
-                                       Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Style="{StaticResource DashboardMetricValueStyle}" Text="{Binding GuestCount}"/>
                         </StackPanel>
                     </Viewbox>
-                    <TextBlock Grid.Row="1" Text="Gäste Gesamt" FontSize="12" Foreground="White"
-                               TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Style="{StaticResource DashboardMetricLabelStyle}" Grid.Row="1" Text="Gäste Gesamt"/>
                 </Grid>
             </Border>
 
-            <Border Grid.Column="7" Background="#2B2B2B" Margin="2,0" Height="125" Padding="8">
+            <Border Style="{StaticResource DashboardMetricCardStyle}" Grid.Column="7" Background="#2B2B2B">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -178,12 +159,10 @@
                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="0,4">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="EUR" Margin="0,0,6,0" VerticalAlignment="Center" FontWeight="Bold" FontSize="30" Foreground="White" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding TotalRevenue, StringFormat={}{0:F2}}" FontSize="40" FontWeight="Bold"
-                                       Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Style="{StaticResource DashboardMetricValueStyle}" Text="{Binding TotalRevenue, StringFormat={}{0:F2}}"/>
                         </StackPanel>
                     </Viewbox>
-                    <TextBlock Grid.Row="1" Text="Gesamtumsatz" FontSize="12" Foreground="White"
-                               TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Style="{StaticResource DashboardMetricLabelStyle}" Grid.Row="1" Text="Gesamtumsatz"/>
                 </Grid>
             </Border>
         </Grid>
@@ -200,9 +179,8 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border Background="#E4EFFA" Padding="8,5">
-                    <TextBlock Text="Letzte Reservierungen" Foreground="#224E87" FontSize="16"
-                               FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                <Border Style="{StaticResource DashboardSectionHeaderStyle}">
+                    <TextBlock Style="{StaticResource DashboardSectionHeadingStyle}" Text="Letzte Reservierungen"/>
                 </Border>
 
                 <DataGrid Grid.Row="1" Style="{StaticResource StandardDataGridStyle}" AutoGenerateColumns="False"
@@ -233,9 +211,8 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border Background="#E4EFFA" Padding="8,5">
-                    <TextBlock Text="Zimmerstatus - Übersicht" Foreground="#224E87" FontSize="16"
-                               FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                <Border Style="{StaticResource DashboardSectionHeaderStyle}">
+                    <TextBlock Style="{StaticResource DashboardSectionHeadingStyle}" Text="Zimmerstatus - Übersicht"/>
                 </Border>
 
                 <DataGrid Grid.Row="1" Style="{StaticResource StandardDataGridStyle}" AutoGenerateColumns="False"

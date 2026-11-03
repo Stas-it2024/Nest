@@ -1,0 +1,11 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="PageHeaderBrush" Color="#224E87"/>
+    <SolidColorBrush x:Key="StaffSidebarBrush" Color="#17345C"/>
+    <SolidColorBrush x:Key="StaffInfoBrush" Color="#B8C6DA"/>
+    <SolidColorBrush x:Key="EntryBrandBrush" Color="#234D87"/>
+    <SolidColorBrush x:Key="PortalHeadingBrush" Color="#173A67"/>
+    <SolidColorBrush x:Key="PortalBorderBrush" Color="#D8E1EC"/>
+    <SolidColorBrush x:Key="PortalTextBrush" Color="#1F2937"/>
+    <SolidColorBrush x:Key="PortalValidationBrush" Color="#B42318"/>
+</ResourceDictionary>
