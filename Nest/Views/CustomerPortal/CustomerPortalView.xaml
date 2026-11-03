@@ -6,11 +6,11 @@
              xmlns:cal="http://www.caliburnproject.org"
              mc:Ignorable="d" 
              d:DesignHeight="1080" d:DesignWidth="1920"
-             Background="#F4F7FB"
+             Background="#F3F5F9"
              FontFamily="Segoe UI">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <!-- ===== Stil für moderne Outlined-Textboxen (aus deinem neuen Design) ===== -->
+        <!-- Bestehende Eingaben für die Zimmerbuchung. -->
         <Style x:Key="OutlinedTextBoxStyle" TargetType="TextBox">
             <Setter Property="Height" Value="40"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -49,26 +49,16 @@
         </Style>
 
         <!-- Stil für Hauptschaltflächen (dein vorhandener) -->
-        <Style x:Key="PrimaerAktionButtonStil" TargetType="Button">
-            <Setter Property="Background" Value="#1F497D"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="Bold"/>
+        <Style x:Key="PrimaerAktionButtonStil" TargetType="Button"
+               BasedOn="{StaticResource PortalPrimaryButtonStyle}">
+            <Style.Resources>
+                <CornerRadius x:Key="ActionButtonCornerRadius">0</CornerRadius>
+            </Style.Resources>
+            <Setter Property="BorderBrush" Value="DarkSlateGray"/>
+            <Setter Property="Padding" Value="0"/>
             <Setter Property="Height" Value="40"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Margin" Value="0,10,0,0"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="DarkSlateGray" BorderThickness="1"
-                                CornerRadius="4">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
         </Style>
 
         <!-- Lokales Gestaltungssystem für Auto, Taxi und Restaurant. -->
@@ -76,17 +66,9 @@
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#D8E1EC"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="CornerRadius" Value="0"/>
             <Setter Property="Padding" Value="24"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect Color="#22364D"
-                                      BlurRadius="10"
-                                      ShadowDepth="2"
-                                      Opacity="0.08"/>
-                </Setter.Value>
-            </Setter>
         </Style>
 
         <Style x:Key="KundenFormTitelStil" TargetType="TextBlock">
@@ -121,7 +103,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="7">
+                                CornerRadius="0">
                             <ScrollViewer x:Name="PART_ContentHost"
                                           Margin="{TemplateBinding Padding}"
                                           HorizontalAlignment="Stretch"
@@ -194,16 +176,16 @@
             <Setter Property="Background" Value="#EEF5FC"/>
             <Setter Property="BorderBrush" Value="#C8D9EB"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="CornerRadius" Value="0"/>
             <Setter Property="Padding" Value="16,13"/>
         </Style>
 
         <Style x:Key="KundenPortalBereichStil" TargetType="GroupBox">
             <Setter Property="Foreground" Value="#1F2937"/>
             <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#D8E1EC"/>
+            <Setter Property="BorderBrush" Value="#D0D0D0"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Padding" Value="0"/>
             <Setter Property="HeaderTemplate">
                 <Setter.Value>
                     <DataTemplate>
@@ -217,11 +199,18 @@
             </Setter>
         </Style>
 
+        <!-- Originale Kontaktdaten-Gestaltung; andere Bereiche behalten ihr neues Layout. -->
+        <Style x:Key="KontaktBereichStil" TargetType="GroupBox"
+               BasedOn="{StaticResource KundenPortalBereichStil}">
+            <Setter Property="BorderBrush" Value="#D8E1EC"/>
+            <Setter Property="Padding" Value="10"/>
+        </Style>
+
         <Style x:Key="ZimmerVorschauKartenStil" TargetType="Border">
             <Setter Property="Background" Value="#F7F9FC"/>
             <Setter Property="BorderBrush" Value="#D8E1EC"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="9"/>
+            <Setter Property="CornerRadius" Value="0"/>
             <Setter Property="Padding" Value="14"/>
         </Style>
 
@@ -229,52 +218,26 @@
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#D8E1EC"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="CornerRadius" Value="0"/>
             <Setter Property="Padding" Value="16"/>
             <Setter Property="Margin" Value="0,0,0,12"/>
         </Style>
 
-        <Style x:Key="KundenFormAktionStil"
-               TargetType="Button">
+        <Style x:Key="KundenFormAktionStil" TargetType="Button"
+               BasedOn="{StaticResource PortalPrimaryButtonStyle}">
+            <Style.Resources>
+                <CornerRadius x:Key="ActionButtonCornerRadius">0</CornerRadius>
+            </Style.Resources>
             <Setter Property="Height" Value="52"/>
-            <Setter Property="Background" Value="#1F497D"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="0"/>
             <Setter Property="BorderBrush" Value="#1F497D"/>
-            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontSize" Value="17"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
             <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#173C6E"/>
-                    <Setter Property="BorderBrush" Value="#173C6E"/>
-                </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#102C50"/>
-                    <Setter Property="BorderBrush" Value="#102C50"/>
-                </Trigger>
                 <Trigger Property="IsKeyboardFocused" Value="True">
                     <Setter Property="BorderBrush" Value="#76A9DC"/>
                     <Setter Property="BorderThickness" Value="3"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#A9B5C3"/>
-                    <Setter Property="BorderBrush" Value="#A9B5C3"/>
-                    <Setter Property="Foreground" Value="#F5F7FA"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -284,18 +247,18 @@
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="#1F2937"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Padding" Value="14,10"/>
-            <Setter Property="Margin" Value="0,0,3,0"/>
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="Padding" Value="24,7"/>
+            <Setter Property="Margin" Value="0"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
                         <Border x:Name="TabRahmen"
                                 Background="{TemplateBinding Background}"
-                                BorderBrush="Transparent"
-                                BorderThickness="0,0,0,3"
-                                CornerRadius="6,6,0,0"
+                                BorderBrush="#D8D8D8"
+                                BorderThickness="1,1,1,0"
+                                CornerRadius="0"
                                 TextElement.Foreground="{TemplateBinding Foreground}"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter ContentSource="Header"
@@ -309,16 +272,15 @@
                                 <Setter TargetName="TabRahmen" Property="TextElement.Foreground" Value="#173A67"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="TabRahmen" Property="Background" Value="#1F497D"/>
-                                <Setter TargetName="TabRahmen" Property="BorderBrush" Value="#163A68"/>
-                                <Setter TargetName="TabRahmen" Property="TextElement.Foreground" Value="White"/>
+                                <Setter TargetName="TabRahmen" Property="Background" Value="White"/>
+                                <Setter TargetName="TabRahmen" Property="TextElement.Foreground" Value="#1F2937"/>
                             </Trigger>
                             <MultiTrigger>
                                 <MultiTrigger.Conditions>
                                     <Condition Property="IsSelected" Value="True"/>
                                     <Condition Property="IsMouseOver" Value="True"/>
                                 </MultiTrigger.Conditions>
-                                <Setter TargetName="TabRahmen" Property="Background" Value="#173C6E"/>
+                                <Setter TargetName="TabRahmen" Property="Background" Value="White"/>
                             </MultiTrigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="TabRahmen" Property="BorderBrush" Value="#76A9DC"/>
@@ -333,57 +295,57 @@
         </Style>
 
         <!-- Stil für Abmelden-Button (dein vorhandener) -->
-        <Style x:Key="AbmeldenButtonStil" TargetType="Button">
-            <Setter Property="Background" Value="DarkRed"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Height" Value="35"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="DarkRed" BorderThickness="1"
-                                CornerRadius="4">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+        <Style x:Key="AbmeldenButtonStil" TargetType="Button"
+               BasedOn="{StaticResource DangerButtonStyle}">
+            <Style.Resources>
+                <CornerRadius x:Key="ActionButtonCornerRadius">0</CornerRadius>
+            </Style.Resources>
+            <Setter Property="Background" Value="#C00000"/>
+            <Setter Property="BorderBrush" Value="#C00000"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="30,0"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
         </Style>
     </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="70"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Kopfzeile im gemeinsamen Stil der Administrationsseiten -->
         <Grid Grid.Row="0"
-              Background="#224E87"
+              Background="#17365D"
+              MinHeight="64"
               Visibility="{Binding ShowPortalHeader, Converter={StaticResource BooleanToVisibilityConverter}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0"
-                       Text="{Binding Begruessung}"
-                       FontSize="30"
-                       FontWeight="Bold"
-                       Margin="25,0"
-                       Foreground="White"
-                       VerticalAlignment="Center"/>
+            <WrapPanel Grid.Column="0"
+                       Orientation="Horizontal"
+                       Margin="20,12"
+                       TextElement.FontSize="24"
+                       TextElement.FontWeight="Bold"
+                       TextElement.Foreground="White"
+                       VerticalAlignment="Center">
+                <TextBlock Text="{Binding Begruessung}" TextWrapping="Wrap"/>
+                <TextBlock Text=" - Bitte wählen Sie einen Service:" TextWrapping="Wrap"/>
+            </WrapPanel>
             <Button Grid.Column="1" Content="Abmelden"
                     x:Name="Abmelden"
                     Style="{StaticResource AbmeldenButtonStil}"
-                    VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"/>
         </Grid>
 
         <!-- TabControl -->
         <TabControl Grid.Row="1"
-                    Background="#F4F7FB"
+                    Background="#F3F5F9"
                     BorderBrush="#D8E1EC"
                     BorderThickness="1"
                     ItemContainerStyle="{StaticResource KundenPortalTabStil}">
@@ -393,14 +355,14 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled"
                               HorizontalContentAlignment="Stretch"
-                              Background="#F4F7FB">
+                              Background="#F3F5F9">
                     <!-- Der Tab arbeitet mit dem untergeordneten ViewModel für Zimmerbuchungen. -->
-                    <StackPanel DataContext="{Binding ZimmerBuchung}" Margin="10">
+                    <StackPanel DataContext="{Binding ZimmerBuchung}" Margin="18">
 
                         <!-- Kontaktdaten (modern) -->
                         <GroupBox Header="Ihre Kontaktdaten"
                                   Margin="0,0,0,15"
-                                  Style="{StaticResource KundenPortalBereichStil}">
+                                  Style="{StaticResource KontaktBereichStil}">
                             <Grid Margin="15">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition/>
@@ -680,8 +642,7 @@
                                 cal:Message.Attach="[Action ZimmerBuchen]"
                                 Height="50"
                                 Margin="0,15,0,0"
-                                Background="#1F4D86"
-                                Foreground="White"
+                                Style="{StaticResource PrimaryButtonStyle}" Background="#1F4D86"
                                 FontWeight="Bold"
                                 FontSize="20"/>
                     </StackPanel>
@@ -1065,8 +1026,7 @@
                                 <Button Content="Aktualisieren"
                                         cal:Message.Attach="[Action LadeVeranstaltungen]"
                                         Width="120" Height="35" Margin="0,0,0,10"
-                                        Background="#1F497D" Foreground="White"
-                                        FontWeight="Bold" Cursor="Hand"
+                                        Style="{StaticResource PortalPrimaryButtonStyle}"
                                         HorizontalAlignment="Left"/>
 
                                 <ItemsControl ItemsSource="{Binding Veranstaltungen}">

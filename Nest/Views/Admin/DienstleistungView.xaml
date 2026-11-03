@@ -20,19 +20,7 @@
             <Setter Property="Height" Value="30"/>
         </Style>
 
-        <!-- Button -->
-        <Style TargetType="Button">
-            <Setter Property="Width" Value="135"/>
-            <Setter Property="Padding" Value="10"/>
-        </Style>
 
-        <!-- Button für textbox-->
-        <Style x:Key="TextBoxTaste" TargetType="Button">
-            <Setter Property="Width" Value="15"/>
-            <Setter Property="Height" Value="12"/>
-            <Setter Property="FontSize" Value="8"/>
-            <Setter Property="Background" Value="#F5F5F5"/>
-        </Style>
         <!-- TextBox -->
         <Style TargetType="TextBox">
             <Setter Property="Height" Value="30"/>
@@ -149,23 +137,19 @@
 
                     <Button x:Name="Hinzufügen"
                             Content="Hinzufügen"
-                            Background="#28A745"
-                            Foreground="White"
+                            Style="{StaticResource SuccessButtonStyle}" Width="135" Padding="10"
                             Margin="0,0,5,5"/>
                     <Button x:Name="Aktualisieren"
                             Content="Aktualisieren"
-                            Background="#007ACC"
-                            Foreground="White"
+                            Style="{StaticResource PrimaryButtonStyle}" Width="135" Padding="10"
                             Margin="5,0,0,5"/>
                     <Button x:Name="Löschen"
                             Content="Löschen"
-                            Background="#DC3545"
-                            Foreground="White"
+                            Style="{StaticResource DangerButtonStyle}" Width="135" Padding="10"
                             Margin="0,5,5,0"/>
                     <Button x:Name="ClearForm"
                             Content="Leeren"
-                            Background="#6C757D"
-                            Foreground="White"
+                            Style="{StaticResource SecondaryButtonStyle}" Width="135" Padding="10"
                             Margin="5,5,0,0"/>
                 </UniformGrid>
 

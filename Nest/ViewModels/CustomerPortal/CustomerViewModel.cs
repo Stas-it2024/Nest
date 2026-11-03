@@ -20,14 +20,19 @@ namespace Nest.ViewModels.CustomerPortal
                 _gastname = value ?? string.Empty;
                 // Die View wird sofort aktualisiert, weil das Textfeld per Data Binding verbunden ist.
                 NotifyOfPropertyChange(() => Gastname);
+                NotifyOfPropertyChange(() => Begruessung);
             }
         }
+
+        public string Begruessung => string.IsNullOrWhiteSpace(Gastname)
+            ? "Willkommen!"
+            : $"Willkommen, {Gastname.Trim()}!";
 
         public void ShowCustomerPortal()
         {
             // Der Name wird an das Portal übergeben, damit die Begrüßung personalisiert werden kann.
             _shell.WindowTitle = "Hotel Management System - Kundenportal";
-            _shell.ShowCustomerPortal(Gastname);
+            _shell.ShowCustomerPortal(Gastname, this);
         }
 
         public void ShowLogin()

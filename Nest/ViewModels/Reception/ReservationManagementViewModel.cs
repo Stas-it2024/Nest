@@ -309,45 +309,6 @@ namespace Nest.ViewModels.Reception
             SearchText = "";
         }
 
-        // ==================== GAST SPEICHERN / FINDEN ====================
-        private int SaveOrGetGuest()
-        {
-            using var conn = DB.GetConnection();
-            conn.Open();
-
-            string checkSql = @"
-                SELECT id FROM gaeste 
-                WHERE email = @email 
-                OR (vorname = @firstName AND nachname = @lastName AND telefon = @telefon)
-                LIMIT 1";
-
-            using var checkCmd = new MySqlCommand(checkSql, conn);
-            checkCmd.Parameters.AddWithValue("@email", (object?)Email ?? DBNull.Value);
-            checkCmd.Parameters.AddWithValue("@firstName", FirstName);
-            checkCmd.Parameters.AddWithValue("@lastName", LastName);
-            checkCmd.Parameters.AddWithValue("@telefon", (object?)Phone ?? DBNull.Value);
-
-            var result = checkCmd.ExecuteScalar();
-            if (result != null)
-                return Convert.ToInt32(result);
-
-            string insertSql = @"
-                INSERT INTO gaeste (vorname, nachname, email, telefon, ausweis_typ, ausweis_nummer, nationalitaet)
-                VALUES (@firstName, @lastName, @email, @telefon, @idType, @idNumber, @nationalitaet);
-                SELECT LAST_INSERT_ID();";
-
-            using var insertCmd = new MySqlCommand(insertSql, conn);
-            insertCmd.Parameters.AddWithValue("@firstName", FirstName);
-            insertCmd.Parameters.AddWithValue("@lastName", LastName);
-            insertCmd.Parameters.AddWithValue("@email", (object?)Email ?? DBNull.Value);
-            insertCmd.Parameters.AddWithValue("@telefon", (object?)Phone ?? DBNull.Value);
-            insertCmd.Parameters.AddWithValue("@idType", (object?)IdType ?? DBNull.Value);
-            insertCmd.Parameters.AddWithValue("@idNumber", (object?)IdNumber ?? DBNull.Value);
-            insertCmd.Parameters.AddWithValue("@nationalitaet", (object?)Nationality ?? DBNull.Value);
-
-            return Convert.ToInt32(insertCmd.ExecuteScalar());
-        }
-
         // ==================== RESERVIERUNG SPEICHERN ====================
         public void SaveReservation()
         {
@@ -363,7 +324,7 @@ namespace Nest.ViewModels.Reception
                     System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
                 return;
             }
-            if (CheckInDate >= CheckOutDate)
+            if (CheckInDate.Date >= CheckOutDate.Date)
             {
                 System.Windows.MessageBox.Show("Check-out muss nach Check-in liegen!", "Fehler",
                     System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
@@ -372,44 +333,39 @@ namespace Nest.ViewModels.Reception
 
             try
             {
-                int guestId = SaveOrGetGuest();
-                int roomId = SelectedRoom.Id;
-
-                using var conn = DB.GetConnection();
-                conn.Open();
-
-                string code = "BNR-" + DateTime.Now.ToString("yyyyMMddHHmmss");
-                int naechte = (CheckOutDate - CheckInDate).Days;
-
-                string sql = @"
-                    INSERT INTO reservierungen 
-                    (reservierungs_code, gast_id, zimmer_id, anreise_datum, abreise_datum, 
-                     naechte, erwachsene, kinder, gesamtbetrag, zahlungsart, status, sonderwuensche)
-                    VALUES 
-                    (@code, @guestId, @roomId, @checkIn, @checkOut, 
-                     @naechte, @erwachsene, @kinder, @total, @payment, 'Reserviert', @requests)";
-
-                using var cmd = new MySqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@code", code);
-                cmd.Parameters.AddWithValue("@guestId", guestId);
-                cmd.Parameters.AddWithValue("@roomId", roomId);
-                cmd.Parameters.AddWithValue("@checkIn", CheckInDate.Date);
-                cmd.Parameters.AddWithValue("@checkOut", CheckOutDate.Date);
-                cmd.Parameters.AddWithValue("@naechte", naechte);
-                cmd.Parameters.AddWithValue("@erwachsene", Adults);
-                cmd.Parameters.AddWithValue("@kinder", Children);
-                cmd.Parameters.AddWithValue("@total", Price);
-                cmd.Parameters.AddWithValue("@payment", PaymentType);
-                cmd.Parameters.AddWithValue("@requests", (object?)SpecialRequests ?? DBNull.Value);
-                cmd.ExecuteNonQuery();
-
-                using var updateRoom = new MySqlCommand(
-                    "UPDATE zimmer SET status='Reserviert' WHERE id=@id", conn);
-                updateRoom.Parameters.AddWithValue("@id", roomId);
-                updateRoom.ExecuteNonQuery();
+                var gast = new Guest
+                {
+                    FirstName = FirstName, LastName = LastName, Email = Email, Phone = Phone,
+                    IdType = IdType, IdNumber = IdNumber, Nationality = Nationality, DateAdded = DateTime.Now
+                };
+                var reservierung = new Reservation
+                {
+                    RoomId = SelectedRoom.Id,
+                    CheckInDate = CheckInDate.Date,
+                    CheckOutDate = CheckOutDate.Date,
+                    Nights = (CheckOutDate.Date - CheckInDate.Date).Days,
+                    Adults = Adults, Children = Children,
+                    TotalAmount = Price, AmountPaid = Deposit,
+                    PaymentMethod = PaymentType, Status = "Reserviert",
+                    ReservationCode = "BNR-" + Guid.NewGuid().ToString("N")[..16].ToUpperInvariant(),
+                    SpecialRequests = SpecialRequests, DateCreated = DateTime.Now
+                };
+                var validationError = ReservationRepository.GetBookingValidationError(reservierung);
+                if (validationError != null || (long)Adults + Children > SelectedRoom.Capacity)
+                {
+                    System.Windows.MessageBox.Show(validationError ?? "Die Zimmerkapazität darf nicht überschritten werden.",
+                        "Ungültige Angaben", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                    return;
+                }
+                if (!_reservationRepository.TryAddIfRoomAvailable(reservierung, gast))
+                {
+                    System.Windows.MessageBox.Show("Das Zimmer ist im ausgewählten Zeitraum nicht verfügbar.",
+                        "Zimmer nicht verfügbar", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                    return;
+                }
 
                 System.Windows.MessageBox.Show(
-                    $"Reservierung gespeichert!\nBuchungsnummer: {code}\nGesamtpreis: {Price:C}",
+                    $"Reservierung gespeichert!\nBuchungsnummer: {reservierung.ReservationCode}\nGesamtpreis: {Price:C}\nAnzahlung: {Deposit:C}",
                     "Erfolg", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
 
                 LoadReservationsFromDatabase();

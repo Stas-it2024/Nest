@@ -50,27 +50,21 @@
                     Content="Suchen"
                     Width="80"
                     Height="30"
-                    Background="#174A92"
-                    Foreground="White"
-                    FontWeight="Bold"/>
+                    Style="{StaticResource SearchButtonStyle}"/>
 
             <Button x:Name="ClearSearch"
                     Content="Zurücksetzen"
                     Width="100"
                     Height="30"
                     Margin="10,0,0,0"
-                    Background="Gray"
-                    Foreground="White"
-                    FontWeight="Bold"/>
+                    Style="{StaticResource ResetButtonStyle}"/>
 
             <Button x:Name="Refresh"
                     Content="Aktualisieren"
                     Width="100"
                     Height="30"
                     Margin="10,0,0,0"
-                    Background="#174A92"
-                    Foreground="White"
-                    FontWeight="Bold"/>
+                    Style="{StaticResource SearchButtonStyle}"/>
         </StackPanel>
 
         <!-- TABS + TABELLE -->

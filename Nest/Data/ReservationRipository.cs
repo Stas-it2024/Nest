@@ -331,14 +331,14 @@ namespace Nest.Data
                     SELECT 1
                     FROM zimmer rm
                     WHERE rm.id = @RoomId
-                      AND rm.status = 'Verfuegbar'
+                      AND rm.status IN ('Verfuegbar', 'Reserviert', 'Belegt')
                       AND rm.geloescht_am IS NULL
                       AND NOT EXISTS
                       (
                           SELECT 1
                           FROM reservierungen r
                           WHERE r.zimmer_id = rm.id
-                            AND r.status <> 'Storniert'
+                            AND r.status IN ('Reserviert', 'Eingecheckt')
                             AND @RequestedCheckIn < r.abreise_datum
                             AND @RequestedCheckOut > r.anreise_datum
                       )
@@ -352,11 +352,15 @@ namespace Nest.Data
         }
 
         public bool TryAddIfRoomAvailable(Reservation reservation)
+            => TryAddIfRoomAvailable(reservation, null);
+
+        public bool TryAddIfRoomAvailable(Reservation reservation, Guest? guest)
         {
-            if (reservation.CheckOutDate.Date <= reservation.CheckInDate.Date)
-            {
-                return false;
-            }
+            var validationError = GetBookingValidationError(reservation);
+            if (validationError != null)
+                throw new ArgumentException(validationError, nameof(reservation));
+            if (guest != null && (string.IsNullOrWhiteSpace(guest.FirstName) || string.IsNullOrWhiteSpace(guest.LastName)))
+                throw new ArgumentException("Bitte Vorname und Nachname eingeben.", nameof(guest));
 
             using var conn = DB.GetConnection();
             conn.Open();
@@ -367,26 +371,29 @@ namespace Nest.Data
             {
                 // FOR UPDATE serialisiert parallele Buchungsversuche für dasselbe Zimmer und verhindert Doppelbuchungen.
                 const string lockRoomSql = @"
-                    SELECT id
+                    SELECT kapazitaet
                     FROM zimmer
                     WHERE id = @RoomId
-                      AND status = 'Verfuegbar'
+                      AND status IN ('Verfuegbar', 'Reserviert', 'Belegt')
                       AND geloescht_am IS NULL
                     FOR UPDATE";
                 using var lockRoomCommand = new MySqlCommand(lockRoomSql, conn, transaction);
                 lockRoomCommand.Parameters.AddWithValue("@RoomId", reservation.RoomId);
-                if (lockRoomCommand.ExecuteScalar() == null)
+                var capacity = lockRoomCommand.ExecuteScalar();
+                if (capacity == null || capacity == DBNull.Value)
                 {
                     transaction.Rollback();
                     return false;
                 }
+                if ((long)reservation.Adults + reservation.Children > Convert.ToInt32(capacity))
+                    throw new ArgumentException("Die Zimmerkapazität darf nicht überschritten werden.", nameof(reservation));
 
                 // Nach der Zimmersperre wird der Zeitraum nochmals geprüft, damit zwischen Prüfung und INSERT nichts dazwischenkommt.
                 const string overlapSql = @"
                     SELECT id
                     FROM reservierungen
                     WHERE zimmer_id = @RoomId
-                      AND status <> 'Storniert'
+                      AND status IN ('Reserviert', 'Eingecheckt')
                       AND @RequestedCheckIn < abreise_datum
                       AND @RequestedCheckOut > anreise_datum
                     LIMIT 1
@@ -401,10 +408,17 @@ namespace Nest.Data
                     return false;
                 }
 
+                var guestId = guest == null
+                    ? reservation.GuestId
+                    : new GastRepository().FindOrAdd(guest, conn, transaction);
                 using var insertCommand = CreateInsertCommand(conn, transaction, reservation);
-                reservation.Id = Convert.ToInt32(insertCommand.ExecuteScalar());
+                insertCommand.Parameters["@GuestId"].Value = guestId;
+                var reservationId = Convert.ToInt32(insertCommand.ExecuteScalar());
                 // Nur wenn Sperre, Prüfung und INSERT erfolgreich waren, wird die Buchung fest gespeichert.
                 transaction.Commit();
+                reservation.Id = reservationId;
+                reservation.GuestId = guestId;
+                if (guest != null) guest.Id = guestId;
                 return true;
             }
             catch
@@ -413,6 +427,21 @@ namespace Nest.Data
                 transaction.Rollback();
                 throw;
             }
+        }
+
+        public static string? GetBookingValidationError(Reservation reservation)
+        {
+            if (reservation.CheckInDate.Date < DateTime.Today)
+                return "Das Anreisedatum darf nicht in der Vergangenheit liegen.";
+            if (reservation.CheckOutDate.Date <= reservation.CheckInDate.Date)
+                return "Check-out muss nach Check-in liegen.";
+            if (reservation.Adults < 1 || reservation.Children < 0)
+                return "Bitte eine gültige Anzahl der Erwachsenen und Kinder eingeben.";
+            if (reservation.TotalAmount < 0)
+                return "Der Gesamtbetrag darf nicht negativ sein.";
+            if (reservation.AmountPaid < 0 || reservation.AmountPaid > reservation.TotalAmount)
+                return "Die Anzahlung muss zwischen 0 und dem Gesamtbetrag liegen.";
+            return null;
         }
 
         private static MySqlCommand CreateInsertCommand(

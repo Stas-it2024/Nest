@@ -1,6 +1,7 @@
 using Caliburn.Micro;
 using Nest.Data;
 using Nest.ViewModels.Shell;
+using System.ComponentModel;
 
 namespace Nest.ViewModels.CustomerPortal
 {
@@ -8,6 +9,8 @@ namespace Nest.ViewModels.CustomerPortal
     public class CustomerPortalViewModel : Screen
     {
         private readonly ShellViewModel _shell;
+        private readonly CustomerViewModel? _gastnameQuelle;
+        private readonly string _gastname;
 
         public ZimmerBuchungViewModel ZimmerBuchung { get; set; }
         public AutoMietenViewModel AutoMieten { get; set; }
@@ -16,18 +19,25 @@ namespace Nest.ViewModels.CustomerPortal
         public VeranstaltungenViewModel Veranstaltungen { get; set; }
         public OnlineZahlungViewModel OnlineZahlung { get; set; }
 
-        public string Begruessung { get; }
+        public string Begruessung => _gastnameQuelle?.Begruessung
+            ?? (string.IsNullOrWhiteSpace(_gastname) ? "Willkommen!" : $"Willkommen, {_gastname}!");
         public bool ShowPortalHeader { get; }
 
-        public CustomerPortalViewModel(ShellViewModel shell, string? gastname, bool isEmbeddedInReception = false)
+        public CustomerPortalViewModel(ShellViewModel shell, string? gastname, bool isEmbeddedInReception = false,
+            CustomerViewModel? gastnameQuelle = null)
         {
             _shell = shell;
             ShowPortalHeader = !isEmbeddedInReception;
             // Nullable erlaubt den Portalaufruf auch ohne Namen; Trim entfernt äußere Leerzeichen.
             var bereinigterGastname = gastname?.Trim();
-            Begruessung = string.IsNullOrWhiteSpace(bereinigterGastname)
-                ? "Willkommen - Bitte wählen Sie einen Service"
-                : $"Willkommen {bereinigterGastname} - Bitte wählen Sie einen Service";
+            _gastname = bereinigterGastname ?? string.Empty;
+            _gastnameQuelle = gastnameQuelle;
+            if (_gastnameQuelle != null)
+            {
+                // Schwache Registrierung verhindert, dass die Startseite ein geschlossenes Portal festhält.
+                PropertyChangedEventManager.AddHandler(_gastnameQuelle, GastnameGeaendert,
+                    nameof(CustomerViewModel.Gastname));
+            }
 
             // Jedes Repository kapselt den Datenbankzugriff für seinen Fachbereich.
             var roomRepo = new RoomRepository();
@@ -47,6 +57,11 @@ namespace Nest.ViewModels.CustomerPortal
             RestaurantReservierung = new RestaurantReservierungViewModel(restaurantReservationRepo);
             Veranstaltungen = new VeranstaltungenViewModel(eventRepo, bereinigterGastname);
             OnlineZahlung = new OnlineZahlungViewModel(resRepo);
+        }
+
+        private void GastnameGeaendert(object? sender, PropertyChangedEventArgs e)
+        {
+            NotifyOfPropertyChange(() => Begruessung);
         }
 
         public void Abmelden()

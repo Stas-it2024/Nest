@@ -99,7 +99,7 @@
                         x:Name="ShowLogin"
                         Height="45"
                         BorderBrush="#214F8B"
-                        BorderThickness="2" Cursor="Hand"/>
+                        BorderThickness="2"/>
 
                     <TextBlock Text="Grand Horizon Hotel - Buchungssystem v1.0"
                        Margin="0,20,0,15"

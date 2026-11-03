@@ -63,14 +63,14 @@ namespace Nest.ViewModels.Shell
             ActivateItemAsync(new ReceptionViewModel(this));
         }
 
-        public void ShowCustomerPortal(string? gastname)
+        public void ShowCustomerPortal(string? gastname, CustomerViewModel? gastnameQuelle = null)
         {
             var window = Application.Current.MainWindow;
 
             window.WindowState = WindowState.Maximized;
             window.ResizeMode = ResizeMode.CanResize;
 
-            ActivateItemAsync(new CustomerPortalViewModel(this, gastname));
+            ActivateItemAsync(new CustomerPortalViewModel(this, gastname, gastnameQuelle: gastnameQuelle));
         }
 
         internal void ShowAdmin()

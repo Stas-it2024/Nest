@@ -39,18 +39,18 @@
 
                         <ControlTemplate.Triggers>
 
-                            <!-- Pressed -->
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Border"
-                                        Property="Background"
-                                        Value="#4A76AD"/>
-                            </Trigger>
-
                             <!-- Hover -->
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Border"
                                         Property="Background"
                                         Value="#214676"/>
+                            </Trigger>
+
+                            <!-- Pressed -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Border"
+                                        Property="Background"
+                                        Value="#122C4D"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -58,14 +58,6 @@
             </Setter>
         </Style>
 
-        <!-- Stil für untere Button -->
-        <Style x:Key="BottomButtonStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource BaseButtonStyle}">
-            
-            <Setter Property="Height" Value="45"/>
-            <Setter Property="FontSize" Value="16"/>
-        </Style>
 
     </UserControl.Resources>
 
@@ -154,13 +146,11 @@
                 <!-- Bottom buttons -->
                 <StackPanel Grid.Row="2" Margin="0" Background="#0F284B">
                     <Button Content="Abmelden"
-                            Style="{StaticResource BottomButtonStyle}"
-                            Foreground="#FFB6B6"
+                            Style="{StaticResource AdminLogoutButtonStyle}"
                             x:Name="Abmelden"/>
 
                     <Button Content="Beenden"
-                            Style="{StaticResource BottomButtonStyle}"
-                            Foreground="#B8D8FF"
+                            Style="{StaticResource AdminExitButtonStyle}"
                             x:Name="Beenden"/>
                 </StackPanel>
             </Grid>

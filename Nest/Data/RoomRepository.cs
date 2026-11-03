@@ -75,14 +75,14 @@ namespace Nest.Data
                 SELECT rm.id, rm.zimmer_nummer, rm.zimmer_typ, rm.kapazitaet, rm.preis_pro_nacht,
                        rm.status, rm.beschreibung, rm.bild_pfad, rm.hinzugefuegt_am, rm.geloescht_am
                 FROM zimmer rm
-                WHERE rm.status = 'Verfuegbar'
+                WHERE rm.status IN ('Verfuegbar', 'Reserviert', 'Belegt')
                   AND rm.geloescht_am IS NULL
                   AND NOT EXISTS
                   (
                       SELECT 1
                       FROM reservierungen r
                       WHERE r.zimmer_id = rm.id
-                        AND r.status <> 'Storniert'
+                        AND r.status IN ('Reserviert', 'Eingecheckt')
                         AND @RequestedCheckIn < r.abreise_datum
                         AND @RequestedCheckOut > r.anreise_datum
                   )

@@ -505,21 +505,16 @@ namespace Nest.ViewModels.CustomerPortal
                     return;
                 }
 
-                // Bestehende Gäste werden wiederverwendet, um unnötige Dubletten zu vermeiden.
-                var gast = _guestRepo.GetByEmail(Email) ?? _guestRepo.GetByPhone(Telefon);
-                if (gast == null)
+                // Gast und Reservierung werden gemeinsam im Repository gespeichert.
+                var gast = new Guest
                 {
-                    gast = new Guest
-                    {
-                        FirstName = Vorname,
-                        LastName = Nachname,
-                        Email = Email,
-                        Phone = Telefon,
-                        Nationality = Nationalitaet,
-                        DateAdded = DateTime.Now
-                    };
-                    _guestRepo.Add(gast);
-                }
+                    FirstName = Vorname,
+                    LastName = Nachname,
+                    Email = Email,
+                    Phone = Telefon,
+                    Nationality = Nationalitaet,
+                    DateAdded = DateTime.Now
+                };
 
                 var naechte = (abreise - anreise).Days;
                 var gesamtbetrag = naechte * zimmer.PricePerNight;
@@ -544,7 +539,7 @@ namespace Nest.ViewModels.CustomerPortal
                 };
 
                 // Diese Methode prüft unter einer Sperre erneut und verhindert parallele Doppelbuchungen.
-                if (!_reservationRepo.TryAddIfRoomAvailable(reservierung))
+                if (!_reservationRepo.TryAddIfRoomAvailable(reservierung, gast))
                 {
                     BehandleNichtMehrVerfuegbaresZimmer();
                     return;
