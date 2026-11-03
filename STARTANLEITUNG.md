@@ -1,8 +1,10 @@
 # STARTANLEITUNG – Nest Hotel Management System
 
+> **ACHTUNG – Datenverlust bei erneutem Import:** Für die Erstinstallation der Demo-Datenbank ist ausschließlich `Nest/Database/hotel_deutsch.sql` vorgesehen. Das Skript enthält `USE hotel` (im SQL mit Backticks geschrieben) und `DROP TABLE IF EXISTS`. Ein erneuter Import löscht die vorhandenen Daten in den elf enthaltenen Tabellen der Datenbank `hotel` und ersetzt sie durch Demodaten. Eine andere Auswahl in phpMyAdmin schützt `hotel` wegen der `USE`-Anweisung nicht. Nicht in eine bestehende Datenbank mit erhaltenswerten Daten importieren; vorher eine Sicherung erstellen und das weitere Vorgehen klären.
+
 ## Schnellstart
 
-Für den Start des Programms sind folgende Schritte erforderlich:
+Für die erstmalige Einrichtung einer neuen Demo-Installation:
 
 ```text
 1. XAMPP installieren
@@ -11,7 +13,7 @@ Für den Start des Programms sind folgende Schritte erforderlich:
         ↓
 3. http://localhost/phpmyadmin öffnen
         ↓
-4. SQL-Datei importieren
+4. Nur bei neuer Demo-Datenbank: Nest/Database/hotel_deutsch.sql importieren
         ↓
 5. Nest-Projekt in Visual Studio öffnen
         ↓
@@ -24,7 +26,7 @@ Für den Start des Programms sind folgende Schritte erforderlich:
 
 # 1. XAMPP installieren
 
-Für das Projekt wird eine lokale MySQL-Datenbank benötigt.
+Für das Projekt wird eine lokale MySQL-/MariaDB-Datenbank benötigt. Der Datenbankdienst heißt im XAMPP Control Panel **MySQL**.
 
 Dafür wird **XAMPP** verwendet.
 
@@ -39,9 +41,9 @@ Im XAMPP Control Panel müssen folgende Dienste gestartet werden:
 * **Apache**
 * **MySQL**
 
-Beide Dienste müssen erfolgreich gestartet sein.
+Für die Einrichtung über phpMyAdmin müssen beide Dienste erfolgreich gestartet sein.
 
-Für das Projekt ist insbesondere **MySQL** erforderlich, da die Anwendung auf eine lokale MySQL-Datenbank zugreift.
+**Apache** wird für die Weboberfläche phpMyAdmin benötigt. Das WPF-Programm verbindet sich über den Datenbanktreiber direkt mit MySQL/MariaDB und benötigt selbst keinen Apache-Dienst. Nach der Einrichtung genügt für den Betrieb der Anwendung der laufende Datenbankdienst.
 
 Die Anwendung verwendet folgende Datenbankverbindung:
 
@@ -71,24 +73,28 @@ phpMyAdmin wird verwendet, um die Datenbank für das Projekt einzurichten und zu
 
 # 4. SQL-Datei importieren
 
-Die SQL-Datei des Projekts enthält die vollständige Datenbankstruktur und die benötigten Testdaten.
+Der aktuelle SQL-Einstiegspunkt für die Erstinstallation ist [Nest/Database/hotel_deutsch.sql](Nest/Database/hotel_deutsch.sql). Diese Datei enthält die deutsche Datenbankstruktur und Demodaten für den aktuellen Anwendungscode. Die ältere Datei `hotel_database.sql` im Repository-Stamm ist dafür nicht zu verwenden.
+
+> **ACHTUNG: Kein Reparatur- oder Migrationsskript!** `DROP TABLE IF EXISTS` entfernt vorhandene Tabellen samt Daten. `USE hotel` richtet den Import ausdrücklich auf die Datenbank `hotel`, unabhängig von der vorherigen Auswahl in phpMyAdmin. Nur für eine neue Demo-Installation verwenden. Wenn `hotel` bereits Daten enthält, nicht importieren: zuerst sichern und eine gezielte Lösung für das bestehende Schema planen.
 
 ## 4.1 SQL-Datei auswählen
+
+Vorher in phpMyAdmin prüfen, ob `hotel` bereits existiert. Nur fortfahren, wenn die Datenbank noch nicht existiert oder nachweislich leer ist und ausschließlich für diese Demo vorgesehen ist.
 
 In phpMyAdmin:
 
 1. Den Bereich **Importieren** öffnen.
-2. Die SQL-Datei des Projekts auswählen.
-3. Den Import starten.
+2. Die Datei `Nest/Database/hotel_deutsch.sql` auswählen.
+3. Den Import nur unter den oben genannten Voraussetzungen starten und die Rückmeldung auf Fehler prüfen.
 
 Die SQL-Datei enthält unter anderem:
 
 ```sql
-CREATE DATABASE IF NOT EXISTS hotel;
-USE hotel;
+CREATE DATABASE IF NOT EXISTS `hotel` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `hotel`;
 ```
 
-Dadurch wird die Datenbank `hotel` erstellt, falls sie noch nicht existiert.
+Dadurch wird die Datenbank `hotel` erstellt, falls sie noch nicht existiert. `IF NOT EXISTS` schützt jedoch nicht die enthaltenen Tabellen: Diese werden im weiteren Skript durch `DROP TABLE IF EXISTS` gelöscht und neu angelegt.
 
 ---
 
@@ -102,20 +108,23 @@ hotel
 
 vorhanden sein.
 
-Die Datenbank enthält folgende Tabellen:
+Die Datenbank enthält folgende elf Tabellen:
 
 ```text
-users
-rooms
-guests
-reservations
-services
-service_orders
-events
-ticket_orders
+benutzer
+zimmer
+gaeste
+reservierungen
+dienstleistungen
+dienstleistungsbestellungen
+autovermietungen
+taxibestellungen
+restaurant_reservierungen
+veranstaltungen
+ticketbestellungen
 ```
 
-Wenn diese Tabellen vorhanden sind, wurde die Datenbank erfolgreich eingerichtet.
+Prüfen, ob alle elf Tabellen vorhanden sind und der Import keine Fehler gemeldet hat. Anschließend die Verbindung und Anmeldung wie unten beschrieben testen. Das bloße Vorhandensein der Tabellennamen bestätigt noch nicht die vollständige Übereinstimmung der Spalten.
 
 ---
 
@@ -141,6 +150,8 @@ Das Projekt verwendet unter anderem:
 * Caliburn.Micro
 * MySql.Data
 
+Voraussetzung ist Windows mit dem .NET-8-SDK und der Visual-Studio-Workload **.NET-Desktopentwicklung**.
+
 ---
 
 # 6. Datenbankverbindung prüfen
@@ -164,7 +175,7 @@ Password:   root
 SSL:        Disabled
 ```
 
-Die entsprechende Connection String lautet:
+Die entsprechende Verbindungszeichenfolge lautet:
 
 ```text
 server=localhost;port=3306;database=hotel;uid=root;pwd=root;SslMode=Disabled;
@@ -172,14 +183,12 @@ server=localhost;port=3306;database=hotel;uid=root;pwd=root;SslMode=Disabled;
 
 Vor dem Start des Programms muss deshalb sichergestellt werden, dass:
 
-* XAMPP gestartet ist.
-* Apache läuft.
-* MySQL läuft.
+* Der MySQL-/MariaDB-Dienst in XAMPP läuft.
 * MySQL auf Port `3306` läuft.
 * Die Datenbank `hotel` existiert.
-* Die SQL-Datei erfolgreich importiert wurde.
+* Die aktuelle deutsche Tabellenstruktur vorhanden ist (bei einer neuen Demo-Installation durch den einmaligen Import aus Abschnitt 4).
 
-Wenn diese Voraussetzungen erfüllt sind, muss die `DB.cs` normalerweise nicht verändert werden.
+Apache ist nur erforderlich, wenn zusätzlich phpMyAdmin verwendet wird. Die oben genannten Werte entsprechen `Nest/Data/DB.cs` und setzen voraus, dass der lokale Datenbankserver diesen Zugang bereits akzeptiert. Diese Anleitung ändert weder das Datenbankpasswort noch die Verbindungseinstellungen; bei abweichenden lokalen Zugangsdaten nicht die Datenbank neu importieren.
 
 ---
 
@@ -213,7 +222,7 @@ Das Programm wird nun gestartet und die Login-Seite wird angezeigt.
 
 # 8. Anmeldung
 
-Für den ersten Test stehen zwei Benutzer zur Verfügung.
+Für den ersten Test sind nach der Demo-Erstinstallation die folgenden zwei Benutzer vorgesehen. Diese veröffentlichten Demo-Zugänge sind nur für eine lokale Demonstration bestimmt, nicht für einen produktiven oder öffentlich erreichbaren Betrieb.
 
 ## Administrator
 
@@ -244,6 +253,8 @@ Beim Import der SQL-Datei werden automatisch Testdaten angelegt.
 * `admin`
 * `receptionist`
 
+Beide vorgesehenen Demo-Konten haben den Status `Aktiv`. Das Skript enthält außerdem einen älteren Benutzer-Datensatz mit gesetztem `geloescht_am`; dieser gehört nicht zu den vorgesehenen Demo-Zugängen.
+
 ## Zimmer
 
 Es werden acht Beispielzimmer angelegt:
@@ -263,17 +274,22 @@ Die Zimmer besitzen unterschiedliche Kategorien, Kapazitäten und Preise.
 
 Beispielsweise werden folgende Dienstleistungen angelegt:
 
-* Breakfast Buffet
-* Room Service Meal
-* Laundry
-* Dry Cleaning
-* Spa
-* Airport Transfer
-* City Tour
+* Fruehstuecksbuffet
+* Zimmerservice-Mahlzeit
+* Waesche (pro kg)
+* Chemische Reinigung
+* Wellness - Ganzkoerperbehandlung
+* Wellness - Massage
+* Flughafentransfer
+* Stadtrundfahrt
 
 ## Veranstaltungen
 
-Zusätzlich werden vier Beispielveranstaltungen angelegt.
+Zusätzlich werden vier Beispielveranstaltungen mit festen Terminen vom 15. bis 17. September 2026 angelegt. Liegen diese Termine bereits in der Vergangenheit, erscheinen sie nicht mehr in der Liste der bevorstehenden Veranstaltungen im Kundenportal. Für eine aktuelle Demonstration über die Veranstaltungsverwaltung einen zukünftigen Termin anlegen; eine leere Liste ist kein Grund für einen erneuten SQL-Import.
+
+## Gäste und Reservierungen
+
+Das Skript enthält einen Gast und eine Beispielreservierung für Zimmer 402 vom 18. bis 20. September 2026 mit Status `Reserviert`. Die festen Beispieldaten passen sich nicht automatisch an das aktuelle Datum an. Für neue Testbuchungen einen passenden zukünftigen Zeitraum wählen.
 
 ---
 
@@ -291,12 +307,13 @@ Bei einer Zimmerreservierung werden unter anderem folgende Daten angegeben:
 
 Die verfügbaren Zimmer werden automatisch anhand des ausgewählten Zeitraums geprüft.
 
-Ein Zimmer wird nur als verfügbar angezeigt, wenn:
+Die zeitabhängige Suche in `RoomRepository.GetAvailableRooms(DateTime, DateTime)` berücksichtigt ein Zimmer nur, wenn:
 
-1. der Zimmerstatus `Available` ist und
-2. keine aktive Reservierung für den ausgewählten Zeitraum existiert.
+1. der Zimmerstatus `Verfuegbar`, `Reserviert` oder `Belegt` ist,
+2. das Zimmer nicht als gelöscht markiert ist (`geloescht_am IS NULL`) und
+3. keine Reservierung mit Status `Reserviert` oder `Eingecheckt` den ausgewählten Zeitraum überschneidet.
 
-Reservierungen mit dem Status `Cancelled` werden bei der Verfügbarkeitsprüfung nicht berücksichtigt.
+Reservierungen mit dem Status `Storniert` oder `Ausgecheckt` blockieren diese Suche nicht. Der Abreisetag einer bestehenden Reservierung darf zugleich der Anreisetag einer neuen Reservierung sein. Zimmer mit Status `Wartung` werden ausgeschlossen. Auch ein derzeit belegtes oder reserviertes Zimmer kann für einen anderen, freien Zeitraum angeboten werden. Die zusätzliche Repository-Methode ohne Datumsparameter berücksichtigt dagegen nur Zimmer mit Status `Verfuegbar`, die nicht als gelöscht markiert sind.
 
 ---
 
@@ -305,10 +322,10 @@ Reservierungen mit dem Status `Cancelled` werden bei der Verfügbarkeitsprüfung
 Ein Zimmer kann folgende Status besitzen:
 
 ```text
-Available
-Occupied
-Maintenance
-Reserved
+Verfuegbar
+Belegt
+Wartung
+Reserviert
 ```
 
 Der Zimmerstatus beschreibt den allgemeinen Zustand des Zimmers.
@@ -324,10 +341,10 @@ Stattdessen wird bei der Suche geprüft, ob das Zimmer für den gewünschten Zei
 Ein Zimmer besitzt den Status:
 
 ```text
-Available
+Verfuegbar
 ```
 
-Für dieses Zimmer existiert jedoch eine Reservierung vom:
+Für dieses Zimmer existiert jedoch eine Reservierung mit Status `Reserviert` vom (schematisches Datumsbeispiel):
 
 ```text
 20.09.2026 – 25.09.2026
@@ -341,7 +358,7 @@ Wenn nach einem Zimmer für den Zeitraum
 
 gesucht wird, wird dieses Zimmer nicht als verfügbar angezeigt.
 
-Nach dem Ende der Reservierung kann das Zimmer wieder für einen anderen Zeitraum ausgewählt werden, sofern sein allgemeiner Status weiterhin `Available` ist.
+Für einen nicht überlappenden Zeitraum kann das Zimmer wieder angeboten werden, sofern die oben genannten Bedingungen erfüllt sind. Die Reservierungsstatus lauten `Reserviert`, `Eingecheckt`, `Ausgecheckt` und `Storniert`; sie sind vom Zimmerstatus zu unterscheiden.
 
 ---
 
@@ -373,9 +390,9 @@ http://localhost/phpmyadmin
 
 ## Datenbank `hotel` fehlt
 
-Die SQL-Datei erneut über phpMyAdmin importieren.
+Zuerst prüfen, ob phpMyAdmin und die Anwendung denselben lokalen Datenbankserver verwenden (Host `localhost`, Port `3306`). Eine fehlende Datenbank kann auch auf die Verbindung zum falschen Server hindeuten.
 
-Anschließend prüfen, ob die Datenbank `hotel` vorhanden ist.
+Nur wenn tatsächlich eine neue Demo-Installation eingerichtet werden soll und keine bestehenden Daten betroffen sind, die Erstinstallation aus Abschnitt 4 durchführen. Nicht blind erneut importieren und keine bestehende Datenbank löschen.
 
 ---
 
@@ -384,17 +401,20 @@ Anschließend prüfen, ob die Datenbank `hotel` vorhanden ist.
 Die Datenbank `hotel` in phpMyAdmin öffnen und überprüfen, ob folgende Tabellen vorhanden sind:
 
 ```text
-users
-rooms
-guests
-reservations
-services
-service_orders
-events
-ticket_orders
+benutzer
+zimmer
+gaeste
+reservierungen
+dienstleistungen
+dienstleistungsbestellungen
+autovermietungen
+taxibestellungen
+restaurant_reservierungen
+veranstaltungen
+ticketbestellungen
 ```
 
-Falls Tabellen fehlen, sollte die SQL-Datei erneut vollständig importiert werden.
+Falls Tabellen fehlen oder Fehler wie `Unknown column` auftreten, die genaue Fehlermeldung festhalten und die vorhandene Struktur mit `Nest/Database/hotel_deutsch.sql` und den Repository-Abfragen vergleichen. Englische Tabellennamen können auf das ältere Schema hindeuten. Bei vorhandenen Daten zuerst sichern und eine gezielte Schemaanpassung planen. **Keinen pauschalen Neuimport durchführen:** Er würde auch Daten in den bereits vorhandenen Tabellen löschen.
 
 ---
 
@@ -430,7 +450,7 @@ Rezeptionist:
 receptionist / rec123
 ```
 
-In phpMyAdmin kann zusätzlich überprüft werden, ob die Benutzer in der Tabelle `users` vorhanden und auf `Active` gesetzt sind.
+In phpMyAdmin kann zusätzlich überprüft werden, ob die vorgesehenen Demo-Benutzer in der Tabelle `benutzer` vorhanden sind und den Status `Aktiv` haben. Die Rollen heißen `Admin` und `Rezeptionist`; der weitere Benutzerstatus ist `Inaktiv`. Ein Login-Fehler ist kein Anlass für einen erneuten SQL-Import.
 
 ---
 
@@ -441,23 +461,18 @@ Das Projekt ist nach dem **MVVM-Prinzip** aufgebaut.
 Die wichtigsten Bereiche sind:
 
 ```text
-Nest
-├── Data
-│   ├── DB.cs
-│   └── Repository-Klassen
-│
-├── Models
-│   └── Datenmodelle
-│
-├── ViewModels
-│   └── Anwendungslogik
-│
-├── Views
-│   └── Benutzeroberflächen
-│
-├── Admin
-│   └── Verwaltungsfunktionen
-│
+Repository-Stamm
+├── Nest
+│   ├── Data
+│   │   ├── DB.cs
+│   │   └── Repository-Klassen
+│   ├── Database
+│   │   └── hotel_deutsch.sql
+│   ├── Models
+│   ├── ViewModels
+│   │   └── Admin
+│   └── Views
+│       └── Admin
 └── Nest.sln
 ```
 
@@ -477,9 +492,9 @@ Enthält die Anwendungslogik und die Verbindung zwischen Benutzeroberfläche und
 
 Enthält die grafischen Benutzeroberflächen der Anwendung.
 
-## Admin
+## ViewModels/Admin und Views/Admin
 
-Enthält die Verwaltungsfunktionen für den Administrator.
+Enthalten die Verwaltungsfunktionen für den Administrator und deren Oberflächen.
 
 ---
 
@@ -490,11 +505,11 @@ Bei einem erneuten Start des Projekts reicht normalerweise folgende Reihenfolge:
 ```text
 XAMPP starten
       ↓
-Apache + MySQL starten
+MySQL starten
       ↓
-phpMyAdmin öffnen
+Optional: Apache starten und phpMyAdmin öffnen
       ↓
-Datenbank "hotel" überprüfen
+Bei Bedarf: Datenbank "hotel" überprüfen (kein Neuimport)
       ↓
 Visual Studio öffnen
       ↓
@@ -507,7 +522,7 @@ F5
 Login
 ```
 
-Die SQL-Datei muss **nicht bei jedem Programmstart erneut importiert werden**. Sie wird nur benötigt, wenn die Datenbank neu eingerichtet werden muss.
+Die SQL-Datei darf **nicht als routinemäßiger Start- oder Reparaturschritt erneut importiert werden**. Sie ist ausschließlich für die Erstinstallation einer neuen Demo-Datenbank vorgesehen; bei vorhandenen Daten gelten die Warnungen aus Abschnitt 4. Für den normalen WPF-Betrieb genügt MySQL/MariaDB, Apache und phpMyAdmin sind optional.
 
 ---
 
