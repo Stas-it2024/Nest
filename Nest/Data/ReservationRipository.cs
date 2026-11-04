@@ -466,7 +466,7 @@ namespace Nest.Data
             cmd.Parameters.AddWithValue("@ReservationCode", reservation.ReservationCode);
             cmd.Parameters.AddWithValue("@DateCreated", reservation.DateCreated);
             cmd.Parameters.AddWithValue("@SpecialRequests", (object)reservation.SpecialRequests ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ReceptionistId", (object)reservation.ReceptionistId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ReceptionistId", (object?)reservation.ReceptionistId ?? DBNull.Value);
             return cmd;
         }
     }
