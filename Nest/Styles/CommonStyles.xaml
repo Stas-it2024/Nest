@@ -1,8 +1,13 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="clr-namespace:Nest.Converters">
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Palette.xaml"/>
     </ResourceDictionary.MergedDictionaries>
+    <converters:GermanValueConverter x:Key="GermanValueConverter"/>
+    <DataTemplate x:Key="GermanValueItemTemplate">
+        <TextBlock Text="{Binding Converter={StaticResource GermanValueConverter}, Mode=OneWay}"/>
+    </DataTemplate>
     <Style x:Key="PageHeaderTextStyle" TargetType="TextBlock">
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="Margin" Value="25,0"/>

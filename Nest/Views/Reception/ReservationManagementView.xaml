@@ -87,6 +87,7 @@
                         <TextBlock Style="{StaticResource RecLabel}" Text="Ausweistyp"/>
                         <ComboBox Style="{StaticResource RecComboBox}"
                                   ItemsSource="{Binding IdTypeList}"
+                                  ItemTemplate="{StaticResource GermanValueItemTemplate}"
                                   SelectedItem="{Binding IdType}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2">
@@ -189,6 +190,7 @@
                         <TextBlock Style="{StaticResource RecLabel}" Text="Zahlungsmethode"/>
                         <ComboBox Style="{StaticResource RecComboBox}"
                                   ItemsSource="{Binding PaymentOptions}"
+                                  ItemTemplate="{StaticResource GermanValueItemTemplate}"
                                   SelectedItem="{Binding PaymentType}"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2">
