@@ -19,8 +19,8 @@ namespace Nest.ViewModels.Reception
         private readonly bool _showPageHeader;
         private string _searchText = "";
         private string _selectedStatus = "Alle";
-        private ObservableCollection<ReservationOverview> _reservations;
-        private ObservableCollection<TicketOrderItem> _ticketOrders;
+        private ObservableCollection<ReservationOverview> _reservations = new();
+        private ObservableCollection<TicketOrderItem> _ticketOrders = new();
 
         public AllBookingsViewModel(bool showPageHeader = false)
         {

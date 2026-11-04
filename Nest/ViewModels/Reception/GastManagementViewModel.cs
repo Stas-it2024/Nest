@@ -14,9 +14,9 @@ namespace Nest.ViewModels.Reception
     {
         private readonly GastRepository _gastRepository;
         private string _searchText = "";
-        private ObservableCollection<Guest> _guests;
+        private ObservableCollection<Guest> _guests = new();
         private Guest _selectedGuest;
-        private ObservableCollection<ReservationOverview> _guestHistory;
+        private ObservableCollection<ReservationOverview> _guestHistory = new();
 
         public GastManagementViewModel()
         {

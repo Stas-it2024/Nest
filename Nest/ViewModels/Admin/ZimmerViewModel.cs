@@ -202,7 +202,7 @@ namespace Nest.ViewModels.Admin
 
 
         // ===== ROOMS =====
-        private ObservableCollection<Room> _rooms;
+        private ObservableCollection<Room> _rooms = new();
 
         public ObservableCollection<Room> Rooms
         {

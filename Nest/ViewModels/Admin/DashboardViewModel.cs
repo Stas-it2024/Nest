@@ -134,7 +134,7 @@ namespace Nest.ViewModels.Admin
         }
 
         // ===== Reservations =====
-        private ObservableCollection<ReservationOverview> _reservations;
+        private ObservableCollection<ReservationOverview> _reservations = new();
         public ObservableCollection<ReservationOverview> Reservations
         {
             get => _reservations;
@@ -146,7 +146,7 @@ namespace Nest.ViewModels.Admin
         }
 
         // ===== ROOMS =====
-        private ObservableCollection<Room> _rooms;
+        private ObservableCollection<Room> _rooms = new();
         public ObservableCollection<Room> Rooms
         {
             get => _rooms;
