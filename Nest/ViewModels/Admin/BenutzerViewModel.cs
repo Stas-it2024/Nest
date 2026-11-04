@@ -28,9 +28,9 @@ namespace Nest.ViewModels.Admin
         }
 
         // Eigenschaft für den ausgewählten Benutzer
-        private User _selectedUser;
+        private User? _selectedUser;
 
-        public User SelectedUser
+        public User? SelectedUser
         {
             get => _selectedUser;
             set
