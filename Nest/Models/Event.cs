@@ -12,7 +12,7 @@ namespace Nest.Models
 
         public string Title { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public DateTime EventDate { get; set; }
 
@@ -26,7 +26,7 @@ namespace Nest.Models
 
         public int SoldTickets { get; set; }
 
-        public string ImageUrl { get; set; }
+        public string? ImageUrl { get; set; }
 
         public string Status { get; set; }
 

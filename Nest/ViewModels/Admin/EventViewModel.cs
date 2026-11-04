@@ -20,7 +20,7 @@ namespace Nest.ViewModels.Admin
 
         // Private fields to hold the values of the event properties.
         private string _title;
-        private string _description;
+        private string? _description;
         private DateTime _eventDate = DateTime.Today;
         private string _eventTimeText = "19:00";
         private string? _location = "Hotel Lobby";
@@ -28,7 +28,7 @@ namespace Nest.ViewModels.Admin
         private string _maxTicketsText = "100";
         private string _status = "Aktiv";
 
-        private Event _selectedEvent;
+        private Event? _selectedEvent;
 
         // ObservableCollection to hold the list of events for data binding in the UI.
         public ObservableCollection<Event> Events { get; set; }
@@ -44,7 +44,7 @@ namespace Nest.ViewModels.Admin
             }
         }
 
-        public string Description
+        public string? Description
         {
             get => _description;
             set
@@ -116,7 +116,7 @@ namespace Nest.ViewModels.Admin
         }
 
         // The SelectedEvent property is used to bind the selected event from the UI. When an event is selected, its details are populated into the form fields.
-        public Event SelectedEvent
+        public Event? SelectedEvent
         {
             get => _selectedEvent;
             set

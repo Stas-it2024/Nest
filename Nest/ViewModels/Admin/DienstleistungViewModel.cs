@@ -21,7 +21,7 @@ namespace Nest.ViewModels.Admin
         private string _category;
         private decimal _price;
         private string _status;
-        private Service _selectedService;
+        private Service? _selectedService;
 
         // ObservableCollection für die Dienstleistungen
         public ObservableCollection<Service> Services { get; set; }
@@ -90,7 +90,7 @@ namespace Nest.ViewModels.Admin
         }
 
         // Eigenschaften für die Eingabefelder
-        public Service SelectedService
+        public Service? SelectedService
         {
             get => _selectedService;
             set
