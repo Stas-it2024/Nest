@@ -12,11 +12,11 @@ namespace Nest.Models
         public int Id { get; set; }
         public string FirstName { get; set; }      //  Vorname (Pflichtfeld *)
         public string LastName { get; set; }       //  Nachname (Pflichtfeld *)
-        public string Email { get; set; }          //  E-Mail
-        public string Phone { get; set; }          //  Telefon
-        public string IdType { get; set; }         //  Ausweistyp (Reisepass, Personalausweis, etc.)
-        public string IdNumber { get; set; }       //  Ausweisnummer
-        public string Nationality { get; set; }    //  Nationalität
+        public string? Email { get; set; }          //  E-Mail
+        public string? Phone { get; set; }          //  Telefon
+        public string? IdType { get; set; }         //  Ausweistyp (Reisepass, Personalausweis, etc.)
+        public string? IdNumber { get; set; }       //  Ausweisnummer
+        public string? Nationality { get; set; }    //  Nationalität
         public DateTime CreatedAt { get; set; } //  Erstellungsdatum
         public DateTime? DateAdded { get; set; }
 

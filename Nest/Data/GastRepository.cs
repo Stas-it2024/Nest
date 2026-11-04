@@ -115,9 +115,9 @@ namespace Nest.Data
             // Optionale C#-Nullwerte werden als echtes SQL-NULL gespeichert.
             cmd.Parameters.AddWithValue("@Email", string.IsNullOrWhiteSpace(guest.Email) ? DBNull.Value : guest.Email.Trim());
             cmd.Parameters.AddWithValue("@Phone", string.IsNullOrWhiteSpace(guest.Phone) ? DBNull.Value : guest.Phone.Trim());
-            cmd.Parameters.AddWithValue("@IdType", (object)guest.IdType ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@IdNumber", (object)guest.IdNumber ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Nationality", (object)guest.Nationality ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@IdType", (object?)guest.IdType ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@IdNumber", (object?)guest.IdNumber ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Nationality", (object?)guest.Nationality ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@DateAdded", guest.DateAdded ?? DateTime.Now);
             // Die erzeugte Datenbank-ID wird für die anschließende Zimmerreservierung benötigt.
             return Convert.ToInt32(cmd.ExecuteScalar());
