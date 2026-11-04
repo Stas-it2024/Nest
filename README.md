@@ -109,8 +109,6 @@ Die aktuelle deutsche Schema- und Demodaten-Datei ist [Nest/Database/hotel_deuts
 
 **Achtung – Datenverlust:** Das Skript enthält `USE hotel` (im SQL mit Backticks geschrieben) und `DROP TABLE IF EXISTS`. Ein erneuter Import löscht die vorhandenen Daten in den elf enthaltenen Tabellen von `hotel` und legt diese Tabellen mit Demodaten neu an. Die Auswahl einer anderen Datenbank in phpMyAdmin schützt davor nicht. Bei bestehenden Daten nicht erneut importieren; zuerst sichern und eine gezielte Schemaanpassung planen.
 
-Die ältere Datei [hotel_database.sql](hotel_database.sql) liegt noch im Repository, enthält aber die frühere englische Struktur und ist **nicht für die aktuelle Anwendung zu verwenden**.
-
 | Tabelle | Inhalt |
 | --- | --- |
 | `benutzer` | Mitarbeiterkonten, Rollen und Aktivstatus |

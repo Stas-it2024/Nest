@@ -73,7 +73,7 @@ phpMyAdmin wird verwendet, um die Datenbank für das Projekt einzurichten und zu
 
 # 4. SQL-Datei importieren
 
-Der aktuelle SQL-Einstiegspunkt für die Erstinstallation ist [Nest/Database/hotel_deutsch.sql](Nest/Database/hotel_deutsch.sql). Diese Datei enthält die deutsche Datenbankstruktur und Demodaten für den aktuellen Anwendungscode. Die ältere Datei `hotel_database.sql` im Repository-Stamm ist dafür nicht zu verwenden.
+Der aktuelle SQL-Einstiegspunkt für die Erstinstallation ist [Nest/Database/hotel_deutsch.sql](Nest/Database/hotel_deutsch.sql). Diese Datei enthält die deutsche Datenbankstruktur und Demodaten für den aktuellen Anwendungscode.
 
 > **ACHTUNG: Kein Reparatur- oder Migrationsskript!** `DROP TABLE IF EXISTS` entfernt vorhandene Tabellen samt Daten. `USE hotel` richtet den Import ausdrücklich auf die Datenbank `hotel`, unabhängig von der vorherigen Auswahl in phpMyAdmin. Nur für eine neue Demo-Installation verwenden. Wenn `hotel` bereits Daten enthält, nicht importieren: zuerst sichern und eine gezielte Lösung für das bestehende Schema planen.
 
