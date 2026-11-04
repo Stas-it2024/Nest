@@ -109,8 +109,8 @@
                           VerticalAlignment="Center" 
                           FontSize="16"
                           SelectedIndex="{Binding SelectedStatusIndex}">
-                    <ComboBoxItem Content="Verfuegbar"/>
-                    <ComboBoxItem Content="Nicht_verfuegbar"/>
+                    <ComboBoxItem Content="Verfügbar"/>
+                    <ComboBoxItem Content="Nicht verfügbar"/>
                 </ComboBox>
 
                 <!-- Button -->
@@ -161,7 +161,7 @@
                                    />
                 <DataGridTextColumn Header="Status"
                                     Width="*"
-                                    Binding="{Binding Status}"
+                                    Binding="{Binding Status, Converter={StaticResource GermanValueConverter}, Mode=TwoWay}"
                                    />
             </DataGrid.Columns>
         </DataGrid>

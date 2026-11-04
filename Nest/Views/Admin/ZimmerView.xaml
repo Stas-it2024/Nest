@@ -137,7 +137,7 @@
                           VerticalAlignment="Center" 
                           FontSize="16"
                           SelectedIndex="{Binding SelectedStatusIndex}">
-                    <ComboBoxItem Content="Verfuegbar"/>
+                    <ComboBoxItem Content="Verfügbar"/>
                     <ComboBoxItem Content="Belegt"/>
                     <ComboBoxItem Content="Wartung"/>
                     <ComboBoxItem Content="Reserviert"/>
@@ -205,7 +205,9 @@
                                     Width="*"
                                    />
                 <DataGridTextColumn Header="Status"
-                                    Binding="{Binding Status}" 
+                                    Binding="{Binding Status,
+                                            Converter={StaticResource GermanValueConverter},
+                                            Mode=TwoWay}"
                                     Width="*"
                                    />
                 <DataGridTextColumn Header="Beschreibung"
