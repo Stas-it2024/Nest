@@ -67,7 +67,7 @@ namespace Nest.ViewModels.CustomerPortal
         public void Abmelden()
         {
             // Die Shell steuert den Ansichtswechsel zurück zum Login zentral.
-            _shell.WindowTitle = "Hotel Management System - Login";
+            _shell.WindowTitle = "Hotelverwaltung – Anmeldung";
             _shell.ShowLogin();
         }
     }

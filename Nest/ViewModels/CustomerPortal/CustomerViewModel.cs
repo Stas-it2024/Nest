@@ -31,14 +31,14 @@ namespace Nest.ViewModels.CustomerPortal
         public void ShowCustomerPortal()
         {
             // Der Name wird an das Portal übergeben, damit die Begrüßung personalisiert werden kann.
-            _shell.WindowTitle = "Hotel Management System - Kundenportal";
+            _shell.WindowTitle = "Hotelverwaltung – Kundenportal";
             _shell.ShowCustomerPortal(Gastname, this);
         }
 
         public void ShowLogin()
         {
             // Die Shell wechselt die aktive Hauptansicht; die View navigiert nicht selbst.
-            _shell.WindowTitle = "Hotel Management System - Login";
+            _shell.WindowTitle = "Hotelverwaltung – Anmeldung";
             _shell.ShowLogin();
         }
     }

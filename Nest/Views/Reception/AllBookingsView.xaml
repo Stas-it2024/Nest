@@ -90,7 +90,7 @@
             </TabItem>
 
             <!-- TAB 2: Event-Tickets -->
-            <TabItem Header="Event-Tickets" FontWeight="Bold">
+            <TabItem Header="Veranstaltungstickets" FontWeight="Bold">
                 <DataGrid Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding TicketOrders}"
               AutoGenerateColumns="False"
               CanUserDeleteRows="False"

@@ -15,7 +15,7 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Visibility="Collapsed" Background="#174A92" Height="50" Margin="0,0,0,10">
-            <TextBlock Text="  Gästverwaltung"
+            <TextBlock Text="  Gästeverwaltung"
                        FontSize="20"
                        FontWeight="Bold"
                        Foreground="White"

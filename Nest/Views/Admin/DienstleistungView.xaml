@@ -31,7 +31,7 @@
 
         <!-- Header -->
         <Border Background="{StaticResource PageHeaderBrush}" Grid.Row="0" Grid.ColumnSpan="2">
-            <TextBlock Style="{StaticResource PageHeaderTextStyle}" Text="Diensleistungsverwaltung"/>
+            <TextBlock Style="{StaticResource PageHeaderTextStyle}" Text="Dienstleistungsverwaltung"/>
         </Border>
         <ScrollViewer Grid.Row="1" Grid.Column="0"
                   Background="White"
@@ -56,7 +56,7 @@
 
                 <!-- Name der Diensleistung -->
                 <Label Grid.Row="0" Grid.Column="0"
-                       Content="Name der Diensleistung *"/>
+                       Content="Name der Dienstleistung *"/>
                 <TextBox Grid.Column="0" Grid.Row="1"
                          Text="{Binding ServiceName, UpdateSourceTrigger=PropertyChanged}"/>
 
@@ -69,7 +69,7 @@
                           SelectedIndex="{Binding SelectedCategoryIndex}">
                     <ComboBoxItem Content="Speisen und Getränke"/>
                     <ComboBoxItem Content="Wäsche"/>
-                    <ComboBoxItem Content="Spa"/>
+                    <ComboBoxItem Content="Wellness"/>
                     <ComboBoxItem Content="Transport"/>
                     <ComboBoxItem Content="Sonstiges"/>
                 </ComboBox>
@@ -147,7 +147,7 @@
                   SelectedItem="{Binding SelectedService}">
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Diensleistung"
+                <DataGridTextColumn Header="Dienstleistung"
                                     Width="*"
                                     Binding="{Binding ServiceName}"
                                    />

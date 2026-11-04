@@ -30,7 +30,7 @@ namespace Nest.ViewModels.Shell
         }
         public ShellViewModel()
         {
-            WindowTitle = "Hotel Management System - Login";
+            WindowTitle = "Hotelverwaltung – Anmeldung";
             _ = ActivateItemAsync(new LoginViewModel(this));
         }
 
@@ -56,7 +56,7 @@ namespace Nest.ViewModels.Shell
         {
             var window = Application.Current.MainWindow;
 
-            WindowTitle = "Hotel Management System - Reception";
+            WindowTitle = "Hotelverwaltung – Rezeption";
             window.WindowState = WindowState.Maximized;
             window.ResizeMode = ResizeMode.CanResize;
 

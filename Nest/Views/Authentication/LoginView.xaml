@@ -22,7 +22,7 @@
                 <TextBlock Style="{StaticResource EntryBrandTextStyle}" Text="Grand&#10;Horizon&#10;Hotel"
                            Margin="0,-123,0,0"/>
 
-                <TextBlock Text="Management System"
+                <TextBlock Text="Hotelverwaltungssystem"
                            Margin="0,50,0,0"
                            Foreground="#D8E4F5"
                            FontSize="20"
@@ -76,10 +76,6 @@
                         Style="{StaticResource BlueButton}"
                         x:Name="Login"/>
 
-                <!-- Registrieren -->
-                <!--<Button Content="Konto erstellen"
-                        Style="{StaticResource LinkButton}"
-                        Margin="0,10,0,15"/>-->
 
                 <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Center"

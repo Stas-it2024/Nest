@@ -35,7 +35,7 @@
 
                 <!-- Gästinformationen -->
                 <TextBlock Grid.Row="0"
-                           Text="Gästinformationen"
+                           Text="Gästeinformationen"
                            FontSize="16"
                            FontWeight="Bold"
                            Foreground="#FF174A92"

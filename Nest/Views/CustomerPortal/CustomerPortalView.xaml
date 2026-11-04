@@ -652,7 +652,7 @@
             </TabItem>
 
             <!-- =============== 5. EVENTS & TICKETS =============== -->
-            <TabItem Header="Events &amp; Tickets">
+            <TabItem Header="Veranstaltungen &amp; Tickets">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled"
                               HorizontalContentAlignment="Stretch"
@@ -721,7 +721,7 @@
                             </Grid>
                         </Border>
 
-                        <GroupBox Header="Aktuelle Hotel-Events"
+                        <GroupBox Header="Aktuelle Hotelveranstaltungen"
                                   Style="{StaticResource KundenPortalBereichStil}">
                             <StackPanel>
                                 <Button Content="Aktualisieren"
@@ -1030,7 +1030,7 @@
 
                                     <!-- Das Öffnen ist eine eigene Aktion, damit ein bereits erzeugter Beleg erneut angezeigt werden kann. -->
                                     <Button Grid.Column="1"
-                                            Content="PDF-TICKET ÖFFNEN"
+                                            Content="PDF-ZAHLUNGSBELEG ÖFFNEN"
                                             cal:Message.Attach="[Action PdfOeffnen]"
                                             Style="{StaticResource PrimaerAktionButtonStil}"
                                             Height="44"

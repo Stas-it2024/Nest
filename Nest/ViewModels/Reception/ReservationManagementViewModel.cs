@@ -601,7 +601,7 @@ namespace Nest.ViewModels.Reception
 
         public void Logout()
         {
-            _shell.WindowTitle = "Hotel Management System - Login";
+            _shell.WindowTitle = "Hotelverwaltung – Anmeldung";
             _shell.ShowLogin();
         }
 

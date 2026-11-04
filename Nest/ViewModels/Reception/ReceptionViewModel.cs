@@ -47,7 +47,7 @@ namespace Nest.ViewModels.Reception
         public void ShowGuests()
         {
             SelectedSection = "Guests";
-            PageTitle = "Gästverwaltung";
+            PageTitle = "Gästeverwaltung";
             ActivateItemAsync(new GastManagementViewModel());
         }
 

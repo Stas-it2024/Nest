@@ -21,7 +21,7 @@
 
                 <TextBlock Style="{StaticResource EntryBrandTextStyle}" Text="Grand&#10;Horizon&#10;Hotel"/>
 
-                <TextBlock Text="Ihr Komfort ist unsere Prioritaet"                    
+                <TextBlock Text="Ihr Komfort ist unsere Priorität"
                            FontSize="18"
                            Margin="0,20,0,0"
                            Foreground="#D6E2F3"

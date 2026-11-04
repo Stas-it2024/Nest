@@ -75,7 +75,7 @@
 
                     <Separator Margin="0,15"/>
 
-                    <TextBlock Style="{StaticResource StaffInfoTextStyle}" Text="System Administrator"/>
+                    <TextBlock Style="{StaticResource StaffInfoTextStyle}" Text="Systemadministrator"/>
 
                     <TextBlock Style="{StaticResource StaffInfoTextStyle}" Text="(Admin)"/>
                 </StackPanel>
@@ -85,7 +85,7 @@
 
                     <Button x:Name="ShowDashboard"
                             Tag="Dashboard"
-                            Content="Dashboard"
+                            Content="Übersicht"
                             Style="{StaticResource MenuButtonStyle}"
                             Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=Dashboard}"/>
 
@@ -109,7 +109,7 @@
 
                     <Button x:Name="ShowEvents"
                             Tag="Events"
-                            Content="Events"
+                            Content="Veranstaltungen"
                             Style="{StaticResource MenuButtonStyle}"
                             Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=Events}"/>
 

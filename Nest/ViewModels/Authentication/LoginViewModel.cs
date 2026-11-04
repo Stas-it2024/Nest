@@ -56,7 +56,7 @@ namespace Nest.ViewModels.Authentication
 
         public void ShowCustomer()
         {
-            _shell.WindowTitle = "Hotel Management System - Kundenportal";
+            _shell.WindowTitle = "Hotelverwaltung – Kundenportal";
             _shell.ShowCustomer();
         }
 
@@ -67,18 +67,18 @@ namespace Nest.ViewModels.Authentication
 
             if (user == null)
             {
-                System.Windows.MessageBox.Show("Wrong login or passwort");
+                System.Windows.MessageBox.Show("Benutzername oder Passwort ist falsch.");
                 return;
             }
 
             if (user.Role == "Rezeptionist")
             {
-                _shell.WindowTitle = "Hotel Management System - Reception";
+                _shell.WindowTitle = "Hotelverwaltung – Rezeption";
                 _shell.ShowReception();
             }
             else if (user.Role == "Admin")
             {
-                _shell.WindowTitle = "Hotel Management System - Admin";
+                _shell.WindowTitle = "Hotelverwaltung – Administration";
                 _shell.ShowAdmin();
             }
         }

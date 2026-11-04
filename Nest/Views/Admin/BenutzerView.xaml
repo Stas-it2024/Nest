@@ -75,7 +75,7 @@
                 <!-- Volständiger Name -->
                 <Label Grid.Column="0" Grid.Row="2"
 
-                       Content="Volständiger Name *"/>
+                       Content="Vollständiger Name *"/>
                 <TextBox Grid.Column="0" Grid.Row="3" 
 
                          Text="{Binding FullName}"/>

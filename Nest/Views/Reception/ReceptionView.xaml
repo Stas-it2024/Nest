@@ -52,7 +52,7 @@
                     <TextBlock Style="{StaticResource StaffBrandTextStyle}" Text="Grand Horizon"/>
                     <TextBlock Style="{StaticResource StaffHotelTextStyle}" Text="Hotel"/>
                     <Separator Margin="0,15"/>
-                    <TextBlock Style="{StaticResource StaffInfoTextStyle}" Text="Front Desk Staff"/>
+                    <TextBlock Style="{StaticResource StaffInfoTextStyle}" Text="Empfangspersonal"/>
                     <TextBlock Style="{StaticResource StaffInfoTextStyle}" Text="(Rezeptionist)"/>
                 </StackPanel>
 

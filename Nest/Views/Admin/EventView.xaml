@@ -31,7 +31,7 @@
 
         <!-- Header -->
         <Border Background="{StaticResource PageHeaderBrush}" Grid.Row="0" Grid.ColumnSpan="2">
-            <TextBlock Style="{StaticResource PageHeaderTextStyle}" Text="Eventverwaltung"/>
+            <TextBlock Style="{StaticResource PageHeaderTextStyle}" Text="Veranstaltungsverwaltung"/>
         </Border>
         <ScrollViewer Grid.Row="1" Grid.Column="0"
                   Background="White"
@@ -112,7 +112,7 @@
                 
                 <!-- Preis -->
                 <Label Grid.Column="0" Grid.Row="8"
-                       Content="Ticket Preis (€)"/>
+                       Content="Ticketpreis (€)"/>
                 
                 <Grid Grid.Column="0" Grid.Row="9">
                     <TextBox Width="150" 
@@ -171,7 +171,7 @@
                     
                     <ComboBoxItem Content="Aktiv"/>
                     <ComboBoxItem Content="Inaktiv"/>
-                    <ComboBoxItem Content="Sold Out"/>
+                    <ComboBoxItem Content="Ausgebucht"/>
                 </ComboBox>
 
                 <!-- Beschreibung -->
