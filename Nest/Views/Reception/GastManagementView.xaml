@@ -59,7 +59,7 @@
                 <DataGridTextColumn Header="E-Mail" Binding="{Binding Email}" Width="180"/>
                 <DataGridTextColumn Header="Telefon" Binding="{Binding Phone}" Width="120"/>
                 <DataGridTextColumn Header="Nationalität" Binding="{Binding Nationality}" Width="100"/>
-                <DataGridTextColumn Header="Ausweistyp" Binding="{Binding IdType}" Width="100"/>
+                <DataGridTextColumn Header="Ausweistyp" Binding="{Binding IdType, Converter={StaticResource GermanValueConverter}, Mode=OneWay}" Width="100"/>
                 <DataGridTextColumn Header="Ausweisnummer" Binding="{Binding IdNumber}" Width="120"/>
             </DataGrid.Columns>
         </DataGrid>
