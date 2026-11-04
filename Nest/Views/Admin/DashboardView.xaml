@@ -9,10 +9,10 @@
     <UserControl.Resources>
         <Style x:Key="DashboardRoomStatusStyle" TargetType="TextBlock">
             <Style.Triggers>
-                <Trigger Property="Text" Value="Verfuegbar">
+                <DataTrigger Binding="{Binding Status}" Value="Verfuegbar">
                     <Setter Property="Background" Value="#D9EED6"/>
                     <Setter Property="Foreground" Value="#24522A"/>
-                </Trigger>
+                </DataTrigger>
                 <!-- Last trigger takes precedence over the normal status colors. -->
                 <StaticResource ResourceKey="StandardDataGridTextSelectionTrigger"/>
             </Style.Triggers>
@@ -223,7 +223,7 @@
                         <DataGridTextColumn Width="1.3*" Header="Preis/Nacht"
                                         Binding="{Binding PricePerNight}"/>
                         <DataGridTextColumn Width="1.2*" Header="Status"
-                                        Binding="{Binding Status}"
+                                        Binding="{Binding Status, Converter={StaticResource GermanValueConverter}, Mode=TwoWay}"
                                         ElementStyle="{StaticResource DashboardRoomStatusStyle}"/>
                     </DataGrid.Columns>
                 </DataGrid>
