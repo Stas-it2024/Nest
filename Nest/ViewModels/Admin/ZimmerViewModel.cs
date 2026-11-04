@@ -221,9 +221,9 @@ namespace Nest.ViewModels.Admin
         }
 
         // Zimmer selected
-        private Room _selectedRoom;
+        private Room? _selectedRoom;
 
-        public Room SelectedRoom
+        public Room? SelectedRoom
         {
             get => _selectedRoom;
             set

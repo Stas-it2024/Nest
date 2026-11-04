@@ -17,10 +17,10 @@ namespace Nest.ViewModels.Admin
         // Repository für Dienstleistungen
         private readonly ServiceRepository _serviceRepository;
 
-        private string _serviceName;
-        private string _category;
+        private string _serviceName = "";
+        private string _category = "Speisen und Getraenke";
         private decimal _price;
-        private string _status;
+        private string _status = "Verfuegbar";
         private Service? _selectedService;
 
         // ObservableCollection für die Dienstleistungen

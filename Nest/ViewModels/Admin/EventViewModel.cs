@@ -19,7 +19,7 @@ namespace Nest.ViewModels.Admin
         private readonly EventRepository _eventRepository;
 
         // Private fields to hold the values of the event properties.
-        private string _title;
+        private string _title = "";
         private string? _description;
         private DateTime _eventDate = DateTime.Today;
         private string _eventTimeText = "19:00";
@@ -587,7 +587,7 @@ namespace Nest.ViewModels.Admin
 
         private bool IsDuplicateEvent(int? excludeId = null)
         {
-            string titel = Title?.Trim();
+            string? titel = Title?.Trim();
 
             TimeSpan eventTime = GetEventTime();
 

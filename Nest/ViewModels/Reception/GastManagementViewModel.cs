@@ -15,7 +15,7 @@ namespace Nest.ViewModels.Reception
         private readonly GastRepository _gastRepository;
         private string _searchText = "";
         private ObservableCollection<Guest> _guests = new();
-        private Guest _selectedGuest;
+        private Guest? _selectedGuest;
         private ObservableCollection<ReservationOverview> _guestHistory = new();
 
         public GastManagementViewModel()
@@ -55,7 +55,7 @@ namespace Nest.ViewModels.Reception
             }
         }
 
-        public Guest SelectedGuest
+        public Guest? SelectedGuest
         {
             get => _selectedGuest;
             set
@@ -134,7 +134,7 @@ namespace Nest.ViewModels.Reception
         {
             LoadGuests();
             GuestHistory = new ObservableCollection<ReservationOverview>();
-            SelectedGuest = null!;
+            SelectedGuest = null;
         }
     }
 }

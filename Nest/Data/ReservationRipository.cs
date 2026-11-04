@@ -461,11 +461,11 @@ namespace Nest.Data
             cmd.Parameters.AddWithValue("@TotalAmount", reservation.TotalAmount);
             cmd.Parameters.AddWithValue("@AmountPaid", reservation.AmountPaid);
             // Optionale C#-Werte werden mit DBNull.Value als echtes SQL-NULL gespeichert.
-            cmd.Parameters.AddWithValue("@PaymentMethod", (object)reservation.PaymentMethod ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@PaymentMethod", (object?)reservation.PaymentMethod ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Status", reservation.Status);
             cmd.Parameters.AddWithValue("@ReservationCode", reservation.ReservationCode);
             cmd.Parameters.AddWithValue("@DateCreated", reservation.DateCreated);
-            cmd.Parameters.AddWithValue("@SpecialRequests", (object)reservation.SpecialRequests ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@SpecialRequests", (object?)reservation.SpecialRequests ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@ReceptionistId", (object?)reservation.ReceptionistId ?? DBNull.Value);
             return cmd;
         }

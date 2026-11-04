@@ -17,7 +17,7 @@ namespace Nest.ViewModels.Shell
 {
     public class ShellViewModel : Conductor<object>
     {
-        private string _windowTitle;
+        private string _windowTitle = "Hotelverwaltung – Anmeldung";
 
         public string WindowTitle
         {

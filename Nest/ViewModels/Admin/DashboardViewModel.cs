@@ -122,8 +122,8 @@ namespace Nest.ViewModels.Admin
         }
 
         // ===== MENU STATE =====
-        private string _selectedMenu;
-        public string SelectedMenu
+        private string? _selectedMenu;
+        public string? SelectedMenu
         {
             get => _selectedMenu;
             set
