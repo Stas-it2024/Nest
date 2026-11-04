@@ -18,7 +18,7 @@ namespace Nest.Models
 
         public TimeSpan EventTime { get; set; }
 
-        public string Location { get; set; }
+        public string? Location { get; set; }
 
         public decimal TicketPrice { get; set; }
 

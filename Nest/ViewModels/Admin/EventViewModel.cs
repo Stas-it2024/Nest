@@ -23,7 +23,7 @@ namespace Nest.ViewModels.Admin
         private string _description;
         private DateTime _eventDate = DateTime.Today;
         private string _eventTimeText = "19:00";
-        private string _location = "Hotel Lobby";
+        private string? _location = "Hotel Lobby";
         private string _ticketPriceText = "0,00";
         private string _maxTicketsText = "100";
         private string _status = "Aktiv";
@@ -74,7 +74,7 @@ namespace Nest.ViewModels.Admin
             }
         }
 
-        public string Location
+        public string? Location
         {
             get => _location;
             set
@@ -596,7 +596,7 @@ namespace Nest.ViewModels.Admin
                 e.Title.Equals(titel, StringComparison.OrdinalIgnoreCase) &&
                 e.EventDate.Date == EventDate.Date &&
                 e.EventTime == eventTime &&
-                e.Location.Equals(Location?.Trim(), StringComparison.OrdinalIgnoreCase));
+                string.Equals(e.Location, Location?.Trim(), StringComparison.OrdinalIgnoreCase));
         }
     }
 }
