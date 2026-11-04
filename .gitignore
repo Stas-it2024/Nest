@@ -1,4 +1,6 @@
 .vs
 bin/
 obj/
+*.csproj.user
+~$*
 .git.shared-repository-backup-*/
