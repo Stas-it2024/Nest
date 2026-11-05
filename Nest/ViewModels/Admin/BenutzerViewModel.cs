@@ -1,4 +1,5 @@
 using Caliburn.Micro;
+using MySql.Data.MySqlClient;
 using Nest.Data;
 using Nest.Models;
 using System;
@@ -183,21 +184,55 @@ namespace Nest.ViewModels.Admin
                 return;
             }
 
-            SelectedUser.UserName = UserName;
-            SelectedUser.FullName = FullName;
-            SelectedUser.Password = Password;
-            SelectedUser.Role = Role;
-            SelectedUser.Status = Status;
+            var updatedUser = new User(UserName, FullName, Role, Status)
+            {
+                Id = SelectedUser.Id,
+                Password = Password,
+                DateAdded = SelectedUser.DateAdded,
+                DateDelete = SelectedUser.DateDelete
+            };
 
-            int updatedUserId = SelectedUser.Id;
+            try
+            {
+                _userRepository.Update(updatedUser);
+            }
+            catch (MySqlException ex) when (ex.Number == 1062)
+            {
+                MessageBox.Show(
+                    "Ein Benutzer mit diesem Benutzernamen existiert bereits.",
+                    "Fehler",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(
+                    "Beim Speichern ist ein Fehler aufgetreten. Bitte prüfen Sie den tatsächlich gespeicherten Stand des Benutzers, bevor Sie es erneut versuchen.",
+                    "Fehler",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                return;
+            }
 
-            _userRepository.Update(SelectedUser);
+            List<User> updatedUsers;
+            try
+            {
+                updatedUsers = _userRepository.GetAll();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(
+                    "Die Aktualisierung wurde ausgeführt, aber die Benutzerliste konnte nicht neu geladen werden. Bitte prüfen Sie den gespeicherten Stand.",
+                    "Hinweis",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
 
-            Users = new ObservableCollection<User>(
-                _userRepository.GetAll()
-            );
+            Users = new ObservableCollection<User>(updatedUsers);
 
-            SelectedUser = Users.FirstOrDefault(u => u.Id == updatedUserId);
+            SelectedUser = Users.FirstOrDefault(u => u.Id == updatedUser.Id);
 
             NotifyOfPropertyChange(() => Users);
 
