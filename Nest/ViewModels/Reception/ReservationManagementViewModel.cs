@@ -425,7 +425,11 @@ namespace Nest.ViewModels.Reception
 
             ExecuteStayTransition(SelectedReservation, "Check-in",
                 "UPDATE reservierungen SET status='Eingecheckt' WHERE reservierungs_code=@code AND status='Reserviert'",
-                "UPDATE zimmer SET status='Belegt' WHERE zimmer_nummer=@room");
+                @"UPDATE zimmer z
+                  JOIN reservierungen r ON r.zimmer_id = z.id
+                  SET z.status = 'Belegt'
+                  WHERE r.reservierungs_code = @code
+                    AND r.status = 'Eingecheckt';");
         }
 
         // ==================== CHECK-OUT ====================
@@ -447,13 +451,16 @@ namespace Nest.ViewModels.Reception
 
             ExecuteStayTransition(SelectedReservation, "Check-out",
                 "UPDATE reservierungen SET status='Ausgecheckt' WHERE reservierungs_code=@code AND status='Eingecheckt'",
-                "UPDATE zimmer SET status='Verfuegbar' WHERE zimmer_nummer=@room");
+                @"UPDATE zimmer z
+                  JOIN reservierungen r ON r.zimmer_id = z.id
+                  SET z.status = 'Verfuegbar'
+                  WHERE r.reservierungs_code = @code
+                    AND r.status = 'Ausgecheckt';");
         }
 
         private void ExecuteStayTransition(ReservationItem reservation, string operation, string reservationSql, string roomSql)
         {
             var reservationCode = reservation.ReservationCode;
-            var roomNumber = reservation.RoomNumber;
             var guestName = reservation.GastName;
             var committed = false;
             var commitAttempted = false;
@@ -473,12 +480,14 @@ namespace Nest.ViewModels.Reception
                     if (!businessRefused)
                     {
                         using var roomCmd = new MySqlCommand(roomSql, conn, transaction);
-                        roomCmd.Parameters.AddWithValue("@room", roomNumber);
-                        // Etappe B: Zimmeridentität und Anzahl gefundener Zimmerzeilen gesondert absichern.
-                        roomCmd.ExecuteNonQuery();
-                        commitAttempted = true;
-                        transaction.Commit();
-                        committed = true;
+                        roomCmd.Parameters.AddWithValue("@code", reservationCode);
+                        businessRefused = roomCmd.ExecuteNonQuery() != 1;
+                        if (!businessRefused)
+                        {
+                            commitAttempted = true;
+                            transaction.Commit();
+                            committed = true;
+                        }
                     }
                 }
                 finally
@@ -518,7 +527,7 @@ namespace Nest.ViewModels.Reception
             if (businessRefused)
             {
                 System.Windows.MessageBox.Show(
-                    "Die Reservierung wurde nicht gefunden oder ihr Status wurde inzwischen geändert. Bitte aktualisieren Sie die Liste.",
+                    "Die Reservierung oder das zugehörige Zimmer konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu.",
                     "Hinweis", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
                 return;
             }
