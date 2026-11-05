@@ -172,6 +172,8 @@
 
                   SelectedItem="{Binding SelectedUser}"
 
+                  IsReadOnly="True"
+
                   AutoGenerateColumns="False">
 
             <DataGrid.Columns>
