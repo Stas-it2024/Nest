@@ -1,4 +1,6 @@
 using Nest.Data;
+using Nest.Models;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,7 +65,21 @@ namespace Nest.ViewModels.Authentication
         // Neue Login-Methode
         public void Login()
         {
-            var user = _userRepository.Login(UserName, Password);
+            User? user;
+            try
+            {
+                user = _userRepository.Login(UserName, Password);
+            }
+            catch (MySqlException)
+            {
+                System.Windows.MessageBox.Show("Die Anmeldung konnte aufgrund eines Datenbankfehlers nicht durchgeführt werden. Bitte versuchen Sie es später erneut.");
+                return;
+            }
+            catch (Exception)
+            {
+                System.Windows.MessageBox.Show("Die Anmeldung konnte aufgrund eines technischen Fehlers nicht durchgeführt werden. Bitte versuchen Sie es erneut.");
+                return;
+            }
 
             if (user == null)
             {
