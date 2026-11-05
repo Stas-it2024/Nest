@@ -423,13 +423,7 @@ namespace Nest.ViewModels.Reception
                 return;
             }
 
-            ExecuteStayTransition(SelectedReservation, "Check-in",
-                "UPDATE reservierungen SET status='Eingecheckt' WHERE reservierungs_code=@code AND status='Reserviert'",
-                @"UPDATE zimmer z
-                  JOIN reservierungen r ON r.zimmer_id = z.id
-                  SET z.status = 'Belegt'
-                  WHERE r.reservierungs_code = @code
-                    AND r.status = 'Eingecheckt';");
+            ExecuteStayTransition(SelectedReservation, isCheckIn: true);
         }
 
         // ==================== CHECK-OUT ====================
@@ -449,22 +443,17 @@ namespace Nest.ViewModels.Reception
                 return;
             }
 
-            ExecuteStayTransition(SelectedReservation, "Check-out",
-                "UPDATE reservierungen SET status='Ausgecheckt' WHERE reservierungs_code=@code AND status='Eingecheckt'",
-                @"UPDATE zimmer z
-                  JOIN reservierungen r ON r.zimmer_id = z.id
-                  SET z.status = 'Verfuegbar'
-                  WHERE r.reservierungs_code = @code
-                    AND r.status = 'Ausgecheckt';");
+            ExecuteStayTransition(SelectedReservation, isCheckIn: false);
         }
 
-        private void ExecuteStayTransition(ReservationItem reservation, string operation, string reservationSql, string roomSql)
+        private void ExecuteStayTransition(ReservationItem reservation, bool isCheckIn)
         {
+            var operation = isCheckIn ? "Check-in" : "Check-out";
             var reservationCode = reservation.ReservationCode;
             var guestName = reservation.GastName;
             var committed = false;
             var commitAttempted = false;
-            var businessRefused = false;
+            string? businessRefusal = null;
             var rollbackFailed = false;
 
             try
@@ -474,20 +463,12 @@ namespace Nest.ViewModels.Reception
                 using var transaction = conn.BeginTransaction(IsolationLevel.ReadCommitted);
                 try
                 {
-                    using var cmd = new MySqlCommand(reservationSql, conn, transaction);
-                    cmd.Parameters.AddWithValue("@code", reservationCode);
-                    businessRefused = cmd.ExecuteNonQuery() != 1;
-                    if (!businessRefused)
+                    businessRefusal = ApplyStayTransition(conn, transaction, reservationCode, isCheckIn);
+                    if (businessRefusal == null)
                     {
-                        using var roomCmd = new MySqlCommand(roomSql, conn, transaction);
-                        roomCmd.Parameters.AddWithValue("@code", reservationCode);
-                        businessRefused = roomCmd.ExecuteNonQuery() != 1;
-                        if (!businessRefused)
-                        {
-                            commitAttempted = true;
-                            transaction.Commit();
-                            committed = true;
-                        }
+                        commitAttempted = true;
+                        transaction.Commit();
+                        committed = true;
                     }
                 }
                 finally
@@ -524,10 +505,10 @@ namespace Nest.ViewModels.Reception
                     "Fehler", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
                 return;
             }
-            if (businessRefused)
+            if (businessRefusal != null)
             {
                 System.Windows.MessageBox.Show(
-                    "Die Reservierung oder das zugehörige Zimmer konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu.",
+                    businessRefusal,
                     "Hinweis", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
                 return;
             }
@@ -552,6 +533,123 @@ namespace Nest.ViewModels.Reception
                 System.Windows.MessageBox.Show(
                     $"Der {operation} wurde ausgeführt, aber die Anzeige konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu.",
                     "Hinweis", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
+        }
+
+        private static string? ApplyStayTransition(MySqlConnection conn, MySqlTransaction transaction,
+            string reservationCode, bool isCheckIn)
+        {
+            const string changedReservation = "Die Reservierung wurde nicht gefunden oder inzwischen geändert. Bitte laden Sie die Daten neu.";
+            const string unsuitableRoom = "Der Zimmerstatus ist für diesen Vorgang nicht geeignet oder widerspricht der Belegung. Bitte prüfen Sie die Daten.";
+            const string occupancyConflict = "Für dieses Zimmer ist bereits eine andere Reservierung eingecheckt. Der Vorgang wurde nicht ausgeführt. Bitte prüfen Sie die Belegung.";
+            const string updateRefused = "Die Reservierung oder das zugehörige Zimmer konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu.";
+
+            // Nur Kandidatensuche: noch keine Reservierungssperre vor der Zimmersperre.
+            const string findRoomSql = @"
+                SELECT zimmer_id FROM reservierungen
+                WHERE reservierungs_code = @code;";
+            int roomId;
+            using (var findRoom = new MySqlCommand(findRoomSql, conn, transaction))
+            {
+                findRoom.Parameters.AddWithValue("@code", reservationCode);
+                var value = findRoom.ExecuteScalar();
+                if (value == null || value == DBNull.Value)
+                    return changedReservation;
+                roomId = Convert.ToInt32(value);
+            }
+
+            // Gemeinsamer Serialisierungspunkt für Check-in und Check-out desselben Zimmers.
+            const string lockRoomSql = @"
+                SELECT id, status, geloescht_am FROM zimmer
+                WHERE id = @RoomId FOR UPDATE;";
+            string roomStatus;
+            bool roomDeleted;
+            using (var lockRoom = new MySqlCommand(lockRoomSql, conn, transaction))
+            {
+                lockRoom.Parameters.AddWithValue("@RoomId", roomId);
+                using var reader = lockRoom.ExecuteReader();
+                if (!reader.Read() || reader.GetInt32("id") != roomId)
+                    return unsuitableRoom;
+                roomStatus = reader.GetString("status");
+                roomDeleted = !reader.IsDBNull(reader.GetOrdinal("geloescht_am"));
+            }
+
+            const string lockReservationSql = @"
+                SELECT id, reservierungs_code, zimmer_id, status FROM reservierungen
+                WHERE reservierungs_code = @code FOR UPDATE;";
+            int reservationId;
+            var sourceStatus = isCheckIn ? "Reserviert" : "Eingecheckt";
+            var targetStatus = isCheckIn ? "Eingecheckt" : "Ausgecheckt";
+            using (var lockReservation = new MySqlCommand(lockReservationSql, conn, transaction))
+            {
+                lockReservation.Parameters.AddWithValue("@code", reservationCode);
+                using var reader = lockReservation.ExecuteReader();
+                if (!reader.Read()
+                    || !string.Equals(reader.GetString("reservierungs_code"), reservationCode, StringComparison.Ordinal)
+                    || reader.GetInt32("zimmer_id") != roomId
+                    || reader.GetString("status") != sourceStatus)
+                    return changedReservation;
+                reservationId = reader.GetInt32("id");
+            }
+
+            const string otherOccupantsSql = @"
+                SELECT id FROM reservierungen
+                WHERE zimmer_id = @RoomId AND status = 'Eingecheckt'
+                  AND id <> @ReservationId
+                ORDER BY id FOR UPDATE;";
+            using (var otherOccupants = new MySqlCommand(otherOccupantsSql, conn, transaction))
+            {
+                otherOccupants.Parameters.AddWithValue("@RoomId", roomId);
+                otherOccupants.Parameters.AddWithValue("@ReservationId", reservationId);
+                if (otherOccupants.ExecuteScalar() != null)
+                    return occupancyConflict;
+            }
+
+            if (isCheckIn)
+            {
+                if (roomDeleted || (roomStatus != "Verfuegbar" && roomStatus != "Reserviert"))
+                    return unsuitableRoom;
+            }
+            else if (roomStatus != "Belegt" && roomStatus != "Wartung")
+            {
+                return unsuitableRoom;
+            }
+
+            const string updateReservationSql = @"
+                UPDATE reservierungen SET status = @TargetStatus
+                WHERE id = @ReservationId AND reservierungs_code = @code
+                  AND zimmer_id = @RoomId AND status = @SourceStatus;";
+            using (var updateReservation = new MySqlCommand(updateReservationSql, conn, transaction))
+            {
+                updateReservation.Parameters.AddWithValue("@TargetStatus", targetStatus);
+                updateReservation.Parameters.AddWithValue("@ReservationId", reservationId);
+                updateReservation.Parameters.AddWithValue("@code", reservationCode);
+                updateReservation.Parameters.AddWithValue("@RoomId", roomId);
+                updateReservation.Parameters.AddWithValue("@SourceStatus", sourceStatus);
+                if (updateReservation.ExecuteNonQuery() != 1)
+                    return updateRefused;
+            }
+
+            // Wartung und weiche Löschung bleiben beim Check-out unangetastet.
+            if (!isCheckIn && (roomDeleted || roomStatus == "Wartung"))
+                return null;
+
+            const string updateRoomSql = @"
+                UPDATE zimmer z
+                JOIN reservierungen r ON r.zimmer_id = z.id
+                SET z.status = @TargetRoomStatus
+                WHERE z.id = @RoomId AND r.id = @ReservationId
+                  AND r.reservierungs_code = @code AND r.status = @TargetStatus
+                  AND z.status = @SourceRoomStatus AND z.geloescht_am IS NULL;";
+            using (var updateRoom = new MySqlCommand(updateRoomSql, conn, transaction))
+            {
+                updateRoom.Parameters.AddWithValue("@TargetRoomStatus", isCheckIn ? "Belegt" : "Verfuegbar");
+                updateRoom.Parameters.AddWithValue("@RoomId", roomId);
+                updateRoom.Parameters.AddWithValue("@ReservationId", reservationId);
+                updateRoom.Parameters.AddWithValue("@code", reservationCode);
+                updateRoom.Parameters.AddWithValue("@TargetStatus", targetStatus);
+                updateRoom.Parameters.AddWithValue("@SourceRoomStatus", roomStatus);
+                return updateRoom.ExecuteNonQuery() == 1 ? null : updateRefused;
             }
         }
 
