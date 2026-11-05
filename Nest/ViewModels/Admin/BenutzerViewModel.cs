@@ -135,7 +135,15 @@ namespace Nest.ViewModels.Admin
                 DateAdded = DateTime.Now
             };
 
-            _userRepository.Add(user);
+            if (!_userRepository.Add(user))
+            {
+                MessageBox.Show(
+                    "Ein Benutzer mit diesem Benutzernamen existiert bereits.",
+                    "Fehler",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
 
             Users.Add(user);
 
