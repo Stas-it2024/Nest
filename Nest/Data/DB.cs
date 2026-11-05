@@ -11,7 +11,7 @@ namespace Nest.Data
     public static class DB
     {
         // Eine zentrale Verbindungszeichenfolge verhindert unterschiedliche Datenbankeinstellungen in den Repositories.
-        private const string ConnectionString =
+        private const string ConnectionString = "UseAffectedRows=false;" +
             "server=localhost;port=3306;database=hotel;uid=root;pwd=root;SslMode=Disabled;";
 
         public static MySqlConnection GetConnection()

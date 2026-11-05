@@ -121,7 +121,7 @@ namespace Nest.Data
         }
 
         // Update an existing user in the database
-        public void Update(User user)
+        public bool Update(User user)
         {
             using var conn = DB.GetConnection();
             conn.Open();
@@ -165,7 +165,7 @@ namespace Nest.Data
                 cmd.Parameters.AddWithValue("@passwort", user.Password);
             }
 
-            cmd.ExecuteNonQuery();
+            return cmd.ExecuteNonQuery() == 1;
         }
 
         // Soft delete a user by setting the geloescht_am field

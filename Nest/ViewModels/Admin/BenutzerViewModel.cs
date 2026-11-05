@@ -194,7 +194,15 @@ namespace Nest.ViewModels.Admin
 
             try
             {
-                _userRepository.Update(updatedUser);
+                if (!_userRepository.Update(updatedUser))
+                {
+                    MessageBox.Show(
+                        "Der Benutzer wurde nicht gefunden oder inzwischen gelöscht. Bitte laden Sie die Benutzerliste neu.",
+                        "Hinweis",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                    return;
+                }
             }
             catch (MySqlException ex) when (ex.Number == 1062)
             {
