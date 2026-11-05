@@ -10,7 +10,7 @@ namespace Nest.Models
     {
         private int _id;
         private string _username;
-        private string _password;
+        private string? _password;
         private string _fullname;
         private string _role;
         private string _status;
@@ -35,7 +35,7 @@ namespace Nest.Models
             }
         }
 
-        public string Password
+        public string? Password
         {
             get => _password;
             set

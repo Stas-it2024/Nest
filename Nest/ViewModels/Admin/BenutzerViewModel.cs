@@ -52,7 +52,7 @@ namespace Nest.ViewModels.Admin
         // Eigenschaften für die Eingabefelder
         private string _userName;
         private string _fullName;
-        private string _password;
+        private string? _password;
         private string _role;
         private string _status;
 
@@ -76,7 +76,7 @@ namespace Nest.ViewModels.Admin
             }
         }
 
-        public string Password
+        public string? Password
         {
             get => _password;
             set
