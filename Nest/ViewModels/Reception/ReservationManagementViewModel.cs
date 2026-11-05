@@ -247,28 +247,27 @@ namespace Nest.ViewModels.Reception
         }
 
         // ==================== DATEN LADEN ====================
-        private void LoadRoomsFromDatabase()
+        private bool LoadRoomsFromDatabase(bool showError = true)
         {
             try
             {
-                var zimmer = _roomRepository.GetAll();
-                RoomList.Clear();
-                foreach (var room in zimmer)
-                    RoomList.Add(room);
+                var selectedRoomId = SelectedRoom?.Id;
+                var rooms = new ObservableCollection<Room>(_roomRepository.GetAll());
+                RoomList = rooms;
+                NotifyOfPropertyChange(() => RoomList);
+                SelectedRoom = rooms.FirstOrDefault(room => room.Id == selectedRoomId);
+                return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Windows.MessageBox.Show($"Fehler beim Laden der Zimmer: {ex.Message}",
-                    "Fehler", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                if (showError)
+                    System.Windows.MessageBox.Show("Die Zimmerliste konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
+                        "Fehler", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                return false;
             }
         }
 
-        private void LoadReservationsFromDatabase()
-        {
-            FilterReservations();
-        }
-
-        public void FilterReservations()
+        private bool LoadReservationsFromDatabase(bool showError = true)
         {
             try
             {
@@ -281,10 +280,11 @@ namespace Nest.ViewModels.Reception
                         (r.ReservationCode?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false));
                 }
 
-                Reservations.Clear();
+                var selectedCode = SelectedReservation?.ReservationCode;
+                var reservations = new ObservableCollection<ReservationItem>();
                 foreach (var r in data)
                 {
-                    Reservations.Add(new ReservationItem
+                    reservations.Add(new ReservationItem
                     {
                         ReservationCode = r.ReservationCode,
                         GastName = r.Guest,
@@ -296,12 +296,23 @@ namespace Nest.ViewModels.Reception
                         Status = r.Status
                     });
                 }
+                Reservations = reservations;
+                NotifyOfPropertyChange(() => Reservations);
+                SelectedReservation = reservations.FirstOrDefault(r => r.ReservationCode == selectedCode);
+                return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Windows.MessageBox.Show($"Fehler beim Laden der Reservierungen: {ex.Message}",
-                    "Fehler", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                if (showError)
+                    System.Windows.MessageBox.Show("Die Reservierungsliste konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
+                        "Fehler", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                return false;
             }
+        }
+
+        public void FilterReservations()
+        {
+            LoadReservationsFromDatabase();
         }
 
         public void ClearSearch()
@@ -412,48 +423,9 @@ namespace Nest.ViewModels.Reception
                 return;
             }
 
-            using var conn = DB.GetConnection();
-            conn.Open();
-            using var transaction = conn.BeginTransaction(IsolationLevel.ReadCommitted);
-
-            try
-            {
-                using (var cmd = new MySqlCommand(
-                    "UPDATE reservierungen SET status='Eingecheckt' WHERE reservierungs_code=@code AND status='Reserviert'",
-                    conn, transaction))
-                {
-                    cmd.Parameters.AddWithValue("@code", SelectedReservation.ReservationCode);
-                    if (cmd.ExecuteNonQuery() != 1)
-                    {
-                        transaction.Rollback();
-                        System.Windows.MessageBox.Show("Check-in fehlgeschlagen.", "Fehler",
-                            System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
-                        return;
-                    }
-                }
-
-                using (var roomCmd = new MySqlCommand(
-                    "UPDATE zimmer SET status='Belegt' WHERE zimmer_nummer=@room",
-                    conn, transaction))
-                {
-                    roomCmd.Parameters.AddWithValue("@room", SelectedReservation.RoomNumber);
-                    roomCmd.ExecuteNonQuery();
-                }
-
-                transaction.Commit();
-
-                System.Windows.MessageBox.Show($"Check-in für {SelectedReservation.GastName} erfolgreich!",
-                    "Erfolg", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
-
-                LoadReservationsFromDatabase();
-                LoadRoomsFromDatabase();
-            }
-            catch (Exception ex)
-            {
-                transaction.Rollback();
-                System.Windows.MessageBox.Show($"Fehler beim Check-in: {ex.Message}", "Fehler",
-                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-            }
+            ExecuteStayTransition(SelectedReservation, "Check-in",
+                "UPDATE reservierungen SET status='Eingecheckt' WHERE reservierungs_code=@code AND status='Reserviert'",
+                "UPDATE zimmer SET status='Belegt' WHERE zimmer_nummer=@room");
         }
 
         // ==================== CHECK-OUT ====================
@@ -473,47 +445,104 @@ namespace Nest.ViewModels.Reception
                 return;
             }
 
-            using var conn = DB.GetConnection();
-            conn.Open();
-            using var transaction = conn.BeginTransaction(IsolationLevel.ReadCommitted);
+            ExecuteStayTransition(SelectedReservation, "Check-out",
+                "UPDATE reservierungen SET status='Ausgecheckt' WHERE reservierungs_code=@code AND status='Eingecheckt'",
+                "UPDATE zimmer SET status='Verfuegbar' WHERE zimmer_nummer=@room");
+        }
+
+        private void ExecuteStayTransition(ReservationItem reservation, string operation, string reservationSql, string roomSql)
+        {
+            var reservationCode = reservation.ReservationCode;
+            var roomNumber = reservation.RoomNumber;
+            var guestName = reservation.GastName;
+            var committed = false;
+            var commitAttempted = false;
+            var businessRefused = false;
+            var rollbackFailed = false;
 
             try
             {
-                using (var cmd = new MySqlCommand(
-                    "UPDATE reservierungen SET status='Ausgecheckt' WHERE reservierungs_code=@code AND status='Eingecheckt'",
-                    conn, transaction))
+                using var conn = DB.GetConnection();
+                conn.Open();
+                using var transaction = conn.BeginTransaction(IsolationLevel.ReadCommitted);
+                try
                 {
-                    cmd.Parameters.AddWithValue("@code", SelectedReservation.ReservationCode);
-                    if (cmd.ExecuteNonQuery() != 1)
+                    using var cmd = new MySqlCommand(reservationSql, conn, transaction);
+                    cmd.Parameters.AddWithValue("@code", reservationCode);
+                    businessRefused = cmd.ExecuteNonQuery() != 1;
+                    if (!businessRefused)
                     {
-                        transaction.Rollback();
-                        System.Windows.MessageBox.Show("Check-out fehlgeschlagen.", "Fehler",
-                            System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
-                        return;
+                        using var roomCmd = new MySqlCommand(roomSql, conn, transaction);
+                        roomCmd.Parameters.AddWithValue("@room", roomNumber);
+                        // Etappe B: Zimmeridentität und Anzahl gefundener Zimmerzeilen gesondert absichern.
+                        roomCmd.ExecuteNonQuery();
+                        commitAttempted = true;
+                        transaction.Commit();
+                        committed = true;
                     }
                 }
-
-                using (var roomCmd = new MySqlCommand(
-                    "UPDATE zimmer SET status='Verfuegbar' WHERE zimmer_nummer=@room",
-                    conn, transaction))
+                finally
                 {
-                    roomCmd.Parameters.AddWithValue("@room", SelectedReservation.RoomNumber);
-                    roomCmd.ExecuteNonQuery();
+                    if (!committed)
+                    {
+                        try
+                        {
+                            transaction.Rollback();
+                        }
+                        catch (Exception)
+                        {
+                            // Ein Rollback-Fehler darf den ursprünglichen Fehler nicht ersetzen.
+                            rollbackFailed = true;
+                        }
+                    }
                 }
-
-                transaction.Commit();
-
-                System.Windows.MessageBox.Show($"Check-out für {SelectedReservation.GastName} erfolgreich!",
-                    "Erfolg", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
-
-                LoadReservationsFromDatabase();
-                LoadRoomsFromDatabase();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                transaction.Rollback();
-                System.Windows.MessageBox.Show($"Fehler beim Check-out: {ex.Message}", "Fehler",
-                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                var message = committed
+                    ? $"Der {operation} wurde ausgeführt, aber die Anzeige konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu."
+                    : commitAttempted
+                        ? $"Das Ergebnis des {operation} konnte nicht bestätigt werden. Bitte prüfen Sie den tatsächlichen Reservierungsstatus, bevor Sie den Vorgang erneut ausführen."
+                        : $"Der {operation} konnte aufgrund eines technischen Fehlers nicht abgeschlossen werden. Bitte prüfen Sie den tatsächlichen Reservierungsstatus, bevor Sie den Vorgang erneut ausführen.";
+                System.Windows.MessageBox.Show(message, "Fehler", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                return;
+            }
+
+            if (rollbackFailed)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Der {operation} konnte aufgrund eines technischen Fehlers nicht abgeschlossen werden. Bitte prüfen Sie den tatsächlichen Reservierungsstatus, bevor Sie den Vorgang erneut ausführen.",
+                    "Fehler", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                return;
+            }
+            if (businessRefused)
+            {
+                System.Windows.MessageBox.Show(
+                    "Die Reservierung wurde nicht gefunden oder ihr Status wurde inzwischen geändert. Bitte aktualisieren Sie die Liste.",
+                    "Hinweis", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                return;
+            }
+
+            // Ab hier ist Commit bestätigt; UI-Fehler dürfen keinen Rollback auslösen.
+            try
+            {
+                var reservationsLoaded = LoadReservationsFromDatabase(showError: false);
+                var roomsLoaded = LoadRoomsFromDatabase(showError: false);
+                if (!reservationsLoaded || !roomsLoaded)
+                {
+                    System.Windows.MessageBox.Show(
+                        $"Der {operation} wurde ausgeführt, aber die Anzeige konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu.",
+                        "Hinweis", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                    return;
+                }
+                System.Windows.MessageBox.Show($"{operation} für {guestName} erfolgreich!",
+                    "Erfolg", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            }
+            catch (Exception)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Der {operation} wurde ausgeführt, aber die Anzeige konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu.",
+                    "Hinweis", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
             }
         }
 
