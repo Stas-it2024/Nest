@@ -32,13 +32,13 @@ namespace Nest.Data
 
             if (reader.Read())
             {
-                return new User
+                return new User(
+                    reader.GetString("benutzername"),
+                    reader.GetString("vollstaendiger_name"),
+                    reader.GetString("rolle"),
+                    reader.GetString("status"))
                 {
-                    Id = reader.GetInt32("id"),
-                    UserName = reader.GetString("benutzername"),
-                    FullName = reader.GetString("vollstaendiger_name"),
-                    Role = reader.GetString("rolle"),
-                    Status = reader.GetString("status")
+                    Id = reader.GetInt32("id")
                 };
             }
 
@@ -70,13 +70,13 @@ namespace Nest.Data
 
             while (reader.Read())
             {
-                benutzer.Add(new User
+                benutzer.Add(new User(
+                    reader.GetString("benutzername"),
+                    reader.GetString("vollstaendiger_name"),
+                    reader.GetString("rolle"),
+                    reader.GetString("status"))
                 {
                     Id = reader.GetInt32("id"),
-                    UserName = reader.GetString("benutzername"),
-                    FullName = reader.GetString("vollstaendiger_name"),
-                    Role = reader.GetString("rolle"),
-                    Status = reader.GetString("status"),
                     DateAdded = reader.GetDateTime("hinzugefuegt_am"),
                     DateDelete = reader.IsDBNull(reader.GetOrdinal("geloescht_am"))
                         ? null

@@ -50,13 +50,13 @@ namespace Nest.ViewModels.Admin
         }
 
         // Eigenschaften für die Eingabefelder
-        private string _userName;
-        private string _fullName;
+        private string? _userName;
+        private string? _fullName;
         private string? _password;
-        private string _role;
-        private string _status;
+        private string? _role;
+        private string? _status;
 
-        public string UserName
+        public string? UserName
         {
             get => _userName;
             set
@@ -66,7 +66,7 @@ namespace Nest.ViewModels.Admin
             }
         }
 
-        public string FullName
+        public string? FullName
         {
             get => _fullName;
             set
@@ -86,7 +86,7 @@ namespace Nest.ViewModels.Admin
             }
         }
 
-        public string Role
+        public string? Role
         {
             get => _role;
             set
@@ -96,7 +96,7 @@ namespace Nest.ViewModels.Admin
             }
         }
 
-        public string Status
+        public string? Status
         {
             get => _status;
             set
@@ -119,13 +119,19 @@ namespace Nest.ViewModels.Admin
 
                 return;
             }
-            var user = new User
+            if (UserName == null || FullName == null || Role == null || Status == null)
             {
-                UserName = UserName,
-                FullName = FullName,
+                MessageBox.Show(
+                    "Bitte geben Sie Benutzername und vollständigen Namen ein und wählen Sie Rolle und Status aus.",
+                    "Fehler",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                return;
+            }
+
+            var user = new User(UserName, FullName, Role, Status)
+            {
                 Password = Password,
-                Role = Role,
-                Status = Status,
                 DateAdded = DateTime.Now
             };
 
@@ -156,6 +162,16 @@ namespace Nest.ViewModels.Admin
             if (SelectedUser == null)
             {
                 MessageBox.Show("Bitte wählen Sie einen Benutzer aus.");
+                return;
+            }
+
+            if (UserName == null || FullName == null || Role == null || Status == null)
+            {
+                MessageBox.Show(
+                    "Bitte geben Sie Benutzername und vollständigen Namen ein und wählen Sie Rolle und Status aus.",
+                    "Fehler",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
                 return;
             }
 

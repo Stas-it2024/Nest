@@ -15,6 +15,14 @@ namespace Nest.Models
         private string _role;
         private string _status;
 
+        public User(string userName, string fullName, string role, string status)
+        {
+            _username = userName;
+            _fullname = fullName;
+            _role = role;
+            _status = status;
+        }
+
         public DateTime DateAdded { get; set; }
         public DateTime? DateDelete { get; set; }
         public int Id 
