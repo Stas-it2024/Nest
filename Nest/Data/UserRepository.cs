@@ -21,7 +21,8 @@ namespace Nest.Data
                 FROM benutzer
                 WHERE benutzername = @benutzername
                     AND passwort = @passwort
-                    AND status = 'Aktiv'";
+                    AND status = 'Aktiv'
+                    AND geloescht_am IS NULL";
 
             using var cmd = new MySqlCommand(sql, conn);
 
