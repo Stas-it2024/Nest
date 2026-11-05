@@ -16,10 +16,10 @@ namespace Nest.ViewModels.Authentication
     {
         private readonly ShellViewModel _shell;
         private readonly UserRepository _userRepository;
-        private string _password;
+        private string? _password;
         private bool _showPassword;
 
-        public string Password
+        public string? Password
         {
             get => _password;
             set
@@ -45,7 +45,7 @@ namespace Nest.ViewModels.Authentication
             ShowPassword ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
         public System.Windows.Visibility TextBoxVisibility =>
             ShowPassword ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
-        public string UserName { get; set; }
+        public string? UserName { get; set; }
 
         public LoginViewModel(ShellViewModel shell)
         {

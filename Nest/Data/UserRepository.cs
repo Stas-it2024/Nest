@@ -11,7 +11,7 @@ namespace Nest.Data
 {
     public class UserRepository
     {
-        public User? Login(string benutzername, string passwort)
+        public User? Login(string? benutzername, string? passwort)
         {
             using var conn = DB.GetConnection();
             conn.Open();
