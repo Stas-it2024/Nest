@@ -10,13 +10,13 @@ namespace Nest.Models
     {
         public int Id { get; set; }
 
-        public string ServiceName { get; set; }
+        public required string ServiceName { get; set; }
 
-        public string Category { get; set; }
+        public required string Category { get; set; }
 
         public decimal Price { get; set; }
 
-        public string Status { get; set; }
+        public required string Status { get; set; }
 
         public DateTime DateAdded { get; set; }
 

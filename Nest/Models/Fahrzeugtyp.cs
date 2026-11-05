@@ -9,7 +9,7 @@ namespace Nest.Models
     // Dieses Auswahl-Model liefert der Taxi-ComboBox einen klaren Anzeige- und Speicherwert.
     public class Fahrzeugtyp
     {
-        public string Bezeichnung { get; set; }
+        public required string Bezeichnung { get; set; }
         public string AnzeigeText => Bezeichnung;
     }
 }

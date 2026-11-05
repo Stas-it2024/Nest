@@ -9,7 +9,7 @@ namespace Nest.Models
     // Die festen Restaurant-Anlässe werden als Objekte bereitgestellt, damit die ComboBox sauber binden kann.
     public class Anlass
     {
-        public string Bezeichnung { get; set; }
+        public required string Bezeichnung { get; set; }
         public string AnzeigeText => Bezeichnung;
     }
 }

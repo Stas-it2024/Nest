@@ -9,10 +9,10 @@ namespace Nest.Models
     // Dieses Anzeige-Model enthält genau die zusammengeführten Daten, die Zahlung und Übersicht benötigen.
     public class ReservationOverview
     {
-        public string ReservationCode { get; set; }
-        public string Guest { get; set; }
-        public string Room { get; set; }
-        public string Type { get; set; }
+        public required string ReservationCode { get; set; }
+        public required string Guest { get; set; }
+        public required string Room { get; set; }
+        public required string Type { get; set; }
 
         public DateTime CheckInDate { get; set; }
         public DateTime CheckOutDate { get; set; }
