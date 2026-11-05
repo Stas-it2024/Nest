@@ -10,8 +10,8 @@ namespace Nest.Models
     public class Guest
     {
         public int Id { get; set; }
-        public string FirstName { get; set; }      //  Vorname (Pflichtfeld *)
-        public string LastName { get; set; }       //  Nachname (Pflichtfeld *)
+        public required string FirstName { get; set; }      //  Vorname (Pflichtfeld *)
+        public required string LastName { get; set; }       //  Nachname (Pflichtfeld *)
         public string? Email { get; set; }          //  E-Mail
         public string? Phone { get; set; }          //  Telefon
         public string? IdType { get; set; }         //  Ausweistyp (Reisepass, Personalausweis, etc.)

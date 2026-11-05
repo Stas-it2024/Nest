@@ -15,8 +15,8 @@ namespace Nest.Models
         public decimal TotalAmount { get; set; }
         public decimal AmountPaid { get; set; }
         public string? PaymentMethod { get; set; }
-        public string Status { get; set; }
-        public string ReservationCode { get; set; }
+        public required string Status { get; set; }
+        public required string ReservationCode { get; set; }
         public DateTime DateCreated { get; set; }
         public string? SpecialRequests { get; set; }
         // Im Kundenportal gibt es keinen angemeldeten Rezeptionisten; deshalb ist diese Zuordnung optional.
