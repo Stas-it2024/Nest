@@ -216,8 +216,16 @@ namespace Nest.ViewModels.Admin
 
         public void LoadRooms()
         {
-            var zimmer = _roomRepository.GetAll();
-            Rooms = new ObservableCollection<Room>(zimmer);
+            try
+            {
+                var zimmer = _roomRepository.GetAll();
+                Rooms = new ObservableCollection<Room>(zimmer);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Die Zimmerliste konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
+                    "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         // Zimmer selected
@@ -335,29 +343,7 @@ namespace Nest.ViewModels.Admin
                 Description = Beschreibung
             };
 
-            try
-            {
-                _roomRepository.Add(room);
-
-                LoadRooms();
-                ClearForm();
-
-                MessageBox.Show(
-                    "Zimmer erfolgreich hinzugefügt!",
-                    "Erfolg",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-            }
-            catch (MySqlException ex) when (ex.Number == 1062)
-            {
-                MessageBox.Show(
-                    "Zimmernummer bereits vergeben!",
-                    "Fehler",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-
-            LoadRooms();
+            ExecuteRoomWrite(() => _roomRepository.Add(room), "Zimmer erfolgreich hinzugefügt!", clearForm: true);
         }
 
         //Button löschen
@@ -375,20 +361,8 @@ namespace Nest.ViewModels.Admin
             if (result != MessageBoxResult.Yes)
                 return;
 
-            bool deleted = _roomRepository.Delete(SelectedRoom.Id);
-
-            if (!deleted)
-            {
-                MessageBox.Show(
-                    "Das Zimmer kann nicht gelöscht werden, da dafür bereits Reservierungen vorhanden sind.",
-                    "Fehler",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-
-                return;
-            }
-
-            LoadRooms();
+            var roomId = SelectedRoom.Id;
+            ExecuteRoomWrite(() => _roomRepository.Delete(roomId), "Zimmer gelöscht.", clearForm: false);
         }
 
         // Button aktualisieren
@@ -425,29 +399,51 @@ namespace Nest.ViewModels.Admin
                 Description = Beschreibung
             };
 
+            ExecuteRoomWrite(() => _roomRepository.Update(room), "Zimmer aktualisiert!", clearForm: true);
+        }
+
+        private void ExecuteRoomWrite(Func<RoomWriteResult> write, string successMessage, bool clearForm)
+        {
+            RoomWriteResult result;
             try
             {
-                _roomRepository.Update(room);
-
-                LoadRooms();
-                ClearForm();
-
-                MessageBox.Show(
-                    "Zimmer aktualisiert!",
-                    "Erfolg",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                result = write();
             }
-            catch (MySqlException ex) when (ex.Number == 1062)
+            catch (Exception)
+            {
+                result = RoomWriteResult.TechnicalFailure;
+            }
+            if (result != RoomWriteResult.Success)
+            {
+                var message = result switch
+                {
+                    RoomWriteResult.Missing => "Das Zimmer wurde nicht gefunden oder inzwischen gelöscht. Bitte laden Sie die Zimmerliste neu.",
+                    RoomWriteResult.Occupied => "In diesem Zimmer ist ein Gast eingecheckt. Der Status muss 'Belegt' bleiben; das Zimmer kann nicht gelöscht werden.",
+                    RoomWriteResult.FutureReservation => "Das Zimmer hat noch gültige Reservierungen und kann nicht gelöscht werden.",
+                    RoomWriteResult.InvalidStatus => "Dieser Zimmerstatus ist nicht zulässig. 'Belegt' darf nur bei einer eingecheckten Reservierung gesetzt werden.",
+                    RoomWriteResult.NumberConflict => "Zimmernummer bereits vergeben!",
+                    RoomWriteResult.UncertainOutcome => "Das Ergebnis konnte nicht bestätigt werden. Bitte prüfen Sie den tatsächlichen Zimmerzustand, bevor Sie den Vorgang erneut ausführen.",
+                    _ => "Das Zimmer konnte aufgrund eines technischen Fehlers nicht gespeichert werden. Bitte prüfen Sie den tatsächlichen Zimmerzustand, bevor Sie den Vorgang erneut ausführen."
+                };
+                MessageBox.Show(message, "Hinweis", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Erst nach bestätigtem Commit laden. Bei Ladefehlern bleiben Liste, Auswahl und Formular erhalten.
+            try
+            {
+                var rooms = new ObservableCollection<Room>(_roomRepository.GetAll());
+                Rooms = rooms;
+                if (clearForm)
+                    ClearForm();
+                MessageBox.Show(successMessage, "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception)
             {
                 MessageBox.Show(
-                    "Zimmernummer bereits vergeben!",
-                    "Fehler",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    "Die Änderung wurde gespeichert, aber die Zimmerliste konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu.",
+                    "Hinweis", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
-
-            LoadRooms();
         }
     }
 }
