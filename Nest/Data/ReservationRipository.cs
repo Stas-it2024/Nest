@@ -203,6 +203,20 @@ namespace Nest.Data
             try
             {
                 // FOR UPDATE sperrt diese Reservierung bis Commit oder Rollback gegen parallele Zahlungen.
+                const string lockSql = @"
+                    SELECT id FROM reservierungen
+                    WHERE reservierungs_code = @ReservationCode
+                    LIMIT 1 FOR UPDATE;";
+                using var lockCommand = new MySqlCommand(lockSql, conn, transaction);
+                lockCommand.Parameters.Add("@ReservationCode", MySqlDbType.VarChar).Value = reservationCode.Trim();
+                var lockedId = lockCommand.ExecuteScalar();
+                if (lockedId == null || lockedId == DBNull.Value)
+                {
+                    transaction.Rollback();
+                    return PaymentUpdateResult.NotFound;
+                }
+
+                // Die Projektion liest nach der Sperre den aktuellen Betrag, ohne Zimmer oder Gast zu sperren.
                 const string selectSql = @"
                     SELECT
                         r.id,
@@ -223,8 +237,7 @@ namespace Nest.Data
                     JOIN gaeste g ON r.gast_id = g.id
                     JOIN zimmer rm ON r.zimmer_id = rm.id
                     WHERE r.reservierungs_code = @ReservationCode
-                    LIMIT 1
-                    FOR UPDATE;";
+                    LIMIT 1;";
 
                 using var selectCommand = new MySqlCommand(selectSql, conn, transaction);
                 selectCommand.Parameters.Add("@ReservationCode", MySqlDbType.VarChar).Value = reservationCode.Trim();
