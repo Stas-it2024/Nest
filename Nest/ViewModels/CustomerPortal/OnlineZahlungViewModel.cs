@@ -187,6 +187,7 @@ namespace Nest.ViewModels.CustomerPortal
                 return;
             }
 
+            var saved = false;
             try
             {
                 var currentReservation = _reservationRepository.GetPaymentDetailsByCode(Reservierungscode);
@@ -217,6 +218,7 @@ namespace Nest.ViewModels.CustomerPortal
                     paymentAmount,
                     out var updatedReservation);
 
+                saved = result == PaymentUpdateResult.Success;
                 if (updatedReservation != null)
                 {
                     SetGeladeneReservierung(updatedReservation);
@@ -242,9 +244,15 @@ namespace Nest.ViewModels.CustomerPortal
                         return;
                 }
             }
-            catch
+            catch (ReservationCommitUncertainException)
             {
-                ZeigeFehler("Die Zahlung konnte nicht verarbeitet werden. Bitte versuchen Sie es erneut.");
+                ZeigeFehler("Das Ergebnis der Zahlung konnte nicht bestätigt werden. Es besteht das Risiko einer doppelten Zahlung. Bitte prüfen Sie zuerst die Reservierung und den bereits gezahlten Betrag, bevor Sie erneut bezahlen.");
+            }
+            catch (Exception)
+            {
+                ZeigeFehler(saved
+                    ? "Die Zahlung wurde gespeichert, aber die Anzeige konnte nicht aktualisiert werden. Bitte prüfen Sie den Zahlungsstand und bezahlen Sie nicht erneut."
+                    : "Die Zahlung konnte aufgrund eines technischen Fehlers nicht abgeschlossen werden. Bitte prüfen Sie zuerst die Reservierung und den bereits gezahlten Betrag, bevor Sie erneut bezahlen.");
             }
         }
 

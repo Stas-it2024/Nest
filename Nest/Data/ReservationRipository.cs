@@ -17,6 +17,14 @@ namespace Nest.Data
         AmountExceedsOutstanding
     }
 
+    public sealed class ReservationCommitUncertainException : Exception
+    {
+        public ReservationCommitUncertainException(Exception innerException)
+            : base("Das Ergebnis der Transaktion konnte nicht bestätigt werden.", innerException)
+        {
+        }
+    }
+
     public class ReservationRepository
     {
         private const string InsertSql = @"
@@ -195,12 +203,9 @@ namespace Nest.Data
                 return PaymentUpdateResult.InvalidAmount;
             }
 
-            using var conn = DB.GetConnection();
-            conn.Open();
-            // Lesen, Prüfen und Aktualisieren bilden eine Einheit und dürfen nicht teilweise ausgeführt werden.
-            using var transaction = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
-
-            try
+            ReservationOverview? paymentSnapshot = null;
+            var paymentResult = PaymentUpdateResult.NotFound;
+            ExecuteReservationTransaction((conn, transaction) =>
             {
                 // FOR UPDATE sperrt diese Reservierung bis Commit oder Rollback gegen parallele Zahlungen.
                 const string lockSql = @"
@@ -212,8 +217,7 @@ namespace Nest.Data
                 var lockedId = lockCommand.ExecuteScalar();
                 if (lockedId == null || lockedId == DBNull.Value)
                 {
-                    transaction.Rollback();
-                    return PaymentUpdateResult.NotFound;
+                    return false;
                 }
 
                 // Die Projektion liest nach der Sperre den aktuellen Betrag, ohne Zimmer oder Gast zu sperren.
@@ -248,8 +252,7 @@ namespace Nest.Data
                 {
                     if (!reader.Read())
                     {
-                        transaction.Rollback();
-                        return PaymentUpdateResult.NotFound;
+                        return false;
                     }
 
                     reservationId = reader.GetInt32("id");
@@ -260,16 +263,16 @@ namespace Nest.Data
                 var outstandingAmount = reservation.OutstandingAmount;
                 if (outstandingAmount <= 0m)
                 {
-                    transaction.Rollback();
-                    updatedReservation = reservation;
-                    return PaymentUpdateResult.FullyPaid;
+                    paymentSnapshot = reservation;
+                    paymentResult = PaymentUpdateResult.FullyPaid;
+                    return false;
                 }
 
                 if (paymentAmount > outstandingAmount)
                 {
-                    transaction.Rollback();
-                    updatedReservation = reservation;
-                    return PaymentUpdateResult.AmountExceedsOutstanding;
+                    paymentSnapshot = reservation;
+                    paymentResult = PaymentUpdateResult.AmountExceedsOutstanding;
+                    return false;
                 }
 
                 const string updateSql = @"
@@ -280,21 +283,17 @@ namespace Nest.Data
                 using var updateCommand = new MySqlCommand(updateSql, conn, transaction);
                 updateCommand.Parameters.Add("@PaymentAmount", MySqlDbType.Decimal).Value = paymentAmount;
                 updateCommand.Parameters.Add("@ReservationId", MySqlDbType.Int32).Value = reservationId;
-                updateCommand.ExecuteNonQuery();
+                if (updateCommand.ExecuteNonQuery() != 1)
+                    throw new InvalidOperationException("Die Zahlung konnte nicht eindeutig aktualisiert werden.");
 
                 reservation.AmountPaid += paymentAmount;
                 reservation.PaymentMethod = "Online";
-                updatedReservation = reservation;
-                // Erst Commit macht die erfolgreich geprüfte Zahlung dauerhaft sichtbar.
-                transaction.Commit();
-                return PaymentUpdateResult.Success;
-            }
-            catch
-            {
-                // Bei jedem unerwarteten Fehler stellt Rollback den vorherigen Datenbankzustand wieder her.
-                transaction.Rollback();
-                throw;
-            }
+                paymentSnapshot = reservation;
+                paymentResult = PaymentUpdateResult.Success;
+                return true;
+            });
+            updatedReservation = paymentSnapshot;
+            return paymentResult;
         }
 
         private static ReservationOverview ReadPaymentOverview(MySqlDataReader reader)
@@ -375,12 +374,8 @@ namespace Nest.Data
             if (guest != null && (string.IsNullOrWhiteSpace(guest.FirstName) || string.IsNullOrWhiteSpace(guest.LastName)))
                 throw new ArgumentException("Bitte Vorname und Nachname eingeben.", nameof(guest));
 
-            using var conn = DB.GetConnection();
-            conn.Open();
-            // Die zweite Verfügbarkeitsprüfung liegt direkt in der Transaktion und ist deshalb für das Speichern entscheidend.
-            using var transaction = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
-
-            try
+            int reservationId = 0, guestId = reservation.GuestId;
+            var saved = ExecuteReservationTransaction((conn, transaction) =>
             {
                 // FOR UPDATE serialisiert parallele Buchungsversuche für dasselbe Zimmer und verhindert Doppelbuchungen.
                 const string lockRoomSql = @"
@@ -395,7 +390,6 @@ namespace Nest.Data
                 var capacity = lockRoomCommand.ExecuteScalar();
                 if (capacity == null || capacity == DBNull.Value)
                 {
-                    transaction.Rollback();
                     return false;
                 }
                 if ((long)reservation.Adults + reservation.Children > Convert.ToInt32(capacity))
@@ -417,28 +411,94 @@ namespace Nest.Data
                 overlapCommand.Parameters.Add("@RequestedCheckOut", MySqlDbType.Date).Value = reservation.CheckOutDate.Date;
                 if (overlapCommand.ExecuteScalar() != null)
                 {
-                    transaction.Rollback();
                     return false;
                 }
 
-                var guestId = guest == null
+                guestId = guest == null
                     ? reservation.GuestId
                     : new GastRepository().FindOrAdd(guest, conn, transaction);
                 using var insertCommand = CreateInsertCommand(conn, transaction, reservation);
                 insertCommand.Parameters["@GuestId"].Value = guestId;
-                var reservationId = Convert.ToInt32(insertCommand.ExecuteScalar());
-                // Nur wenn Sperre, Prüfung und INSERT erfolgreich waren, wird die Buchung fest gespeichert.
-                transaction.Commit();
+                reservationId = Convert.ToInt32(insertCommand.ExecuteScalar());
+                return true;
+            });
+            if (saved)
+            {
                 reservation.Id = reservationId;
                 reservation.GuestId = guestId;
                 if (guest != null) guest.Id = guestId;
+            }
+            return saved;
+        }
+
+        private static bool ExecuteReservationTransaction(Func<MySqlConnection, MySqlTransaction, bool> apply)
+        {
+            MySqlConnection? conn = null;
+            MySqlTransaction? transaction = null;
+            Exception? originalError = null;
+            var committed = false;
+            try
+            {
+                conn = DB.GetConnection();
+                conn.Open();
+                transaction = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
+                if (!apply(conn, transaction))
+                    return false;
+
+                try
+                {
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    // Nur ein Fehler unmittelbar in Commit erhält diesen Vertrag.
+                    throw new ReservationCommitUncertainException(ex);
+                }
+                committed = true;
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
-                // Rollback nimmt alle Schritte dieser Buchung zurück; die Ausnahme wird zur Anzeige weitergegeben.
-                transaction.Rollback();
+                originalError = ex;
                 throw;
+            }
+            finally
+            {
+                Exception? cleanupError = null;
+                if (transaction != null && !committed)
+                {
+                    try
+                    {
+                        transaction.Rollback();
+                    }
+                    catch (Exception rollbackError)
+                    {
+                        if (originalError != null)
+                            originalError.Data["RollbackException"] = rollbackError;
+                        else
+                            cleanupError = rollbackError;
+                    }
+                }
+
+                // Auch Dispose darf weder den ursprünglichen Fehler noch einen bestätigten Commit ersetzen.
+                foreach (var resource in new IDisposable?[] { transaction, conn })
+                {
+                    try
+                    {
+                        resource?.Dispose();
+                    }
+                    catch (Exception disposeError)
+                    {
+                        if (originalError != null)
+                            originalError.Data[resource == transaction ? "TransactionDisposeException" : "ConnectionDisposeException"] = disposeError;
+                        else
+                            cleanupError ??= disposeError;
+                    }
+                }
+                if (!committed && originalError == null && cleanupError != null)
+                    throw new InvalidOperationException(
+                        "Der Vorgang konnte nicht sicher beendet werden. Bitte prüfen Sie den tatsächlichen Zustand.",
+                        cleanupError);
             }
         }
 

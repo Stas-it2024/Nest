@@ -342,6 +342,7 @@ namespace Nest.ViewModels.Reception
                 return;
             }
 
+            var saved = false;
             try
             {
                 var gast = new Guest
@@ -375,17 +376,38 @@ namespace Nest.ViewModels.Reception
                     return;
                 }
 
+                saved = true;
                 System.Windows.MessageBox.Show(
                     $"Reservierung gespeichert!\nBuchungsnummer: {reservierung.ReservationCode}\nGesamtpreis: {Price:C}\nAnzahlung: {Deposit:C}",
                     "Erfolg", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
 
-                LoadReservationsFromDatabase();
-                LoadRoomsFromDatabase();
+                var reservationsLoaded = LoadReservationsFromDatabase(showError: false);
+                var roomsLoaded = LoadRoomsFromDatabase(showError: false);
+                if (!reservationsLoaded || !roomsLoaded)
+                {
+                    System.Windows.MessageBox.Show(
+                        "Die Reservierung wurde gespeichert, aber die Anzeige konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu.",
+                        "Hinweis", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                    return;
+                }
                 ResetForm();
             }
-            catch (Exception ex)
+            catch (ReservationCommitUncertainException)
             {
-                System.Windows.MessageBox.Show($"Fehler beim Speichern: {ex.Message}", "Fehler",
+                System.Windows.MessageBox.Show(
+                    "Das Ergebnis der Buchung konnte nicht bestätigt werden. Bitte prüfen Sie die Reservierung, bevor Sie erneut buchen.",
+                    "Hinweis", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
+            catch (ArgumentException) when (!saved)
+            {
+                System.Windows.MessageBox.Show("Bitte prüfen Sie die Buchungsangaben, den Zeitraum und die Personenanzahl.",
+                    "Ungültige Angaben", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
+            catch (Exception)
+            {
+                System.Windows.MessageBox.Show(saved
+                    ? "Die Reservierung wurde gespeichert, aber die Anzeige konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu."
+                    : "Die Buchung konnte aufgrund eines technischen Fehlers nicht abgeschlossen werden. Bitte prüfen Sie die Reservierung, bevor Sie erneut buchen.", "Fehler",
                     System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
         }

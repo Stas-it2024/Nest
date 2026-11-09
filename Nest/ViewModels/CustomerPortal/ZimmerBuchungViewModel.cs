@@ -284,7 +284,7 @@ namespace Nest.ViewModels.CustomerPortal
             }
         }
 
-        private void AktualisiereVerfuegbareZimmer()
+        private bool AktualisiereVerfuegbareZimmer(bool showError = true)
         {
             // Ungültige Zeiträume werden vor einem unnötigen Datenbankaufruf abgefangen.
             var zeitraumHinweis = ErmittleZeitraumHinweis();
@@ -293,7 +293,7 @@ namespace Nest.ViewModels.CustomerPortal
                 VerfuegbareZimmer = new ObservableCollection<Room>();
                 AusgewaehltesZimmer = null;
                 VerfuegbarkeitsHinweis = zeitraumHinweis;
-                return;
+                return false;
             }
 
             try
@@ -308,17 +308,18 @@ namespace Nest.ViewModels.CustomerPortal
                 VerfuegbarkeitsHinweis = VerfuegbareZimmer.Count == 0
                     ? "Für den ausgewählten Zeitraum sind keine Zimmer verfügbar."
                     : string.Empty;
+                return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 VerfuegbareZimmer = new ObservableCollection<Room>();
                 AusgewaehltesZimmer = null;
                 VerfuegbarkeitsHinweis = "Die Zimmerverfügbarkeit konnte nicht geladen werden.";
-                MessageBox.Show(
-                    $"Die verfügbaren Zimmer konnten nicht geladen werden.\n{ex.Message}",
-                    "Datenbankfehler",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                if (showError)
+                    MessageBox.Show(
+                        "Die verfügbaren Zimmer konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+                        "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
             }
         }
 
@@ -495,6 +496,7 @@ namespace Nest.ViewModels.CustomerPortal
             _ = int.TryParse(Erwachsene, out var erwachsene);
             _ = int.TryParse(Kinder, out var kinder);
 
+            var saved = false;
             try
             {
                 // Die erste Prüfung gibt dem Benutzer schnell Rückmeldung.
@@ -545,6 +547,7 @@ namespace Nest.ViewModels.CustomerPortal
                     return;
                 }
 
+                saved = true;
                 MessageBox.Show(
                     $"Die Zimmerbuchung wurde erfolgreich gespeichert.\nReservierungscode: {reservierung.ReservationCode}",
                     "Buchung erfolgreich",
@@ -560,12 +563,29 @@ namespace Nest.ViewModels.CustomerPortal
                 Sonderwuensche = string.Empty;
                 Erwachsene = "2";
                 Kinder = "0";
-                AktualisiereVerfuegbareZimmer();
+                if (!AktualisiereVerfuegbareZimmer(showError: false))
+                {
+                    MessageBox.Show(
+                        "Die Buchung wurde gespeichert, aber die Anzeige konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu.",
+                        "Hinweis", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
             }
-            catch (Exception ex)
+            catch (ReservationCommitUncertainException)
             {
                 MessageBox.Show(
-                    $"Die Zimmerbuchung konnte nicht gespeichert werden.\n{ex.Message}",
+                    "Das Ergebnis der Buchung konnte nicht bestätigt werden. Bitte prüfen Sie die Reservierung, bevor Sie erneut buchen.",
+                    "Hinweis", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (ArgumentException) when (!saved)
+            {
+                MessageBox.Show("Bitte prüfen Sie die Buchungsangaben, den Zeitraum und die Personenanzahl.",
+                    "Ungültige Angaben", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(saved
+                    ? "Die Buchung wurde gespeichert, aber die Anzeige konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu."
+                    : "Die Buchung konnte aufgrund eines technischen Fehlers nicht abgeschlossen werden. Bitte prüfen Sie die Reservierung, bevor Sie erneut buchen.",
                     "Buchung fehlgeschlagen",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
