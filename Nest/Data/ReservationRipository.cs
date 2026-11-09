@@ -431,6 +431,8 @@ namespace Nest.Data
 
         public static string? GetBookingValidationError(Reservation reservation)
         {
+            if (!string.Equals(reservation.Status, "Reserviert", StringComparison.Ordinal))
+                return "Neue Reservierungen müssen den Status 'Reserviert' haben.";
             if (reservation.CheckInDate.Date < DateTime.Today)
                 return "Das Anreisedatum darf nicht in der Vergangenheit liegen.";
             if (reservation.CheckOutDate.Date <= reservation.CheckInDate.Date)
