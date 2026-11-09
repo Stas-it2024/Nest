@@ -15,7 +15,7 @@ namespace Nest.Data
         {
             var gaeste = new List<Guest>();
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
             const string sql = @"
                            SELECT
                                  id,
@@ -43,7 +43,7 @@ namespace Nest.Data
             // Vor einer Neuanlage wird nach vorhandenen Kontaktdaten gesucht, damit keine unnötigen Gast-Dubletten entstehen.
             if (string.IsNullOrWhiteSpace(email)) return null;
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
             const string sql = "SELECT * FROM gaeste WHERE email = @Email";
             using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Email", email.Trim());
@@ -56,7 +56,7 @@ namespace Nest.Data
         {
             if (string.IsNullOrWhiteSpace(telefon)) return null;
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
             const string sql = "SELECT * FROM gaeste WHERE telefon = @Phone";
             using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Phone", telefon.Trim());
@@ -96,7 +96,7 @@ namespace Nest.Data
         {
             // using var schließt Datenbankressourcen automatisch, auch wenn beim Speichern eine Ausnahme auftritt.
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
             guest.Id = Insert(guest, conn, null);
         }
 

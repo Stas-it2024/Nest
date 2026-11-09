@@ -11,7 +11,7 @@ namespace Nest.Data
             // Da nur ein INSERT ausgeführt wird, ist keine zusätzliche Transaktion erforderlich.
             // using var sorgt auch im Fehlerfall für das automatische Freigeben der Ressourcen.
             using var connection = DB.GetConnection();
-            connection.Open();
+            DB.OpenConnection(connection);
 
             const string sql = @"
                 INSERT INTO taxibestellungen

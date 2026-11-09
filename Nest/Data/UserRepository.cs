@@ -14,7 +14,7 @@ namespace Nest.Data
         public User? Login(string? benutzername, string? passwort)
         {
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             string sql = @"
                 SELECT *
@@ -52,7 +52,7 @@ namespace Nest.Data
             var benutzer = new List<User>();
 
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             string sql = @"
                         SELECT id,
@@ -92,7 +92,7 @@ namespace Nest.Data
         public bool Add(User user)
         {
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             string sql = @"
                         INSERT INTO benutzer
@@ -124,7 +124,7 @@ namespace Nest.Data
         public bool Update(User user)
         {
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             string sql;
 
@@ -172,7 +172,7 @@ namespace Nest.Data
         public void Delete(int userId)
         {
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             string sql = @"
                         UPDATE benutzer

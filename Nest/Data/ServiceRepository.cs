@@ -16,7 +16,7 @@ namespace Nest.Data
             var dienstleistungen = new List<Service>();
 
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             string sql = @"
                 SELECT id,
@@ -57,7 +57,7 @@ namespace Nest.Data
         public bool Add(Service service)
         {
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             string sql = @"
                 INSERT INTO dienstleistungen
@@ -92,7 +92,7 @@ namespace Nest.Data
         public void Update(Service service)
         {
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             string sql = @"
                 UPDATE dienstleistungen
@@ -119,7 +119,7 @@ namespace Nest.Data
         public void Delete(int serviceId)
         {
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             string sql = @"
                 UPDATE dienstleistungen

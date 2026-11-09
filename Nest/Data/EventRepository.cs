@@ -61,7 +61,7 @@ namespace Nest.Data
             var veranstaltungen = new List<Event>();
 
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             string sql = @"
                 SELECT id,
@@ -125,7 +125,7 @@ namespace Nest.Data
         public void Add(Event eventItem)
         {
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             string sql = @"
                 INSERT INTO veranstaltungen
@@ -179,7 +179,7 @@ namespace Nest.Data
         public void Update(Event eventItem)
         {
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             string sql = @"
                 UPDATE veranstaltungen
@@ -217,7 +217,7 @@ namespace Nest.Data
         public void Delete(int eventId)
         {
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             string sql = @"
                 DELETE FROM veranstaltungen
@@ -236,7 +236,7 @@ namespace Nest.Data
 
             // using var gibt Verbindung, Befehl und Reader auch bei einem Fehler automatisch frei.
             using var connection = DB.GetConnection();
-            connection.Open();
+            DB.OpenConnection(connection);
 
             using var command = new MySqlCommand(
                 LoadEventsSql,
@@ -264,7 +264,7 @@ namespace Nest.Data
             }
 
             using var connection = DB.GetConnection();
-            connection.Open();
+            DB.OpenConnection(connection);
 
             // Bestellung und Ticketbestand müssen gemeinsam erfolgreich sein oder gemeinsam zurückgenommen werden.
             using var transaction =

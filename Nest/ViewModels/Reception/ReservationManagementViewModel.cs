@@ -481,7 +481,7 @@ namespace Nest.ViewModels.Reception
             try
             {
                 using var conn = DB.GetConnection();
-                conn.Open();
+                DB.OpenConnection(conn);
                 using var transaction = conn.BeginTransaction(IsolationLevel.ReadCommitted);
                 try
                 {
@@ -712,7 +712,7 @@ namespace Nest.ViewModels.Reception
             try
             {
                 using var conn = DB.GetConnection();
-                conn.Open();
+                DB.OpenConnection(conn);
                 using var transaction = conn.BeginTransaction(IsolationLevel.ReadCommitted);
                 try
                 {

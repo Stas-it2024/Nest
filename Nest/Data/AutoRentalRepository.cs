@@ -11,7 +11,7 @@ namespace Nest.Data
             // Ein einzelner INSERT ist bereits atomar; deshalb ist hier keine zusätzliche Transaktion nötig.
             // using var gibt Verbindung und Befehl auch bei einem Fehler automatisch frei.
             using var connection = DB.GetConnection();
-            connection.Open();
+            DB.OpenConnection(connection);
 
             const string sql = @"
                 INSERT INTO autovermietungen

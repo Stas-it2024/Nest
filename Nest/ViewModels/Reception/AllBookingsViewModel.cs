@@ -105,7 +105,7 @@ namespace Nest.ViewModels.Reception
             {
                 var list = new List<TicketOrderItem>();
                 using var conn = DB.GetConnection();
-                conn.Open();
+                DB.OpenConnection(conn);
 
                 const string sql = @"
                     SELECT ticket_nummer, gast_name, gast_email, gast_telefon,

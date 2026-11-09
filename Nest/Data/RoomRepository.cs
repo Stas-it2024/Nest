@@ -17,7 +17,7 @@ namespace Nest.Data
             var zimmer = new List<Room>();
 
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             const string sql = @"
                 SELECT id, zimmer_nummer, zimmer_typ, kapazitaet, preis_pro_nacht, status,
@@ -42,7 +42,7 @@ namespace Nest.Data
             var zimmer = new List<Room>();
 
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             const string sql = @"
                 SELECT id, zimmer_nummer, zimmer_typ, kapazitaet, preis_pro_nacht, status,
@@ -75,7 +75,7 @@ namespace Nest.Data
 
             // using var gibt Verbindung, Befehl und Reader auch bei einem Fehler automatisch frei.
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             // NOT EXISTS liefert nur Zimmer, deren bestehende Buchungen den gewünschten Zeitraum nicht überschneiden.
             const string sql = @"
@@ -112,7 +112,7 @@ namespace Nest.Data
         public Room? GetById(int id)
         {
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             const string sql = @"
                 SELECT id, zimmer_nummer, zimmer_typ, kapazitaet, preis_pro_nacht, status,
@@ -271,7 +271,7 @@ namespace Nest.Data
             try
             {
                 using var conn = DB.GetConnection();
-                conn.Open();
+                DB.OpenConnection(conn);
                 using var transaction = conn.BeginTransaction(IsolationLevel.ReadCommitted);
                 try
                 {

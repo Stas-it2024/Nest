@@ -11,7 +11,7 @@ namespace Nest.Data
             // Für diesen einzelnen INSERT ist keine zusätzliche Transaktion nötig; der Befehl ist selbst atomar.
             // using var schließt die Datenbankressourcen zuverlässig.
             using var connection = DB.GetConnection();
-            connection.Open();
+            DB.OpenConnection(connection);
 
             const string sql = @"
                 INSERT INTO restaurant_reservierungen

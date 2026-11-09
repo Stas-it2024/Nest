@@ -5,12 +5,18 @@ VisualStudioVersion = 17.14.37027.9 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nest", "Nest\Nest.csproj", "{D57E6085-99D1-452E-88B4-E1E19A52DEF9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nest.IntegrationBootstrap", "tests\Nest.IntegrationBootstrap\Nest.IntegrationBootstrap.csproj", "{A1382285-8A9E-41DB-A12E-C50E293A26D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A1382285-8A9E-41DB-A12E-C50E293A26D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1382285-8A9E-41DB-A12E-C50E293A26D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1382285-8A9E-41DB-A12E-C50E293A26D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1382285-8A9E-41DB-A12E-C50E293A26D8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D57E6085-99D1-452E-88B4-E1E19A52DEF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D57E6085-99D1-452E-88B4-E1E19A52DEF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D57E6085-99D1-452E-88B4-E1E19A52DEF9}.Release|Any CPU.ActiveCfg = Release|Any CPU

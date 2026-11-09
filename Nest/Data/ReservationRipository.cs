@@ -43,7 +43,7 @@ namespace Nest.Data
             var list = new List<ReservationOverview>();
 
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             const string sql = @"
                 SELECT
@@ -95,7 +95,7 @@ namespace Nest.Data
             var list = new List<ReservationOverview>();
 
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             const string sql = @"
                         SELECT
@@ -157,7 +157,7 @@ namespace Nest.Data
             }
 
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
 
             const string sql = @"
                 SELECT
@@ -336,7 +336,7 @@ namespace Nest.Data
             }
 
             using var conn = DB.GetConnection();
-            conn.Open();
+            DB.OpenConnection(conn);
             const string sql = @"
                 SELECT EXISTS
                 (
@@ -440,7 +440,7 @@ namespace Nest.Data
             try
             {
                 conn = DB.GetConnection();
-                conn.Open();
+                DB.OpenConnection(conn);
                 transaction = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
                 if (!apply(conn, transaction))
                     return false;
