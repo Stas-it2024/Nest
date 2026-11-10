@@ -6,6 +6,7 @@ internal static class Program
     {
         try
         {
+            if (B22Entry.IsRequest(args)) return await B22Entry.Run(args);
             if (args.Length == 0 || args.SequenceEqual(new[] { "--plan" }))
             {
                 Console.WriteLine("PREPARED ONLY: B2.1 uses new marked fixtures and two real Repository worker processes. No credentials read, connection opened or SQL executed.");
