@@ -31,6 +31,23 @@ namespace Nest.Data
         CheckOut
     }
 
+    public sealed class ReservationRollbackFailedException : Exception
+    {
+        public ReservationRollbackFailedException(Exception innerException)
+            : base("Der Rollback der Reservierung konnte nicht bestätigt werden.", innerException)
+        {
+        }
+    }
+
+    public enum CancellationResult
+    {
+        Success,
+        ReservationChangedOrNotFound,
+        RoomNotFound,
+        RequiresCheckOut,
+        CommittedWithCleanupFailure
+    }
+
     public enum StayTransitionResult
     {
         Success,
@@ -702,6 +719,142 @@ namespace Nest.Data
                 updateRoom.Parameters.AddWithValue("@TargetStatus", targetStatus);
                 updateRoom.Parameters.AddWithValue("@SourceRoomStatus", roomStatus);
                 return updateRoom.ExecuteNonQuery() == 1 ? StayTransitionResult.Success : StayTransitionResult.UpdateRefused;
+            }
+        }
+
+        public CancellationResult CancelReservation(string reservationCode)
+        {
+            MySqlConnection? conn = null;
+            MySqlTransaction? transaction = null;
+            Exception? originalError = null;
+            Exception? cleanupError = null;
+            var committed = false;
+            CancellationResult result;
+            try
+            {
+                conn = DB.GetConnection();
+                DB.OpenConnection(conn);
+                transaction = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
+                result = ApplyCancellation(conn, transaction, reservationCode);
+                if (result == CancellationResult.Success)
+                {
+                    try
+                    {
+                        transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Only an exception directly from Commit has an uncertain outcome.
+                        throw new ReservationCommitUncertainException(ex);
+                    }
+                    committed = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                originalError = ex;
+                throw;
+            }
+            finally
+            {
+                if (transaction != null && !committed)
+                {
+                    try
+                    {
+                        transaction.Rollback();
+                    }
+                    catch (Exception rollbackError)
+                    {
+                        if (originalError != null)
+                            originalError.Data["RollbackException"] = rollbackError;
+                        else
+                            cleanupError = new ReservationRollbackFailedException(rollbackError);
+                    }
+                }
+                foreach (var resource in new IDisposable?[] { transaction, conn })
+                {
+                    try
+                    {
+                        resource?.Dispose();
+                    }
+                    catch (Exception disposeError)
+                    {
+                        var key = resource == transaction ? "TransactionDisposeException" : "ConnectionDisposeException";
+                        if (originalError != null)
+                            originalError.Data[key] = disposeError;
+                        else if (cleanupError != null)
+                            cleanupError.Data[key] = disposeError;
+                        else
+                            cleanupError = disposeError;
+                    }
+                }
+                if (!committed && originalError == null && cleanupError != null)
+                {
+                    if (cleanupError is ReservationRollbackFailedException)
+                        throw cleanupError;
+                    throw new InvalidOperationException(
+                        "Die Stornierung konnte nicht sicher beendet werden. Bitte prüfen Sie den tatsächlichen Zustand.",
+                        cleanupError);
+                }
+            }
+            return committed && cleanupError != null ? CancellationResult.CommittedWithCleanupFailure : result;
+        }
+
+        private static CancellationResult ApplyCancellation(MySqlConnection conn, MySqlTransaction transaction,
+            string reservationCode)
+        {
+            // Nicht sperrende Kandidatensuche; Sperrreihenfolge bleibt Zimmer vor Reservierung.
+            const string findRoomSql = @"
+                SELECT zimmer_id FROM reservierungen
+                WHERE reservierungs_code = @code;";
+            int roomId;
+            using (var findRoom = new MySqlCommand(findRoomSql, conn, transaction))
+            {
+                findRoom.Parameters.AddWithValue("@code", reservationCode);
+                var value = findRoom.ExecuteScalar();
+                if (value == null || value == DBNull.Value)
+                    return CancellationResult.ReservationChangedOrNotFound;
+                roomId = Convert.ToInt32(value);
+            }
+
+            const string lockRoomSql = @"
+                SELECT id FROM zimmer WHERE id = @RoomId FOR UPDATE;";
+            using (var lockRoom = new MySqlCommand(lockRoomSql, conn, transaction))
+            {
+                lockRoom.Parameters.AddWithValue("@RoomId", roomId);
+                var value = lockRoom.ExecuteScalar();
+                if (value == null || value == DBNull.Value || Convert.ToInt32(value) != roomId)
+                    return CancellationResult.RoomNotFound;
+            }
+
+            const string lockReservationSql = @"
+                SELECT reservierungs_code, zimmer_id, status FROM reservierungen
+                WHERE reservierungs_code = @code FOR UPDATE;";
+            using (var lockReservation = new MySqlCommand(lockReservationSql, conn, transaction))
+            {
+                lockReservation.Parameters.AddWithValue("@code", reservationCode);
+                using var reader = lockReservation.ExecuteReader();
+                if (!reader.Read()
+                    || !string.Equals(reader.GetString("reservierungs_code"), reservationCode, StringComparison.Ordinal)
+                    || reader.GetInt32("zimmer_id") != roomId)
+                    return CancellationResult.ReservationChangedOrNotFound;
+                var status = reader.GetString("status");
+                if (status == "Eingecheckt")
+                    return CancellationResult.RequiresCheckOut;
+                if (status != "Reserviert")
+                    return CancellationResult.ReservationChangedOrNotFound;
+            }
+
+            // Eine Stornierung verändert niemals den physischen Zimmerstatus.
+            const string updateSql = @"
+                UPDATE reservierungen SET status = 'Storniert'
+                WHERE reservierungs_code = @code
+                  AND zimmer_id = @RoomId AND status = 'Reserviert';";
+            using (var update = new MySqlCommand(updateSql, conn, transaction))
+            {
+                update.Parameters.AddWithValue("@code", reservationCode);
+                update.Parameters.AddWithValue("@RoomId", roomId);
+                return update.ExecuteNonQuery() == 1 ? CancellationResult.Success : CancellationResult.ReservationChangedOrNotFound;
             }
         }
 

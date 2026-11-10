@@ -571,63 +571,54 @@ namespace Nest.ViewModels.Reception
                 return;
 
             var reservationCode = SelectedReservation.ReservationCode;
-            var committed = false;
-            var commitAttempted = false;
-            var rollbackFailed = false;
-            string? businessRefusal = null;
+            CancellationResult result;
             try
             {
-                using var conn = DB.GetConnection();
-                DB.OpenConnection(conn);
-                using var transaction = conn.BeginTransaction(IsolationLevel.ReadCommitted);
-                try
-                {
-                    businessRefusal = ApplyCancellation(conn, transaction, reservationCode);
-                    if (businessRefusal == null)
-                    {
-                        commitAttempted = true;
-                        transaction.Commit();
-                        committed = true;
-                    }
-                }
-                finally
-                {
-                    if (!committed)
-                    {
-                        try
-                        {
-                            transaction.Rollback();
-                        }
-                        catch (Exception)
-                        {
-                            // Ein Rollback-Fehler darf den ursprünglichen Fehler nicht ersetzen.
-                            rollbackFailed = true;
-                        }
-                    }
-                }
+                result = _reservationRepository.CancelReservation(reservationCode);
             }
-            catch (Exception)
+            catch (ReservationCommitUncertainException)
             {
-                var message = committed
-                    ? "Die Stornierung wurde ausgeführt, aber die Anzeige konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu."
-                    : commitAttempted
-                        ? "Das Ergebnis der Stornierung konnte nicht bestätigt werden. Bitte prüfen Sie den tatsächlichen Reservierungsstatus, bevor Sie den Vorgang erneut ausführen."
-                        : "Die Stornierung konnte aufgrund eines technischen Fehlers nicht abgeschlossen werden. Bitte prüfen Sie den tatsächlichen Reservierungsstatus, bevor Sie den Vorgang erneut ausführen.";
-                System.Windows.MessageBox.Show(message, "Fehler", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                System.Windows.MessageBox.Show(
+                    "Das Ergebnis der Stornierung konnte nicht bestätigt werden. Bitte prüfen Sie den tatsächlichen Reservierungsstatus, bevor Sie den Vorgang erneut ausführen.",
+                    "Fehler", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
                 return;
             }
-
-            if (rollbackFailed)
+            catch (ReservationRollbackFailedException ex) when (
+                !ex.Data.Contains("TransactionDisposeException") && !ex.Data.Contains("ConnectionDisposeException"))
             {
                 System.Windows.MessageBox.Show(
                     "Die Stornierung konnte nicht bestätigt werden. Bitte prüfen Sie den tatsächlichen Reservierungsstatus, bevor Sie den Vorgang erneut ausführen.",
                     "Fehler", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
                 return;
             }
-            if (businessRefusal != null)
+            catch (Exception)
             {
-                System.Windows.MessageBox.Show(businessRefusal, "Hinweis",
-                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                System.Windows.MessageBox.Show(
+                    "Die Stornierung konnte aufgrund eines technischen Fehlers nicht abgeschlossen werden. Bitte prüfen Sie den tatsächlichen Reservierungsstatus, bevor Sie den Vorgang erneut ausführen.",
+                    "Fehler", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                return;
+            }
+
+            if (result == CancellationResult.CommittedWithCleanupFailure)
+            {
+                System.Windows.MessageBox.Show(
+                    "Die Stornierung wurde ausgeführt, aber die Anzeige konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu.",
+                    "Fehler", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                return;
+            }
+            if (result != CancellationResult.Success)
+            {
+                var businessRefusal = result switch
+                {
+                    CancellationResult.ReservationChangedOrNotFound => "Die Reservierung wurde nicht gefunden oder inzwischen geändert. Bitte laden Sie die Daten neu.",
+                    CancellationResult.RoomNotFound => "Das zugehörige Zimmer wurde nicht gefunden. Bitte laden Sie die Daten neu.",
+                    CancellationResult.RequiresCheckOut => "Die Reservierung ist bereits eingecheckt. Bitte führen Sie zuerst den Check-out durch.",
+                    _ => null
+                };
+                System.Windows.MessageBox.Show(
+                    businessRefusal ?? "Die Stornierung konnte aufgrund eines technischen Fehlers nicht abgeschlossen werden. Bitte prüfen Sie den tatsächlichen Reservierungsstatus, bevor Sie den Vorgang erneut ausführen.",
+                    businessRefusal != null ? "Hinweis" : "Fehler", System.Windows.MessageBoxButton.OK,
+                    businessRefusal != null ? System.Windows.MessageBoxImage.Warning : System.Windows.MessageBoxImage.Error);
                 return;
             }
 
@@ -651,67 +642,6 @@ namespace Nest.ViewModels.Reception
                 System.Windows.MessageBox.Show(
                     "Die Stornierung wurde ausgeführt, aber die Anzeige konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu.",
                     "Hinweis", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
-            }
-        }
-
-        private static string? ApplyCancellation(MySqlConnection conn, MySqlTransaction transaction,
-            string reservationCode)
-        {
-            const string changedReservation = "Die Reservierung wurde nicht gefunden oder inzwischen geändert. Bitte laden Sie die Daten neu.";
-            const string checkOutRequired = "Die Reservierung ist bereits eingecheckt. Bitte führen Sie zuerst den Check-out durch.";
-
-            // Nicht sperrende Kandidatensuche; Sperrreihenfolge bleibt Zimmer vor Reservierung.
-            const string findRoomSql = @"
-                SELECT zimmer_id FROM reservierungen
-                WHERE reservierungs_code = @code;";
-            int roomId;
-            using (var findRoom = new MySqlCommand(findRoomSql, conn, transaction))
-            {
-                findRoom.Parameters.AddWithValue("@code", reservationCode);
-                var value = findRoom.ExecuteScalar();
-                if (value == null || value == DBNull.Value)
-                    return changedReservation;
-                roomId = Convert.ToInt32(value);
-            }
-
-            const string lockRoomSql = @"
-                SELECT id FROM zimmer WHERE id = @RoomId FOR UPDATE;";
-            using (var lockRoom = new MySqlCommand(lockRoomSql, conn, transaction))
-            {
-                lockRoom.Parameters.AddWithValue("@RoomId", roomId);
-                var value = lockRoom.ExecuteScalar();
-                if (value == null || value == DBNull.Value || Convert.ToInt32(value) != roomId)
-                    return "Das zugehörige Zimmer wurde nicht gefunden. Bitte laden Sie die Daten neu.";
-            }
-
-            const string lockReservationSql = @"
-                SELECT reservierungs_code, zimmer_id, status FROM reservierungen
-                WHERE reservierungs_code = @code FOR UPDATE;";
-            using (var lockReservation = new MySqlCommand(lockReservationSql, conn, transaction))
-            {
-                lockReservation.Parameters.AddWithValue("@code", reservationCode);
-                using var reader = lockReservation.ExecuteReader();
-                if (!reader.Read()
-                    || !string.Equals(reader.GetString("reservierungs_code"), reservationCode, StringComparison.Ordinal)
-                    || reader.GetInt32("zimmer_id") != roomId)
-                    return changedReservation;
-                var status = reader.GetString("status");
-                if (status == "Eingecheckt")
-                    return checkOutRequired;
-                if (status != "Reserviert")
-                    return changedReservation;
-            }
-
-            // Eine Stornierung verändert niemals den physischen Zimmerstatus.
-            const string updateSql = @"
-                UPDATE reservierungen SET status = 'Storniert'
-                WHERE reservierungs_code = @code
-                  AND zimmer_id = @RoomId AND status = 'Reserviert';";
-            using (var update = new MySqlCommand(updateSql, conn, transaction))
-            {
-                update.Parameters.AddWithValue("@code", reservationCode);
-                update.Parameters.AddWithValue("@RoomId", roomId);
-                return update.ExecuteNonQuery() == 1 ? null : changedReservation;
             }
         }
 

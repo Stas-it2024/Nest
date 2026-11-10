@@ -1,0 +1,6 @@
+{
+  "findRoomSql": "\n                SELECT zimmer_id FROM reservierungen\n                WHERE reservierungs_code = @code;",
+  "lockRoomSql": "\n                SELECT id FROM zimmer WHERE id = @RoomId FOR UPDATE;",
+  "lockReservationSql": "\n                SELECT reservierungs_code, zimmer_id, status FROM reservierungen\n                WHERE reservierungs_code = @code FOR UPDATE;",
+  "updateSql": "\n                UPDATE reservierungen SET status = 'Storniert'\n                WHERE reservierungs_code = @code\n                  AND zimmer_id = @RoomId AND status = 'Reserviert';"
+}

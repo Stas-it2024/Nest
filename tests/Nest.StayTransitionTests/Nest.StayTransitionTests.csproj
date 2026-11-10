@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="../../Nest/Nest.csproj" />
     <None Update="StaySqlBaseline.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="CancellationSqlBaseline.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <!-- Compile current production bodies with only transport, namespace and dialog dependencies replaced. -->
   <UsingTask TaskName="GenerateStayIsolation" TaskFactory="RoslynCodeTaskFactory"
@@ -20,10 +21,26 @@
     </ParameterGroup>
     <Task>
       <Using Namespace="System.IO" />
+      <Using Namespace="System.Diagnostics" />
       <Code Type="Fragment" Language="cs"><![CDATA[
         Directory.CreateDirectory(OutputDirectory);
         var repositorySource = File.ReadAllText(Path.Combine(RepositoryRoot, "Nest/Data/ReservationRipository.cs"));
         var viewModelSource = File.ReadAllText(Path.Combine(RepositoryRoot, "Nest/ViewModels/Reception/ReservationManagementViewModel.cs"));
+        // Pin the published pre-refactoring ViewModel for differential dialog/UI regression checks.
+        // No handwritten copy of the cancellation algorithm is maintained in the test sources.
+        var baselineStart = new ProcessStartInfo("git") {
+            WorkingDirectory = RepositoryRoot, UseShellExecute = false, CreateNoWindow = true,
+            RedirectStandardOutput = true, RedirectStandardError = true };
+        baselineStart.Arguments = "show ea22b7945555a6b7921f9b4634e5e96c9cc387bf:Nest/ViewModels/Reception/ReservationManagementViewModel.cs";
+        string baselineViewModelSource;
+        using (var baselineProcess = Process.Start(baselineStart)) {
+            if (baselineProcess == null) throw new System.InvalidOperationException("Cannot read cancellation baseline.");
+            baselineViewModelSource = baselineProcess.StandardOutput.ReadToEnd();
+            baselineProcess.StandardError.ReadToEnd();
+            baselineProcess.WaitForExit();
+            if (baselineProcess.ExitCode != 0 || !baselineViewModelSource.Contains("private static string? ApplyCancellation("))
+                throw new System.InvalidOperationException("Published cancellation baseline unavailable; refusing unverified UI tests.");
+        }
         if (!repositorySource.Contains("using MySql.Data.MySqlClient;") || !repositorySource.Contains("namespace Nest.Data") ||
             !viewModelSource.Contains("using MySql.Data.MySqlClient;") || !viewModelSource.Contains("using Nest.Data;") ||
             !viewModelSource.Contains("namespace Nest.ViewModels.Reception") || !viewModelSource.Contains("System.Windows.MessageBox.Show"))
@@ -36,13 +53,21 @@
             .Replace("using Nest.Data;", "using StayTests.Data;\nusing Nest.ViewModels.Reception;")
             .Replace("namespace Nest.ViewModels.Reception", "namespace StayTests.Ui")
             .Replace("System.Windows.MessageBox.Show", "StayTests.Dialog.Show");
+        var baselineViewModel = baselineViewModelSource
+            .Replace("using MySql.Data.MySqlClient;", "using StayTests.Fakes;")
+            .Replace("using Nest.Data;", "using StayTests.Data;\nusing Nest.ViewModels.Reception;")
+            .Replace("namespace Nest.ViewModels.Reception", "namespace StayTests.LegacyUi")
+            .Replace("System.Windows.MessageBox.Show", "StayTests.Dialog.Show");
         var repositoryPath = Path.Combine(OutputDirectory, "Repository.cs");
         var viewModelPath = Path.Combine(OutputDirectory, "ViewModel.cs");
+        var baselineViewModelPath = Path.Combine(OutputDirectory, "CancellationBaselineViewModel.cs");
         File.WriteAllText(repositoryPath, repository);
         File.WriteAllText(viewModelPath, viewModel);
+        File.WriteAllText(baselineViewModelPath, baselineViewModel);
         Sources = new Microsoft.Build.Framework.ITaskItem[] {
             new Microsoft.Build.Utilities.TaskItem(repositoryPath),
-            new Microsoft.Build.Utilities.TaskItem(viewModelPath) };
+            new Microsoft.Build.Utilities.TaskItem(viewModelPath),
+            new Microsoft.Build.Utilities.TaskItem(baselineViewModelPath) };
       ]]></Code>
     </Task>
   </UsingTask>

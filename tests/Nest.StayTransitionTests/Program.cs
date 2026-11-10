@@ -96,6 +96,7 @@ internal static class Program
             RepositoryMatrix();
             UiMatrix();
             ConcurrentModel();
+            CancellationChecks.Run(Check);
             State.Reset("Reserviert", "Verfuegbar");
             try { new ReservationRepository().ApplyStayTransition("TEST", (StayTransition)99); throw new Exception("Expected enum rejection"); }
             catch (ArgumentOutOfRangeException) { Check(State.Opens == 0 && State.Begins == 0, "Invalid direction rejected before connection"); }

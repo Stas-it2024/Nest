@@ -22,7 +22,7 @@ namespace StayTests
             Fault = ""; RoomStatus = room; Deleted = false; RoomExists = true;
             Bookings.Clear(); Bookings["TEST"] = new(1, "TEST", 1, status);
             Opens = Begins = Updates = RoomUpdates = Commits = Rollbacks = ConnectionsDisposed = TransactionsDisposed = ReservationReads = RoomReads = RoomAttempts = 0;
-            Commands = new(); Events = new(); Errors = new(); Dialog.Messages = new();
+            Commands = new(); Events = new(); Errors = new(); Dialog.Messages = new(); Dialog.Answer = MessageBoxResult.Yes;
             FirstLocked = new(false); ReleaseFirst = new(false); SecondAttempt = new(false);
         }
         public static void Throw(string fault)
@@ -35,12 +35,13 @@ namespace StayTests
     }
     public static class Dialog
     {
+        public static MessageBoxResult Answer = MessageBoxResult.Yes;
         public static ConcurrentQueue<(string Text, string Title, MessageBoxButton Button, MessageBoxImage Image)> Messages = new();
         public static MessageBoxResult Show(string text, string title, MessageBoxButton button, MessageBoxImage image)
         {
             if (image == MessageBoxImage.Information) State.Throw("ui");
             Messages.Enqueue((text, title, button, image));
-            return MessageBoxResult.Yes;
+            return Answer;
         }
     }
 }
@@ -158,6 +159,12 @@ namespace StayTests.Fakes
             {
                 State.Throw("candidate"); lock (State.Gate) return State.Bookings.TryGetValue(Value<string>("@code"), out var booking) ? booking.RoomId : null;
             }
+            if (sql.Contains("SELECT id FROM zimmer"))
+            {
+                if (transaction == null || !sql.Contains("FOR UPDATE")) throw new Exception("Room lock missing");
+                transaction.LockRoom(); State.Throw("room-lock");
+                return !State.RoomExists ? null : State.Fault == "room-id-mismatch" ? 2 : 1;
+            }
             if (transaction == null || !transaction.RoomLocked || !transaction.ReservationLocked) throw new Exception("Occupancy before locks");
             State.Events.Enqueue("occupancy-read"); State.Throw("occupancy");
             lock (State.Gate) return State.Bookings.Values.Where(b => b.RoomId == Value<int>("@RoomId") && b.Id != Value<int>("@ReservationId") && b.Status == "Eingecheckt").OrderBy(b => b.Id).Select(b => (object)b.Id).FirstOrDefault();
@@ -202,7 +209,7 @@ namespace StayTests.Fakes
                 lock (State.Gate)
                 {
                     var booking = State.Bookings[Value<string>("@code")];
-                    transaction.ChangedBooking = booking with { Status = Value<string>("@TargetStatus") }; return 1;
+                    transaction.ChangedBooking = booking with { Status = sql.Contains("SET status = 'Storniert'") ? "Storniert" : Value<string>("@TargetStatus") }; return 1;
                 }
             }
             Interlocked.Increment(ref State.RoomUpdates); State.Throw("second-sql");
