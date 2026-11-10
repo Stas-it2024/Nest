@@ -25,6 +25,22 @@ namespace Nest.Data
         }
     }
 
+    public enum StayTransition
+    {
+        CheckIn,
+        CheckOut
+    }
+
+    public enum StayTransitionResult
+    {
+        Success,
+        ReservationChanged,
+        UnsuitableRoom,
+        OccupancyConflict,
+        UpdateRefused,
+        CommittedWithCleanupFailure
+    }
+
     public class ReservationRepository
     {
         private const string InsertSql = @"
@@ -499,6 +515,193 @@ namespace Nest.Data
                     throw new InvalidOperationException(
                         "Der Vorgang konnte nicht sicher beendet werden. Bitte prüfen Sie den tatsächlichen Zustand.",
                         cleanupError);
+            }
+        }
+
+        public StayTransitionResult ApplyStayTransition(string reservationCode, StayTransition transition)
+        {
+            if (transition != StayTransition.CheckIn && transition != StayTransition.CheckOut)
+                throw new ArgumentOutOfRangeException(nameof(transition));
+
+            MySqlConnection? conn = null;
+            MySqlTransaction? transaction = null;
+            Exception? originalError = null;
+            Exception? cleanupError = null;
+            var committed = false;
+            StayTransitionResult result;
+            try
+            {
+                conn = DB.GetConnection();
+                DB.OpenConnection(conn);
+                transaction = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
+                result = ApplyStayTransitionCore(conn, transaction, reservationCode, transition == StayTransition.CheckIn);
+                if (result == StayTransitionResult.Success)
+                {
+                    try
+                    {
+                        transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Only an exception from Commit means its result is uncertain.
+                        throw new ReservationCommitUncertainException(ex);
+                    }
+                    committed = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                originalError = ex;
+                throw;
+            }
+            finally
+            {
+                if (transaction != null && !committed)
+                {
+                    try
+                    {
+                        transaction.Rollback();
+                    }
+                    catch (Exception rollbackError)
+                    {
+                        if (originalError != null)
+                            originalError.Data["RollbackException"] = rollbackError;
+                        else
+                            cleanupError = rollbackError;
+                    }
+                }
+                foreach (var resource in new IDisposable?[] { transaction, conn })
+                {
+                    try
+                    {
+                        resource?.Dispose();
+                    }
+                    catch (Exception disposeError)
+                    {
+                        if (originalError != null)
+                            originalError.Data[resource == transaction ? "TransactionDisposeException" : "ConnectionDisposeException"] = disposeError;
+                        else
+                            cleanupError ??= disposeError;
+                    }
+                }
+                if (!committed && originalError == null && cleanupError != null)
+                    throw new InvalidOperationException(
+                        "Der Vorgang konnte nicht sicher beendet werden. Bitte prüfen Sie den tatsächlichen Zustand.",
+                        cleanupError);
+            }
+            return committed && cleanupError != null ? StayTransitionResult.CommittedWithCleanupFailure : result;
+        }
+
+        private static StayTransitionResult ApplyStayTransitionCore(MySqlConnection conn, MySqlTransaction transaction,
+            string reservationCode, bool isCheckIn)
+        {
+
+            // Nur Kandidatensuche: noch keine Reservierungssperre vor der Zimmersperre.
+            const string findRoomSql = @"
+                SELECT zimmer_id FROM reservierungen
+                WHERE reservierungs_code = @code;";
+            int roomId;
+            using (var findRoom = new MySqlCommand(findRoomSql, conn, transaction))
+            {
+                findRoom.Parameters.AddWithValue("@code", reservationCode);
+                var value = findRoom.ExecuteScalar();
+                if (value == null || value == DBNull.Value)
+                    return StayTransitionResult.ReservationChanged;
+                roomId = Convert.ToInt32(value);
+            }
+
+            // Gemeinsamer Serialisierungspunkt für Check-in und Check-out desselben Zimmers.
+            const string lockRoomSql = @"
+                SELECT id, status, geloescht_am FROM zimmer
+                WHERE id = @RoomId FOR UPDATE;";
+            string roomStatus;
+            bool roomDeleted;
+            using (var lockRoom = new MySqlCommand(lockRoomSql, conn, transaction))
+            {
+                lockRoom.Parameters.AddWithValue("@RoomId", roomId);
+                using var reader = lockRoom.ExecuteReader();
+                if (!reader.Read() || reader.GetInt32("id") != roomId)
+                    return StayTransitionResult.UnsuitableRoom;
+                roomStatus = reader.GetString("status");
+                roomDeleted = !reader.IsDBNull(reader.GetOrdinal("geloescht_am"));
+            }
+
+            const string lockReservationSql = @"
+                SELECT id, reservierungs_code, zimmer_id, status FROM reservierungen
+                WHERE reservierungs_code = @code FOR UPDATE;";
+            int reservationId;
+            var sourceStatus = isCheckIn ? "Reserviert" : "Eingecheckt";
+            var targetStatus = isCheckIn ? "Eingecheckt" : "Ausgecheckt";
+            using (var lockReservation = new MySqlCommand(lockReservationSql, conn, transaction))
+            {
+                lockReservation.Parameters.AddWithValue("@code", reservationCode);
+                using var reader = lockReservation.ExecuteReader();
+                if (!reader.Read()
+                    || !string.Equals(reader.GetString("reservierungs_code"), reservationCode, StringComparison.Ordinal)
+                    || reader.GetInt32("zimmer_id") != roomId
+                    || reader.GetString("status") != sourceStatus)
+                    return StayTransitionResult.ReservationChanged;
+                reservationId = reader.GetInt32("id");
+            }
+
+            const string otherOccupantsSql = @"
+                SELECT id FROM reservierungen
+                WHERE zimmer_id = @RoomId AND status = 'Eingecheckt'
+                  AND id <> @ReservationId
+                ORDER BY id FOR UPDATE;";
+            using (var otherOccupants = new MySqlCommand(otherOccupantsSql, conn, transaction))
+            {
+                otherOccupants.Parameters.AddWithValue("@RoomId", roomId);
+                otherOccupants.Parameters.AddWithValue("@ReservationId", reservationId);
+                if (otherOccupants.ExecuteScalar() != null)
+                    return StayTransitionResult.OccupancyConflict;
+            }
+
+            if (isCheckIn)
+            {
+                if (roomDeleted || (roomStatus != "Verfuegbar" && roomStatus != "Reserviert"))
+                    return StayTransitionResult.UnsuitableRoom;
+            }
+            else if (roomStatus != "Belegt" && roomStatus != "Wartung")
+            {
+                return StayTransitionResult.UnsuitableRoom;
+            }
+
+            const string updateReservationSql = @"
+                UPDATE reservierungen SET status = @TargetStatus
+                WHERE id = @ReservationId AND reservierungs_code = @code
+                  AND zimmer_id = @RoomId AND status = @SourceStatus;";
+            using (var updateReservation = new MySqlCommand(updateReservationSql, conn, transaction))
+            {
+                updateReservation.Parameters.AddWithValue("@TargetStatus", targetStatus);
+                updateReservation.Parameters.AddWithValue("@ReservationId", reservationId);
+                updateReservation.Parameters.AddWithValue("@code", reservationCode);
+                updateReservation.Parameters.AddWithValue("@RoomId", roomId);
+                updateReservation.Parameters.AddWithValue("@SourceStatus", sourceStatus);
+                if (updateReservation.ExecuteNonQuery() != 1)
+                    return StayTransitionResult.UpdateRefused;
+            }
+
+            // Wartung und weiche Löschung bleiben beim Check-out unangetastet.
+            if (!isCheckIn && (roomDeleted || roomStatus == "Wartung"))
+                return StayTransitionResult.Success;
+
+            const string updateRoomSql = @"
+                UPDATE zimmer z
+                JOIN reservierungen r ON r.zimmer_id = z.id
+                SET z.status = @TargetRoomStatus
+                WHERE z.id = @RoomId AND r.id = @ReservationId
+                  AND r.reservierungs_code = @code AND r.status = @TargetStatus
+                  AND z.status = @SourceRoomStatus AND z.geloescht_am IS NULL;";
+            using (var updateRoom = new MySqlCommand(updateRoomSql, conn, transaction))
+            {
+                updateRoom.Parameters.AddWithValue("@TargetRoomStatus", isCheckIn ? "Belegt" : "Verfuegbar");
+                updateRoom.Parameters.AddWithValue("@RoomId", roomId);
+                updateRoom.Parameters.AddWithValue("@ReservationId", reservationId);
+                updateRoom.Parameters.AddWithValue("@code", reservationCode);
+                updateRoom.Parameters.AddWithValue("@TargetStatus", targetStatus);
+                updateRoom.Parameters.AddWithValue("@SourceRoomStatus", roomStatus);
+                return updateRoom.ExecuteNonQuery() == 1 ? StayTransitionResult.Success : StayTransitionResult.UpdateRefused;
             }
         }
 

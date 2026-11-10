@@ -1,0 +1,8 @@
+{
+  "findRoomSql": "\n                SELECT zimmer_id FROM reservierungen\n                WHERE reservierungs_code = @code;",
+  "lockRoomSql": "\n                SELECT id, status, geloescht_am FROM zimmer\n                WHERE id = @RoomId FOR UPDATE;",
+  "lockReservationSql": "\n                SELECT id, reservierungs_code, zimmer_id, status FROM reservierungen\n                WHERE reservierungs_code = @code FOR UPDATE;",
+  "otherOccupantsSql": "\n                SELECT id FROM reservierungen\n                WHERE zimmer_id = @RoomId AND status = 'Eingecheckt'\n                  AND id <> @ReservationId\n                ORDER BY id FOR UPDATE;",
+  "updateReservationSql": "\n                UPDATE reservierungen SET status = @TargetStatus\n                WHERE id = @ReservationId AND reservierungs_code = @code\n                  AND zimmer_id = @RoomId AND status = @SourceStatus;",
+  "updateRoomSql": "\n                UPDATE zimmer z\n                JOIN reservierungen r ON r.zimmer_id = z.id\n                SET z.status = @TargetRoomStatus\n                WHERE z.id = @RoomId AND r.id = @ReservationId\n                  AND r.reservierungs_code = @code AND r.status = @TargetStatus\n                  AND z.status = @SourceRoomStatus AND z.geloescht_am IS NULL;"
+}
