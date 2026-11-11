@@ -7,7 +7,8 @@ namespace Nest.Data
     public enum RoomWriteResult
     {
         Success, Missing, Occupied, FutureReservation, InvalidStatus,
-        NumberConflict, TechnicalFailure, UncertainOutcome
+        NumberConflict, TechnicalFailure, UncertainOutcome,
+        ConcurrencyConflict, CommitUncertain, CommittedWithCleanupFailure
     }
 
     public class RoomRepository
@@ -144,32 +145,39 @@ namespace Nest.Data
                         (@RoomNumber, @Type, @Capacity, @PricePerNight, @Status, @Description, @ImagePath, @DateAdded);
                     SELECT LAST_INSERT_ID();";
 
-                using var cmd = new MySqlCommand(sql, conn, transaction);
-                cmd.Parameters.AddWithValue("@RoomNumber", room.RoomNumber);
-                cmd.Parameters.AddWithValue("@Type", room.Type);
-                cmd.Parameters.AddWithValue("@Capacity", room.Capacity);
-                cmd.Parameters.AddWithValue("@PricePerNight", room.PricePerNight);
-                cmd.Parameters.AddWithValue("@Status", room.Status);
-                cmd.Parameters.AddWithValue("@Description", (object?)room.Description ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@ImagePath", (object?)room.ImagePath ?? DBNull.Value);
-                cmd.Parameters.AddWithValue(
-                    "@DateAdded",
-                    room.DateAdded == default ? DateTime.Now : room.DateAdded);
+                return WithResource(new MySqlCommand(sql, conn, transaction), cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@RoomNumber", room.RoomNumber);
+                    cmd.Parameters.AddWithValue("@Type", room.Type);
+                    cmd.Parameters.AddWithValue("@Capacity", room.Capacity);
+                    cmd.Parameters.AddWithValue("@PricePerNight", room.PricePerNight);
+                    cmd.Parameters.AddWithValue("@Status", room.Status);
+                    cmd.Parameters.AddWithValue("@Description", (object?)room.Description ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ImagePath", (object?)room.ImagePath ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue(
+                        "@DateAdded",
+                        room.DateAdded == default ? DateTime.Now : room.DateAdded);
 
-                insertedId = Convert.ToInt32(cmd.ExecuteScalar());
-                return insertedId > 0 ? RoomWriteResult.Success : RoomWriteResult.TechnicalFailure;
+                    insertedId = Convert.ToInt32(cmd.ExecuteScalar());
+                    return insertedId > 0 ? RoomWriteResult.Success : RoomWriteResult.TechnicalFailure;
+                });
             });
-            if (result == RoomWriteResult.Success)
+            if (result == RoomWriteResult.Success || result == RoomWriteResult.CommittedWithCleanupFailure)
                 room.Id = insertedId;
             return result;
         }
 
-        public RoomWriteResult Update(Room room)
+        public RoomWriteResult Update(Room room, RoomOriginalValues expected)
         {
+            ArgumentNullException.ThrowIfNull(room);
+            ArgumentNullException.ThrowIfNull(expected);
+            if (room.Id != expected.Id) return RoomWriteResult.ConcurrencyConflict;
             return ExecuteWrite((conn, transaction) =>
             {
-                if (!LockActiveRoom(conn, transaction, room.Id))
+                var current = LockRoom(conn, transaction, room.Id);
+                if (current == null || current.DateDelete != null)
                     return RoomWriteResult.Missing;
+                if (current != expected) return RoomWriteResult.ConcurrencyConflict;
                 var occupied = ReadReservationProtection(conn, transaction, room.Id, includeFuture: false);
                 if (occupied == RoomWriteResult.Occupied && room.Status != "Belegt")
                     return RoomWriteResult.Occupied;
@@ -190,25 +198,31 @@ namespace Nest.Data
                     WHERE id = @Id
                       AND geloescht_am IS NULL;";
 
-                using var cmd = new MySqlCommand(sql, conn, transaction);
-                cmd.Parameters.AddWithValue("@RoomNumber", room.RoomNumber);
-                cmd.Parameters.AddWithValue("@Type", room.Type);
-                cmd.Parameters.AddWithValue("@Capacity", room.Capacity);
-                cmd.Parameters.AddWithValue("@PricePerNight", room.PricePerNight);
-                cmd.Parameters.AddWithValue("@Status", room.Status);
-                cmd.Parameters.AddWithValue("@Description", (object?)room.Description ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@ImagePath", (object?)room.ImagePath ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@Id", room.Id);
-                return cmd.ExecuteNonQuery() == 1 ? RoomWriteResult.Success : RoomWriteResult.Missing;
+                return WithResource(new MySqlCommand(sql, conn, transaction), cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@RoomNumber", room.RoomNumber);
+                    cmd.Parameters.AddWithValue("@Type", room.Type);
+                    cmd.Parameters.AddWithValue("@Capacity", room.Capacity);
+                    cmd.Parameters.AddWithValue("@PricePerNight", room.PricePerNight);
+                    cmd.Parameters.AddWithValue("@Status", room.Status);
+                    cmd.Parameters.AddWithValue("@Description", (object?)room.Description ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ImagePath", (object?)room.ImagePath ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Id", room.Id);
+                    return cmd.ExecuteNonQuery() == 1 ? RoomWriteResult.Success : RoomWriteResult.TechnicalFailure;
+                });
             });
         }
 
-        public RoomWriteResult Delete(int id)
+        public RoomWriteResult Delete(RoomOriginalValues expected)
         {
+            ArgumentNullException.ThrowIfNull(expected);
+            var id = expected.Id;
             return ExecuteWrite((conn, transaction) =>
             {
-                if (!LockActiveRoom(conn, transaction, id))
+                var current = LockRoom(conn, transaction, id);
+                if (current == null || current.DateDelete != null)
                     return RoomWriteResult.Missing;
+                if (current != expected) return RoomWriteResult.ConcurrencyConflict;
                 var protection = ReadReservationProtection(conn, transaction, id, includeFuture: true);
                 if (protection != RoomWriteResult.Success)
                     return protection;
@@ -219,22 +233,26 @@ namespace Nest.Data
                     WHERE id = @Id
                       AND geloescht_am IS NULL;";
 
-                using var cmd = new MySqlCommand(sql, conn, transaction);
-                cmd.Parameters.AddWithValue("@DateDelete", DateTime.Now);
-                cmd.Parameters.AddWithValue("@Id", id);
-                return cmd.ExecuteNonQuery() == 1 ? RoomWriteResult.Success : RoomWriteResult.Missing;
+                return WithResource(new MySqlCommand(sql, conn, transaction), cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@DateDelete", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@Id", id);
+                    return cmd.ExecuteNonQuery() == 1 ? RoomWriteResult.Success : RoomWriteResult.TechnicalFailure;
+                });
             });
         }
 
-        private static bool LockActiveRoom(MySqlConnection conn, MySqlTransaction transaction, int id)
+        private static RoomOriginalValues? LockRoom(MySqlConnection conn, MySqlTransaction transaction, int id)
         {
             const string sql = @"
-                SELECT id, geloescht_am FROM zimmer WHERE id = @Id FOR UPDATE;";
-            using var cmd = new MySqlCommand(sql, conn, transaction);
-            cmd.Parameters.AddWithValue("@Id", id);
-            using var reader = cmd.ExecuteReader();
-            return reader.Read() && reader.GetInt32("id") == id
-                && reader.IsDBNull(reader.GetOrdinal("geloescht_am"));
+                SELECT id, zimmer_nummer, zimmer_typ, kapazitaet, preis_pro_nacht, status,
+                       beschreibung, bild_pfad, hinzugefuegt_am, geloescht_am
+                FROM zimmer WHERE id = @Id FOR UPDATE;";
+            return WithResource(new MySqlCommand(sql, conn, transaction), cmd =>
+            {
+                cmd.Parameters.AddWithValue("@Id", id);
+                return WithResource(cmd.ExecuteReader(), reader => reader.Read() ? ReadOriginalValues(reader) : null);
+            });
         }
 
         private static RoomWriteResult ReadReservationProtection(MySqlConnection conn,
@@ -249,64 +267,96 @@ namespace Nest.Data
                 : @"SELECT id, status FROM reservierungen
                     WHERE zimmer_id = @Id AND status = 'Eingecheckt'
                     ORDER BY id FOR UPDATE;";
-            using var cmd = new MySqlCommand(sql, conn, transaction);
-            cmd.Parameters.AddWithValue("@Id", id);
-            if (includeFuture)
-                cmd.Parameters.Add("@Today", MySqlDbType.Date).Value = DateTime.Today;
-            using var reader = cmd.ExecuteReader();
-            var result = RoomWriteResult.Success;
-            while (reader.Read())
+            return WithResource(new MySqlCommand(sql, conn, transaction), cmd =>
             {
-                if (reader.GetString("status") == "Eingecheckt")
-                    return RoomWriteResult.Occupied;
-                result = RoomWriteResult.FutureReservation;
+                cmd.Parameters.AddWithValue("@Id", id);
+                if (includeFuture)
+                    cmd.Parameters.Add("@Today", MySqlDbType.Date).Value = DateTime.Today;
+                return WithResource(cmd.ExecuteReader(), reader =>
+                {
+                    var result = RoomWriteResult.Success;
+                    while (reader.Read())
+                    {
+                        if (reader.GetString("status") == "Eingecheckt")
+                            return RoomWriteResult.Occupied;
+                        result = RoomWriteResult.FutureReservation;
+                    }
+                    return result;
+                });
+            });
+        }
+
+        private static TResult WithResource<TResource, TResult>(TResource resource, Func<TResource, TResult> action)
+            where TResource : IDisposable
+        {
+            bool failed = false;
+            try { return action(resource); }
+            catch { failed = true; throw; }
+            finally
+            {
+                try { resource.Dispose(); }
+                catch (Exception) when (failed) { /* Preserve the original SQL/read failure. */ }
             }
-            return result;
         }
 
         private static RoomWriteResult ExecuteWrite(Func<MySqlConnection, MySqlTransaction, RoomWriteResult> write)
         {
-            bool committed = false, commitAttempted = false, rollbackFailed = false;
-            RoomWriteResult result;
+            bool committed = false, commitAttempted = false;
+            MySqlConnection? conn = null;
+            MySqlTransaction? transaction = null;
+            var result = RoomWriteResult.TechnicalFailure;
             try
             {
-                using var conn = DB.GetConnection();
+                conn = DB.GetConnection();
                 DB.OpenConnection(conn);
-                using var transaction = conn.BeginTransaction(IsolationLevel.ReadCommitted);
-                try
+                transaction = conn.BeginTransaction(IsolationLevel.ReadCommitted);
+                result = write(conn, transaction);
+                if (result == RoomWriteResult.Success)
                 {
-                    result = write(conn, transaction);
-                    if (result == RoomWriteResult.Success)
-                    {
-                        commitAttempted = true;
-                        transaction.Commit();
-                        committed = true;
-                    }
-                }
-                finally
-                {
-                    if (!committed)
-                    {
-                        try { transaction.Rollback(); }
-                        catch (Exception) { rollbackFailed = true; }
-                    }
+                    commitAttempted = true;
+                    transaction.Commit();
+                    committed = true;
                 }
             }
             catch (Exception ex)
             {
-                if (committed)
-                    return RoomWriteResult.Success;
-                if (commitAttempted || rollbackFailed)
-                    return RoomWriteResult.UncertainOutcome;
-                return ex is MySqlException mysql && mysql.Number == 1062
+                result = commitAttempted ? RoomWriteResult.CommitUncertain
+                    : ex is MySqlException mysql && mysql.Number == 1062
                     ? RoomWriteResult.NumberConflict : RoomWriteResult.TechnicalFailure;
             }
-            return rollbackFailed ? RoomWriteResult.UncertainOutcome : result;
+            finally
+            {
+                if (transaction != null && !committed)
+                {
+                    try { transaction.Rollback(); }
+                    catch (Exception)
+                    {
+                        // A rollback failure is not proof that nothing was saved.
+                        if (result != RoomWriteResult.CommitUncertain) result = RoomWriteResult.UncertainOutcome;
+                    }
+                }
+                // Each cleanup is protected separately; it cannot replace a prior failure,
+                // and a confirmed Commit is never reported as a failed write.
+                try { transaction?.Dispose(); }
+                catch (Exception) { if (committed) result = RoomWriteResult.CommittedWithCleanupFailure; }
+                try { conn?.Dispose(); }
+                catch (Exception) { if (committed) result = RoomWriteResult.CommittedWithCleanupFailure; }
+            }
+            return result;
         }
+
+        private static RoomOriginalValues ReadOriginalValues(MySqlDataReader reader) => new(
+            reader.GetInt32("id"), reader.GetString("zimmer_nummer"), reader.GetString("zimmer_typ"),
+            reader.GetInt32("kapazitaet"), reader.GetDecimal("preis_pro_nacht"), reader.GetString("status"),
+            reader.IsDBNull(reader.GetOrdinal("beschreibung")) ? null : reader.GetString("beschreibung"),
+            reader.IsDBNull(reader.GetOrdinal("bild_pfad")) ? null : reader.GetString("bild_pfad"),
+            reader.IsDBNull(reader.GetOrdinal("hinzugefuegt_am")) ? null : reader.GetDateTime("hinzugefuegt_am"),
+            reader.IsDBNull(reader.GetOrdinal("geloescht_am")) ? null : reader.GetDateTime("geloescht_am"));
 
         private static Room MapRoom(MySqlDataReader reader)
         {
             // Die Zuordnung an einer Stelle hält die Datenbankspalten und das Model konsistent.
+            var original = ReadOriginalValues(reader);
             return new Room
             {
                 Id = reader.GetInt32("id"),
@@ -321,7 +371,8 @@ namespace Nest.Data
                 ImagePath = reader.IsDBNull(reader.GetOrdinal("bild_pfad"))
                     ? null
                     : reader.GetString("bild_pfad"),
-                DateAdded = reader.GetDateTime("hinzugefuegt_am"),
+                DateAdded = original.DateAdded ?? default,
+                OriginalValues = original,
                 DateDelete = reader.IsDBNull(reader.GetOrdinal("geloescht_am"))
                     ? null
                     : reader.GetDateTime("geloescht_am")

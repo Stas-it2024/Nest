@@ -64,7 +64,9 @@ internal static partial class Program
         {
             var clone = row.GetType().GetMethod("<Clone>$")!.Invoke(row, null)!;
             var type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
-            object value = type == typeof(string) ? "changed" : type == typeof(int) ? 999 :
+            object value = type == typeof(Nest.Models.RoomOriginalValues)
+                ? new Nest.Models.RoomOriginalValues(1, "0101", "Standard", 2, 50, "Verfuegbar", null, null, null, null)
+                : type == typeof(string) ? "changed" : type == typeof(int) ? 999 :
                 type == typeof(decimal) ? 999m : new DateTime(2030, 1, 1);
             property.SetValue(clone, value);
             var changed = row is RoomSnapshot ? new PollingSnapshot(new[] { (RoomSnapshot)clone }, original.Bookings) :

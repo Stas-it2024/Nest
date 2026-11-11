@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Nest/Nest.csproj" />
+    <Compile Include="../Nest.IntegrationBootstrap/WindowsCredentialReader.cs" Link="WindowsCredentialReader.cs" />
+    <None Include="../../Nest/Data/RoomRepository.cs" Link="SafetyInputs/RoomRepository.source.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="*.cs" TargetPath="SafetyInputs/%(Filename).source.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

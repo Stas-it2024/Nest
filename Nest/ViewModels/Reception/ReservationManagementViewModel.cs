@@ -260,7 +260,7 @@ namespace Nest.ViewModels.Reception
         {
             Id = r.Id, RoomNumber = r.Number, Type = r.Type, PricePerNight = r.Price,
             Capacity = r.Capacity, Status = r.Status, Description = r.Description,
-            ImagePath = r.ImagePath, DateAdded = r.Added, DateDelete = r.Deleted
+            ImagePath = r.ImagePath, DateAdded = r.Added, DateDelete = r.Deleted, OriginalValues = r.OriginalValues
         };
         protected override void ApplyPollingSnapshot(PollingSnapshot snapshot)
         {
@@ -281,7 +281,7 @@ namespace Nest.ViewModels.Reception
                 var current = snapshot.Rooms.FirstOrDefault(r => r.Id == selected?.Id);
                 var draft = selected == null ? null : new RoomSnapshot(selected.Id, selected.RoomNumber, selected.Type,
                     selected.PricePerNight, selected.Capacity, selected.Status, selected.Description, selected.ImagePath,
-                    selected.DateAdded, selected.DateDelete);
+                    selected.DateAdded, selected.DateDelete) { OriginalValues = selected.OriginalValues };
                 DraftRoomWarning = draft != null && current != draft
                     ? "Das gewählte Zimmer wurde geändert oder entfernt. Entwurfswerte bleiben erhalten; bitte prüfen Sie das Zimmer vor dem Speichern." : "";
             }

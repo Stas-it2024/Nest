@@ -5,7 +5,10 @@ namespace Nest.Synchronization;
 // All fields of the existing read projections; immutable values cross the UI boundary.
 public sealed record RoomSnapshot(int Id, int Number, string Type, decimal Price,
     int Capacity, string Status, string? Description, string? ImagePath,
-    DateTime Added, DateTime? Deleted);
+    DateTime Added, DateTime? Deleted)
+{
+    public RoomOriginalValues? OriginalValues { get; init; }
+}
 public sealed record BookingSnapshot(string Code, string Guest, string Room, string Type,
     DateTime Arrival, DateTime Departure, int Nights, int Adults, int Children,
     decimal Total, decimal Paid, string PaymentMethod, string Status);
@@ -25,7 +28,7 @@ public sealed class PollingSnapshot
     public bool HasSameData(PollingSnapshot other) => Rooms.SequenceEqual(other.Rooms) && Bookings.SequenceEqual(other.Bookings);
     internal static PollingSnapshot FromModels(IEnumerable<Room> rooms, IEnumerable<ReservationOverview> bookings) => new(
         rooms.Select(r => new RoomSnapshot(r.Id, r.RoomNumber, r.Type, r.PricePerNight, r.Capacity,
-            r.Status, r.Description, r.ImagePath, r.DateAdded, r.DateDelete)),
+            r.Status, r.Description, r.ImagePath, r.DateAdded, r.DateDelete) { OriginalValues = r.OriginalValues }),
         bookings.Select(b => new BookingSnapshot(b.ReservationCode, b.Guest, b.Room, b.Type,
             b.CheckInDate, b.CheckOutDate, b.Nights, b.Adults, b.Children,
             b.TotalAmount, b.AmountPaid, b.PaymentMethod, b.Status)));

@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Nest/Nest.csproj" />
+  </ItemGroup>
+  <!-- Execute the current production Repository body, replacing only the database transport. -->
+  <UsingTask TaskName="GenerateRoomIsolation" TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)/Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <RepositoryRoot ParameterType="System.String" Required="true" />
+      <OutputDirectory ParameterType="System.String" Required="true" />
+      <Sources ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        Directory.CreateDirectory(OutputDirectory);
+        var source = File.ReadAllText(Path.Combine(RepositoryRoot, "Nest/Data/RoomRepository.cs"));
+        if (!source.Contains("using MySql.Data.MySqlClient;") || !source.Contains("namespace Nest.Data"))
+            throw new System.InvalidOperationException("Room isolation anchors changed.");
+        source = source.Replace("using MySql.Data.MySqlClient;", "using RoomTests.Fakes;")
+            .Replace("namespace Nest.Data", "namespace RoomTests.Data");
+        var path = Path.Combine(OutputDirectory, "RoomRepository.cs");
+        File.WriteAllText(path, source);
+        Sources = new Microsoft.Build.Framework.ITaskItem[] { new Microsoft.Build.Utilities.TaskItem(path) };
+      ]]></Code>
+    </Task>
+  </UsingTask>
+  <Target Name="GenerateRoomTestSources" BeforeTargets="CoreCompile">
+    <GenerateRoomIsolation RepositoryRoot="$(MSBuildProjectDirectory)/../.." OutputDirectory="$(IntermediateOutputPath)RoomIsolation">
+      <Output TaskParameter="Sources" ItemName="Compile" />
+    </GenerateRoomIsolation>
+  </Target>
+</Project>

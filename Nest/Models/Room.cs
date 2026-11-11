@@ -19,6 +19,8 @@ namespace Nest.Models
         public string? ImagePath { get; set; }
         public DateTime DateAdded { get; set; }
         public DateTime? DateDelete { get; set; }
+        // Retain the unmodified database projection through presentation/polling mapping.
+        public RoomOriginalValues? OriginalValues { get; init; }
 
         // Die abgeleitete Anzeige kombiniert die wichtigsten Auswahlwerte, ohne redundante Daten zu speichern.
         public string DisplayText => $"{RoomNumber} - {Type} (€{PricePerNight:F2}/Nacht)";

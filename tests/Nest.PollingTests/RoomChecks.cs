@@ -1,5 +1,6 @@
 using Caliburn.Micro;
 using Nest.Data;
+using Nest.Models;
 using Nest.Synchronization;
 using Nest.ViewModels.Admin;
 using System.ComponentModel;
@@ -19,6 +20,9 @@ internal static partial class Program
         var original = Data(booking);
         var rooms = include ? new[] { original.Rooms[0] with { Status = status } } : Array.Empty<RoomSnapshot>();
         if (second) rooms = rooms.Append(original.Rooms[0] with { Id = 2, Number = 102 }).ToArray();
+        rooms = rooms.Select(r => r with { OriginalValues = new RoomOriginalValues(r.Id,
+            r.Number.ToString(System.Globalization.CultureInfo.InvariantCulture), r.Type, r.Capacity,
+            r.Price, r.Status, r.Description, r.ImagePath, r.Added, r.Deleted) }).ToArray();
         return new PollingSnapshot(rooms, original.Bookings);
     }
     private static async Task RoomChecks(Ui ui)
@@ -26,6 +30,7 @@ internal static partial class Program
         await RoomDraftChecks(ui);
         await RoomCommandChecks(ui);
         await RoomLifecycleChecks(ui);
+        await RoomRepositoryConflictChecks(ui);
         Console.WriteLine($"PASS: {roomAssertions} Zimmer assertions; actual ViewModel/lifecycle/bindings, fake reads/writes/dialogs; no SQL.");
     }
     private static async Task RoomDraftChecks(Ui ui)
@@ -34,7 +39,7 @@ internal static partial class Program
         await using var coordinator = new PollingCoordinator(source, ui, clock.Delay);
         var updates = 0; var deletes = 0; var messages = 0; var answer = MessageBoxResult.No;
         var vm = await ui.Call(() => new ZimmerViewModel(() => coordinator,
-            update: _ => { updates++; return RoomWriteResult.Success; },
+            update: (_, _) => { updates++; return RoomWriteResult.Success; },
             delete: _ => { deletes++; return RoomWriteResult.Success; },
             showDialog: (_, _, buttons, _) => { messages++; return buttons == MessageBoxButton.YesNo ? answer : MessageBoxResult.OK; }));
         RoomCheck(source.Calls == 0 && vm.Rooms.Count == 0);
@@ -109,7 +114,7 @@ internal static partial class Program
         var result = RoomWriteResult.TechnicalFailure;
         Request? modalRead = null; var answer = MessageBoxResult.Yes; var modalObserved = false;
         var vm = await ui.Call(() => new ZimmerViewModel(() => coordinator,
-            add: _ => { adds++; return result; }, update: _ => { updates++; return result; }, delete: _ => { deletes++; return result; },
+            add: _ => { adds++; return result; }, update: (_, _) => { updates++; return result; }, delete: _ => { deletes++; return result; },
             showDialog: (_, _, buttons, _) =>
             {
                 if (buttons == MessageBoxButton.YesNo && modalRead != null)
@@ -130,17 +135,17 @@ internal static partial class Program
         await ui.Call(() => { vm.Löschen(); return true; }); // Failure; old in-flight result cannot change selection in confirmation.
         RoomCheck(modalObserved && deletes == 1 && vm.SelectedRoom?.Id == 1 && vm.PriceText == "81,00" && vm.RoomConflictWarning == "");
         (await source.Next()).Result.SetResult(RoomData()); await clock.Live();
-        foreach (var failure in new[] { RoomWriteResult.UncertainOutcome, RoomWriteResult.Occupied, RoomWriteResult.NumberConflict })
+        foreach (var failure in new[] { RoomWriteResult.UncertainOutcome, RoomWriteResult.CommitUncertain, RoomWriteResult.Occupied, RoomWriteResult.NumberConflict })
         {
             result = failure;
             await ui.Call(() => { vm.Aktualisieren(); return true; });
             RoomCheck(vm.PriceText == "81,00" && vm.Beschreibung == "Keep command draft" && vm.SelectedRoom?.Id == 1);
             (await source.Next()).Result.SetResult(RoomData()); await clock.Live();
         }
-        RoomCheck(updates == 3); // Never retry uncertain writes.
+        RoomCheck(updates == 4); // Never retry uncertain writes.
         result = RoomWriteResult.Success;
         await ui.Call(() => { vm.Aktualisieren(); return true; });
-        RoomCheck(updates == 4 && vm.RoomNumber == null && vm.SelectedRoom == null);
+        RoomCheck(updates == 5 && vm.RoomNumber == null && vm.SelectedRoom == null);
         (await source.Next()).Result.SetResult(RoomData()); await clock.Live();
         await ui.Call(() => { vm.RoomNumber = 444; vm.PriceText = "55,00"; vm.Beschreibung = "New own room"; vm.Hinzufügen(); return true; });
         RoomCheck(adds == 1 && vm.RoomNumber == null);
@@ -176,5 +181,52 @@ internal static partial class Program
         read.Result.SetResult(RoomData(include: false));
         await coordinator.DisposeAsync();
         RoomCheck(vm.Rooms.Count == 1 && vm.Beschreibung == "logout draft" && source.Maximum == 1);
+    }
+
+    private static async Task RoomRepositoryConflictChecks(Ui ui)
+    {
+        foreach (var delete in new[] { false, true })
+        {
+            var source = new Source(); var clock = new Clock();
+            await using var coordinator = new PollingCoordinator(source, ui, clock.Delay);
+            var writes = 0; var dialogs = 0; RoomOriginalValues? sent = null; var lastMessage = "";
+            var result = RoomWriteResult.ConcurrencyConflict;
+            var baseline = RoomData().Rooms[0].OriginalValues! with { RoomNumber = "0101", DateAdded = null };
+            var model = new Room { Id = baseline.Id, RoomNumber = 101, Type = baseline.Type,
+                Capacity = baseline.Capacity, PricePerNight = baseline.PricePerNight, Status = baseline.Status,
+                OriginalValues = baseline };
+            var data = PollingSnapshot.FromModels(new[] { model }, Array.Empty<ReservationOverview>());
+            RoomCheck(data.Rooms.Single().OriginalValues == baseline && data.Rooms.Single().Added == default);
+            var vm = await ui.Call(() => new ZimmerViewModel(() => coordinator,
+                update: (_, expected) => { sent = expected; writes++; return result; },
+                delete: expected => { sent = expected; writes++; return result; },
+                showDialog: (text, _, buttons, _) => { lastMessage = text; dialogs++; return buttons == MessageBoxButton.YesNo ? MessageBoxResult.Yes : MessageBoxResult.OK; }));
+            await (await ui.Call(() => ((IActivate)vm).ActivateAsync()));
+            (await source.Next()).Result.SetResult(data); await clock.Live();
+            await ui.Call(() => { vm.SelectedRoom = vm.Rooms.Single(); vm.PriceText = "88,50";
+                vm.Beschreibung = "Keep my draft"; if (delete) vm.Löschen(); else vm.Aktualisieren(); return true; });
+            RoomCheck(sent == baseline && sent.RoomNumber == "0101" && sent.DateAdded == null && writes == 1);
+            RoomCheck(vm.SelectedRoom?.Id == 1 && vm.PriceText == "88,50" && vm.Beschreibung == "Keep my draft");
+            RoomCheck(vm.RoomConflictWarning.Length > 0 && !vm.CanAktualisieren && !vm.CanLöschen);
+            RoomCheck(dialogs == (delete ? 1 : 0)); // Repository conflicts are non-modal.
+            (await source.Next()).Result.SetResult(data); await clock.Live();
+            RoomCheck(!vm.CanAktualisieren); // Even a returned-to-baseline snapshot must not unlock a conflict.
+            await ui.Call(() => { if (delete) vm.Löschen(); else vm.Aktualisieren(); return true; });
+            RoomCheck(writes == 1); // No automatic or manual stale retry.
+            (await source.Next()).Result.SetResult(data); var tick = await clock.Live();
+            var newer = baseline with { RoomNumber = "101", Description = "Other administrator" };
+            var fresh = new PollingSnapshot(new[] { data.Rooms[0] with { Description = newer.Description, OriginalValues = newer } }, data.Bookings);
+            tick.Done.SetResult(); (await source.Next()).Result.SetResult(fresh); await clock.Live();
+            RoomCheck(vm.PriceText == "88,50" && vm.Beschreibung == "Keep my draft" && !vm.CanAktualisieren);
+            await ui.Call(() => { vm.ReloadSelectedRoom(); return true; });
+            RoomCheck(vm.CanAktualisieren && vm.RoomConflictWarning == "" && vm.Beschreibung == newer.Description);
+            (await source.Next()).Result.SetResult(fresh); await clock.Live();
+            result = RoomWriteResult.CommittedWithCleanupFailure;
+            await ui.Call(() => { if (delete) vm.Löschen(); else vm.Aktualisieren(); return true; });
+            RoomCheck(writes == 2 && sent == newer);
+            RoomCheck(lastMessage.Contains("Die Änderung wurde gespeichert") && lastMessage.Contains("nicht erneut"));
+            (await source.Next()).Result.SetResult(fresh); await clock.Live();
+            await (await ui.Call(() => ((IDeactivate)vm).DeactivateAsync(true)));
+        }
     }
 }
