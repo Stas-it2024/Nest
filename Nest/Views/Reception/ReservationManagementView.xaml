@@ -6,6 +6,11 @@
         xmlns:cal="http://www.caliburnproject.org"        mc:Ignorable="d"
         d:Height="1080" d:Width="1480" Width="1444">
 
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="10,4">
+            <TextBlock Text="{Binding SynchronizationStatus}" TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding DraftRoomWarning}" TextWrapping="Wrap"/>
+        </StackPanel>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="440"/>
@@ -307,4 +312,5 @@
             </Grid>
         </Border>
     </Grid>
+    </DockPanel>
 </UserControl>

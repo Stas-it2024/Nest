@@ -10,7 +10,12 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </UserControl.Resources>
 
-    <Grid Margin="{Binding PageMargin}">
+    <DockPanel Margin="{Binding PageMargin}">
+        <StackPanel DockPanel.Dock="Top" Margin="10,4">
+            <TextBlock Text="{Binding SynchronizationStatus}" TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding TicketStatus}" TextWrapping="Wrap"/>
+        </StackPanel>
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -65,6 +70,7 @@
             <!-- TAB 1: Zimmer-Reservierungen -->
             <TabItem Header="Zimmer-Reservierungen" FontWeight="Bold" IsSelected="True">
                 <DataGrid Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding Reservations}"
+                          SelectedItem="{Binding SelectedReservation}"
                           AutoGenerateColumns="False"
                           CanUserDeleteRows="False"
                           IsReadOnly="True">
@@ -109,4 +115,5 @@
             </TabItem>
         </TabControl>
     </Grid>
+    </DockPanel>
 </UserControl>

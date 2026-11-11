@@ -8,10 +8,11 @@ using Nest.ViewModels.Shell;
 using System;
 using System.Collections.ObjectModel;
 using System.Data;
+using Nest.Synchronization;
 
 namespace Nest.ViewModels.Reception
 {
-    public class ReservationManagementViewModel : Screen
+    public class ReservationManagementViewModel : BookingPollingScreen
     {
         private readonly ShellViewModel _shell;
         private readonly RoomRepository _roomRepository;
@@ -19,7 +20,8 @@ namespace Nest.ViewModels.Reception
         private readonly GastRepository _gastRepository;
 
         // ==================== KONSTRUKTOR ====================
-        public ReservationManagementViewModel(ShellViewModel shell)
+        public ReservationManagementViewModel(ShellViewModel shell) : this(shell, () => PollingCoordinator.Shared) { }
+        internal ReservationManagementViewModel(ShellViewModel shell, Func<PollingCoordinator> polling) : base(polling)
         {
             _shell = shell;
 
@@ -35,12 +37,6 @@ namespace Nest.ViewModels.Reception
             Children = 0;
             PaymentType = "Bar";
             Deposit = 0;
-
-            LoadRoomsFromDatabase();
-            LoadReservationsFromDatabase();
-
-            if (RoomList.Count > 0)
-                SelectedRoom = RoomList[0];
 
             CalculatePrice();
         }
@@ -103,9 +99,23 @@ namespace Nest.ViewModels.Reception
             get => _selectedRoom;
             set
             {
+                var previous = _selectedRoom;
                 _selectedRoom = value;
+                DraftRoomWarning = "";
                 NotifyOfPropertyChange(() => SelectedRoom);
                 CalculatePrice();
+                // Once the user leaves a pinned draft room, release that stale
+                // option and show the latest server value (or remove it).
+                if (previous != null && previous.Id != value?.Id && lastSnapshot != null)
+                {
+                    var index = RoomList.IndexOf(previous);
+                    var latest = lastSnapshot.Rooms.FirstOrDefault(r => r.Id == previous.Id);
+                    if (index >= 0)
+                    {
+                        if (latest == null) RoomList.RemoveAt(index);
+                        else RoomList[index] = MapRoom(latest);
+                    }
+                }
             }
         }
 
@@ -223,7 +233,7 @@ namespace Nest.ViewModels.Reception
         public object? ActiveItem
         {
             get => _activeItem;
-            set
+            private set
             {
                 _activeItem = value;
                 NotifyOfPropertyChange(() => ActiveItem);
@@ -231,6 +241,92 @@ namespace Nest.ViewModels.Reception
         }
 
         // ==================== BERECHNUNGEN ====================
+        private IReadOnlyList<BookingSnapshot> cachedBookings = Array.Empty<BookingSnapshot>();
+        private PollingSnapshot? lastSnapshot;
+        private bool switchingEmbedded;
+        private string draftRoomWarning = "";
+        public string DraftRoomWarning
+        {
+            get => draftRoomWarning;
+            private set
+            {
+                if (draftRoomWarning == value) return;
+                draftRoomWarning = value;
+                NotifyOfPropertyChange(() => DraftRoomWarning);
+            }
+        }
+        protected override bool PollingVisible => ActiveItem == null && !switchingEmbedded;
+        private static Room MapRoom(RoomSnapshot r) => new()
+        {
+            Id = r.Id, RoomNumber = r.Number, Type = r.Type, PricePerNight = r.Price,
+            Capacity = r.Capacity, Status = r.Status, Description = r.Description,
+            ImagePath = r.ImagePath, DateAdded = r.Added, DateDelete = r.Deleted
+        };
+        protected override void ApplyPollingSnapshot(PollingSnapshot snapshot)
+        {
+            if (lastSnapshot != null && lastSnapshot.HasSameData(snapshot)) return;
+            cachedBookings = snapshot.Bookings;
+            ApplyReservationFilter();
+            if (lastSnapshot == null || !lastSnapshot.Rooms.SequenceEqual(snapshot.Rooms))
+            {
+                // A chosen room is a draft value. Keep its object, price and selection
+                // even if another employee changes/deletes it. Repository revalidates on Save.
+                var selected = SelectedRoom;
+                var rooms = snapshot.Rooms.Select(r => selected?.Id == r.Id ? selected : MapRoom(r)).ToList();
+                if (selected != null && !rooms.Any(r => r.Id == selected.Id)) rooms.Add(selected);
+                Reconcile(RoomList, rooms, r => r.Id, (a, b) => a.Id == b.Id && a.RoomNumber == b.RoomNumber &&
+                    a.Type == b.Type && a.PricePerNight == b.PricePerNight && a.Capacity == b.Capacity &&
+                    a.Status == b.Status && a.Description == b.Description && a.ImagePath == b.ImagePath &&
+                    a.DateAdded == b.DateAdded && a.DateDelete == b.DateDelete);
+                var current = snapshot.Rooms.FirstOrDefault(r => r.Id == selected?.Id);
+                var draft = selected == null ? null : new RoomSnapshot(selected.Id, selected.RoomNumber, selected.Type,
+                    selected.PricePerNight, selected.Capacity, selected.Status, selected.Description, selected.ImagePath,
+                    selected.DateAdded, selected.DateDelete);
+                DraftRoomWarning = draft != null && current != draft
+                    ? "Das gewählte Zimmer wurde geändert oder entfernt. Entwurfswerte bleiben erhalten; bitte prüfen Sie das Zimmer vor dem Speichern." : "";
+            }
+            lastSnapshot = snapshot;
+        }
+        private void ApplyReservationFilter()
+        {
+            var code = SelectedReservation?.ReservationCode;
+            var filtered = cachedBookings.Where(r => string.IsNullOrWhiteSpace(SearchText) ||
+                r.Guest.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                r.Code.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+            var incoming = filtered.Select(r => new ReservationItem
+            {
+                ReservationCode = r.Code, GastName = r.Guest, RoomNumber = r.Room, RoomType = r.Type,
+                CheckOut = r.Departure, Nights = r.Nights, Amount = r.Total, Status = r.Status
+            }).ToArray();
+            Reconcile(Reservations, incoming, r => r.ReservationCode, (a, b) =>
+                a.ReservationCode == b.ReservationCode && a.GastName == b.GastName && a.RoomNumber == b.RoomNumber &&
+                a.RoomType == b.RoomType && a.CheckOut == b.CheckOut && a.Nights == b.Nights && a.Amount == b.Amount && a.Status == b.Status);
+            var selected = Reservations.FirstOrDefault(r => r.ReservationCode == code);
+            if (!ReferenceEquals(SelectedReservation, selected)) SelectedReservation = selected;
+        }
+        protected override async Task OnActivatedAsync(CancellationToken cancellationToken)
+        {
+            await base.OnActivatedAsync(cancellationToken);
+            if (ActiveItem is IActivate child) await child.ActivateAsync(cancellationToken);
+        }
+        protected override async Task OnDeactivateAsync(bool close, CancellationToken cancellationToken)
+        {
+            await base.OnDeactivateAsync(close, cancellationToken);
+            if (ActiveItem is IDeactivate child) await child.DeactivateAsync(close, cancellationToken);
+        }
+        private async Task ChangeEmbeddedScreen(Screen? next)
+        {
+            switchingEmbedded = true;
+            UpdatePollingSubscription();
+            try
+            {
+                if (ActiveItem is IDeactivate previous) await previous.DeactivateAsync(true);
+                ActiveItem = next;
+                if (PollingActive && next != null) await ((IActivate)next).ActivateAsync();
+            }
+            finally { switchingEmbedded = false; UpdatePollingSubscription(); }
+        }
+
         private void CalculateNights()
         {
             Nights = CheckOutDate > CheckInDate ? (CheckOutDate - CheckInDate).Days : 0;
@@ -249,6 +345,7 @@ namespace Nest.ViewModels.Reception
         // ==================== DATEN LADEN ====================
         private bool LoadRoomsFromDatabase(bool showError = true)
         {
+            if (PollingActive) { RequestPollingRefresh(); return true; }
             try
             {
                 var selectedRoomId = SelectedRoom?.Id;
@@ -269,6 +366,7 @@ namespace Nest.ViewModels.Reception
 
         private bool LoadReservationsFromDatabase(bool showError = true)
         {
+            if (PollingActive) { RequestPollingRefresh(); return true; }
             try
             {
                 var data = _reservationRepository.GetAll();
@@ -312,7 +410,7 @@ namespace Nest.ViewModels.Reception
 
         public void FilterReservations()
         {
-            LoadReservationsFromDatabase();
+            ApplyReservationFilter();
         }
 
         public void ClearSearch()
@@ -323,6 +421,7 @@ namespace Nest.ViewModels.Reception
         // ==================== RESERVIERUNG SPEICHERN ====================
         public void SaveReservation()
         {
+            using var pollingPause = PausePolling();
             if (string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(LastName))
             {
                 System.Windows.MessageBox.Show("Bitte Vorname und Nachname eingeben!", "Fehler",
@@ -431,6 +530,7 @@ namespace Nest.ViewModels.Reception
         // ==================== CHECK-IN ====================
         public void CheckIn()
         {
+            using var pollingPause = PausePolling();
             if (SelectedReservation == null)
             {
                 System.Windows.MessageBox.Show("Bitte eine Reservierung auswählen.", "Hinweis",
@@ -451,6 +551,7 @@ namespace Nest.ViewModels.Reception
         // ==================== CHECK-OUT ====================
         public void CheckOut()
         {
+            using var pollingPause = PausePolling();
             if (SelectedReservation == null)
             {
                 System.Windows.MessageBox.Show("Bitte eine Reservierung auswählen.", "Hinweis",
@@ -544,6 +645,7 @@ namespace Nest.ViewModels.Reception
         // ==================== STORNIEREN ====================
         public void CancelReservation()
         {
+            using var pollingPause = PausePolling();
             if (SelectedReservation == null)
             {
                 System.Windows.MessageBox.Show("Bitte eine Reservierung auswählen.", "Hinweis",
@@ -647,23 +749,23 @@ namespace Nest.ViewModels.Reception
 
         // ==================== NAVIGATION ====================
         public ShellViewModel Shell => _shell;
-        public void ShowGuests()
+        public Task ShowGuests()
         {
-            ActiveItem = new GastManagementViewModel();
+            return ChangeEmbeddedScreen(new GastManagementViewModel());
         }
 
-        public void ShowReservations()
+        public Task ShowReservations()
         {
-            ActiveItem = null;
+            return ChangeEmbeddedScreen(null);
         }
 
-        public void ShowAllReservations()
+        public Task ShowAllReservations()
         {
-            ActiveItem = new AllBookingsViewModel();
+            return ChangeEmbeddedScreen(new AllBookingsViewModel());
         }
-        public void ShowCustomerPortal()
+        public Task ShowCustomerPortal()
         {
-            ActiveItem = new CustomerPortalViewModel(_shell, null);
+            return ChangeEmbeddedScreen(new CustomerPortalViewModel(_shell, null));
         }
 
         public void Logout()

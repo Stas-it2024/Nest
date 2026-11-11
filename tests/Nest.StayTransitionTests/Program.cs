@@ -165,6 +165,10 @@ internal static class Program
             Prepare(checkIn, scenario);
             var shell = (Nest.ViewModels.Shell.ShellViewModel)RuntimeHelpers.GetUninitializedObject(typeof(Nest.ViewModels.Shell.ShellViewModel));
             var vm = new ReservationManagementViewModel(shell);
+            // Initial loading moved from the UI constructor to polling activation.
+            // These legacy command regressions seed through the same fake read adapters.
+            typeof(ReservationManagementViewModel).GetMethod("LoadRoomsFromDatabase", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(vm, new object[] { false });
+            typeof(ReservationManagementViewModel).GetMethod("LoadReservationsFromDatabase", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(vm, new object[] { false });
             vm.SelectedReservation = vm.Reservations.Single(); vm.SelectedRoom = vm.RoomList.FirstOrDefault();
             vm.FirstName = "Keep"; vm.LastName = "Form"; vm.SpecialRequests = "Keep request"; vm.Deposit = 10;
             var selected = vm.SelectedReservation; var selectedRoom = vm.SelectedRoom; var reservations = vm.Reservations; var rooms = vm.RoomList;

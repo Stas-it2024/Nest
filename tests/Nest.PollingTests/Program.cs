@@ -5,7 +5,7 @@ using System.Threading.Channels;
 using System.Windows;
 using System.Windows.Threading;
 
-internal static class Program
+internal static partial class Program
 {
     private static int assertions;
     private static void Check(bool value)
@@ -17,7 +17,23 @@ internal static class Program
         new[] { new RoomSnapshot(1, 101, "Standard", 50, 2, "Verfuegbar", null, null, new DateTime(2026, 1, 1), null) },
         new[] { new BookingSnapshot("CODE", "Guest", "101", "Standard", new DateTime(2026, 1, 1), new DateTime(2026, 1, 2), 1, 1, 0, 50, 0, "Bar", status) });
 
-    private static async Task Main() => await Run().WaitAsync(TimeSpan.FromSeconds(45));
+    private static async Task Main()
+    {
+        var oldMode = Environment.GetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ModeVariable);
+        var oldConnection = Environment.GetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ConnectionVariable);
+        try
+        {
+            // Any accidental real Repository call must fail before opening a connection.
+            Environment.SetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ModeVariable, "invalid-offline-test");
+            Environment.SetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ConnectionVariable, null);
+            await Run().WaitAsync(TimeSpan.FromSeconds(45));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ModeVariable, oldMode);
+            Environment.SetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ConnectionVariable, oldConnection);
+        }
+    }
     private static async Task Run()
     {
         using (var ui = new Ui())
@@ -30,6 +46,7 @@ internal static class Program
         await Consumers(ui); Console.WriteLine("PASS consumer isolation");
         await RealAdapter(ui); Console.WriteLine("PASS production Dispatcher adapter");
         await AdditionalLifecycle(ui); Console.WriteLine("PASS idle/new subscriber/reentrant invalidation");
+        await ScreenChecks(ui);
         Check(ReferenceEquals(PollingCoordinator.Shared, PollingCoordinator.Shared));
         }
         // Shared was never subscribed: no production read, even during shutdown.

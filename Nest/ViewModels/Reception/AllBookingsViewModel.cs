@@ -7,28 +7,60 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
+using Nest.Synchronization;
 
 namespace Nest.ViewModels.Reception
 {
     /// <summary>
     /// Gemeinsame Übersicht für Zimmerreservierungen und Event-Tickets.
     /// </summary>
-    public class AllBookingsViewModel : Screen
+    public class AllBookingsViewModel : BookingPollingScreen
     {
-        private readonly ReservationRepository _reservationRepository;
+        private readonly bool loadTickets;
+        private IReadOnlyList<BookingSnapshot> cachedBookings = Array.Empty<BookingSnapshot>();
+        private List<ReservationOverview> allReservations = new();
+        private ReservationOverview? selectedReservation;
+        private long ticketSession;
+        private Task<List<TicketOrderItem>>? ticketRead;
         private readonly bool _showPageHeader;
         private string _searchText = "";
         private string _selectedStatus = "Alle";
         private ObservableCollection<ReservationOverview> _reservations = new();
         private ObservableCollection<TicketOrderItem> _ticketOrders = new();
 
-        public AllBookingsViewModel(bool showPageHeader = false)
+        public AllBookingsViewModel(bool showPageHeader = false) : this(showPageHeader, () => PollingCoordinator.Shared, true) { }
+        internal AllBookingsViewModel(bool showPageHeader, Func<PollingCoordinator> polling, bool loadTickets = false) : base(polling)
         {
             _showPageHeader = showPageHeader;
-            _reservationRepository = new ReservationRepository();
-
-            LoadAllReservations();
-            LoadTicketOrders();
+            this.loadTickets = loadTickets;
+        }
+        public ReservationOverview? SelectedReservation
+        {
+            get => selectedReservation;
+            set { selectedReservation = value; NotifyOfPropertyChange(() => SelectedReservation); }
+        }
+        protected override async Task OnActivatedAsync(CancellationToken cancellationToken)
+        {
+            await base.OnActivatedAsync(cancellationToken);
+            if (loadTickets) await LoadTicketOrders();
+        }
+        protected override async Task OnDeactivateAsync(bool close, CancellationToken cancellationToken)
+        {
+            ticketSession++;
+            await base.OnDeactivateAsync(close, cancellationToken);
+        }
+        protected override void ApplyPollingSnapshot(PollingSnapshot snapshot)
+        {
+            if (cachedBookings.SequenceEqual(snapshot.Bookings)) return;
+            cachedBookings = snapshot.Bookings;
+            allReservations = snapshot.Bookings.Select(b => new ReservationOverview
+            {
+                ReservationCode = b.Code, Guest = b.Guest, Room = b.Room, Type = b.Type,
+                CheckInDate = b.Arrival, CheckOutDate = b.Departure, Nights = b.Nights,
+                Adults = b.Adults, Children = b.Children, TotalAmount = b.Total,
+                AmountPaid = b.Paid, PaymentMethod = b.PaymentMethod, Status = b.Status
+            }).ToList();
+            FilterReservations();
         }
 
         public bool ShowPageHeader => _showPageHeader;
@@ -88,21 +120,37 @@ namespace Nest.ViewModels.Reception
 
         public void LoadAllReservations()
         {
-            try
-            {
-                Reservations = new ObservableCollection<ReservationOverview>(_reservationRepository.GetAll());
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Fehler beim Laden der Reservierungen: {ex.Message}", "Fehler",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            RequestPollingRefresh();
         }
 
-        public void LoadTicketOrders()
+        public async Task LoadTicketOrders()
         {
+            var currentSession = ++ticketSession;
+            Task<List<TicketOrderItem>>? read = null;
             try
             {
+                read = ticketRead ??= Task.Run(ReadTicketOrders);
+                var list = await read;
+                if (ReferenceEquals(ticketRead, read)) ticketRead = null;
+                if (PollingActive && currentSession == ticketSession)
+                {
+                    TicketOrders = new ObservableCollection<TicketOrderItem>(list);
+                    TicketStatus = "";
+                    NotifyOfPropertyChange(() => TicketStatus);
+                }
+            }
+            catch (Exception)
+            {
+                if (ReferenceEquals(ticketRead, read)) ticketRead = null;
+                // Optional tickets are not part of the shared booking snapshot.
+                // Keep the previous list and report nonmodally, never from a worker thread.
+                if (PollingActive && currentSession == ticketSession)
+                { TicketStatus = "Tickets konnten nicht geladen werden. Bitte später erneut versuchen."; NotifyOfPropertyChange(() => TicketStatus); }
+            }
+        }
+        public string TicketStatus { get; private set; } = "";
+        private static List<TicketOrderItem> ReadTicketOrders()
+        {
                 var list = new List<TicketOrderItem>();
                 using var conn = DB.GetConnection();
                 DB.OpenConnection(conn);
@@ -130,20 +178,13 @@ namespace Nest.ViewModels.Reception
                     });
                 }
 
-                TicketOrders = new ObservableCollection<TicketOrderItem>(list);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Fehler beim Laden der Tickets: {ex.Message}", "Fehler",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+                return list;
         }
 
         public void FilterReservations()
         {
-            try
-            {
-                var allData = _reservationRepository.GetAll();
+                var code = SelectedReservation?.ReservationCode;
+                var allData = allReservations;
 
                 if (!string.IsNullOrEmpty(SelectedStatus) && SelectedStatus != "Alle")
                 {
@@ -158,13 +199,13 @@ namespace Nest.ViewModels.Reception
                         (r.ReservationCode?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false));
                 }
 
-                Reservations = new ObservableCollection<ReservationOverview>(allData);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Fehler beim Filtern: {ex.Message}", "Fehler",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+                Reconcile(Reservations, allData, r => r.ReservationCode, (a, b) =>
+                    a.ReservationCode == b.ReservationCode && a.Guest == b.Guest && a.Room == b.Room && a.Type == b.Type &&
+                    a.CheckInDate == b.CheckInDate && a.CheckOutDate == b.CheckOutDate && a.Nights == b.Nights &&
+                    a.Adults == b.Adults && a.Children == b.Children && a.TotalAmount == b.TotalAmount &&
+                    a.AmountPaid == b.AmountPaid && a.PaymentMethod == b.PaymentMethod && a.Status == b.Status);
+                var selected = Reservations.FirstOrDefault(r => r.ReservationCode == code);
+                if (!ReferenceEquals(SelectedReservation, selected)) SelectedReservation = selected;
         }
 
         public void ClearSearch()

@@ -146,6 +146,11 @@ internal static class CancellationChecks
         object vm = legacy ? new StayTests.LegacyUi.ReservationManagementViewModel(shell) : new StayTests.Ui.ReservationManagementViewModel(shell);
         static object? Get(object target, string name) => target.GetType().GetProperty(name)?.GetValue(target);
         static void Set(object target, string name, object? value) => target.GetType().GetProperty(name)?.SetValue(target, value);
+        if (vm.GetType().GetMethod("LoadReservationsFromDatabase", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?.DeclaringType?.Namespace == "StayTests.Ui")
+        {
+            vm.GetType().GetMethod("LoadRoomsFromDatabase", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(vm, new object[] { false });
+            vm.GetType().GetMethod("LoadReservationsFromDatabase", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(vm, new object[] { false });
+        }
         var reservations = Get(vm, "Reservations") ?? throw new Exception();
         var rooms = Get(vm, "RoomList") ?? throw new Exception();
         var selected = ((IEnumerable)reservations).Cast<object>().Single();
