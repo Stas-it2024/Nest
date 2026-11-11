@@ -47,6 +47,7 @@ internal static partial class Program
         await RealAdapter(ui); Console.WriteLine("PASS production Dispatcher adapter");
         await AdditionalLifecycle(ui); Console.WriteLine("PASS idle/new subscriber/reentrant invalidation");
         await ScreenChecks(ui);
+        await RoomChecks(ui);
         Check(ReferenceEquals(PollingCoordinator.Shared, PollingCoordinator.Shared));
         }
         // Shared was never subscribed: no production read, even during shutdown.

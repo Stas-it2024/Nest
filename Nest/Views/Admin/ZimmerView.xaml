@@ -19,6 +19,13 @@
         <!-- TextBox -->
         <Style TargetType="TextBox" BasedOn="{StaticResource AdminFormTextBoxStyle}"/>
     </UserControl.Resources>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="10,4">
+            <TextBlock Text="{Binding SynchronizationStatus}" TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding RoomConflictWarning}" TextWrapping="Wrap"/>
+            <Button x:Name="ReloadSelectedRoom" Content="Aktuellen Stand übernehmen"
+                    HorizontalAlignment="Left" Margin="0,4" Padding="8,3"/>
+        </StackPanel>
     <Grid>
 
         <Grid.RowDefinitions>
@@ -185,6 +192,7 @@
         <DataGrid Style="{StaticResource StandardDataGridStyle}" Grid.Row="1" Grid.Column="1"
                   ItemsSource="{Binding Rooms}"
                   SelectedItem="{Binding SelectedRoom}"
+                  IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False"
                   AutoGenerateColumns="False">
 
             <DataGrid.Columns>
@@ -217,4 +225,5 @@
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
+    </DockPanel>
 </UserControl>

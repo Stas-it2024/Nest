@@ -10,17 +10,108 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using Nest.Synchronization;
+using Nest.ViewModels.Reception;
 
 namespace Nest.ViewModels.Admin
 {
-    public class ZimmerViewModel : Screen
+    public class ZimmerViewModel : BookingPollingScreen
     {
         private readonly RoomRepository _roomRepository;
+        private readonly Func<Room, RoomWriteResult> addRoom;
+        private readonly Func<Room, RoomWriteResult> updateRoom;
+        private readonly Func<int, RoomWriteResult> deleteRoom;
+        private readonly Func<string, string, MessageBoxButton, MessageBoxImage, MessageBoxResult> dialog;
+        private IReadOnlyList<RoomSnapshot>? latestRooms;
+        private RoomSnapshot? editBaseline;
+        private int? editingRoomId;
+        private bool applyingSnapshot;
+        private bool missingRoom;
+        private bool changedRoom;
+        private string roomConflictWarning = "";
+        public string RoomConflictWarning
+        {
+            get => roomConflictWarning;
+            private set
+            {
+                if (roomConflictWarning == value) return;
+                roomConflictWarning = value;
+                NotifyOfPropertyChange(() => RoomConflictWarning);
+            }
+        }
+        public bool CanAktualisieren => SelectedRoom != null && !missingRoom && !changedRoom;
+        public bool CanLöschen => CanAktualisieren;
+        public bool CanReloadSelectedRoom => editingRoomId != null && !missingRoom;
 
-        public ZimmerViewModel()
+        public ZimmerViewModel() : this(() => PollingCoordinator.Shared) { }
+        internal ZimmerViewModel(Func<PollingCoordinator> polling,
+            Func<Room, RoomWriteResult>? add = null, Func<Room, RoomWriteResult>? update = null,
+            Func<int, RoomWriteResult>? delete = null,
+            Func<string, string, MessageBoxButton, MessageBoxImage, MessageBoxResult>? showDialog = null) : base(polling)
         {
             _roomRepository = new RoomRepository();
-            LoadRooms();
+            addRoom = add ?? (room => _roomRepository.Add(room));
+            updateRoom = update ?? (room => _roomRepository.Update(room));
+            deleteRoom = delete ?? (id => _roomRepository.Delete(id));
+            dialog = showDialog ?? ((text, title, buttons, icon) => MessageBox.Show(text, title, buttons, icon));
+        }
+
+        protected override void ApplyPollingSnapshot(PollingSnapshot snapshot)
+        {
+            if (latestRooms != null && latestRooms.SequenceEqual(snapshot.Rooms)) return;
+            var selectedId = SelectedRoom?.Id;
+            latestRooms = snapshot.Rooms;
+            applyingSnapshot = true;
+            try
+            {
+                var rows = snapshot.Rooms.Select(MapRoom).ToArray();
+                Reconcile(Rooms, rows, r => r.Id, (a, b) => Capture(a) == Capture(b));
+                // Bypass the form-filling setter. A deleted row loses selection,
+                // but its edit identity/baseline and the complete draft survive.
+                _selectedRoom = Rooms.FirstOrDefault(r => r.Id == selectedId);
+                NotifyOfPropertyChange(() => SelectedRoom);
+            }
+            finally { applyingSnapshot = false; }
+            UpdateConflict();
+        }
+        private static RoomSnapshot Capture(Room r) => new(r.Id, r.RoomNumber, r.Type, r.PricePerNight,
+            r.Capacity, r.Status, r.Description, r.ImagePath, r.DateAdded, r.DateDelete);
+        private static Room MapRoom(RoomSnapshot r) => new()
+        {
+            Id = r.Id, RoomNumber = r.Number, Type = r.Type, PricePerNight = r.Price,
+            Capacity = r.Capacity, Status = r.Status, Description = r.Description,
+            ImagePath = r.ImagePath, DateAdded = r.Added, DateDelete = r.Deleted
+        };
+        private void UpdateConflict()
+        {
+            var current = latestRooms?.FirstOrDefault(r => r.Id == editingRoomId);
+            missingRoom = editingRoomId != null && current == null;
+            changedRoom = editingRoomId != null && !missingRoom && editBaseline != current;
+            RoomConflictWarning = missingRoom
+                ? "Das bearbeitete Zimmer wurde entfernt. Ihre Eingaben bleiben erhalten; Aktualisieren und Löschen sind gesperrt."
+                : changedRoom
+                    ? "Das Zimmer wurde außerhalb dieses Entwurfs geändert. Ihre Eingaben bleiben erhalten. Prüfen Sie die Liste und übernehmen Sie den aktuellen Stand ausdrücklich, bevor Sie weiter speichern."
+                    : "";
+            NotifyOfPropertyChange(() => CanAktualisieren);
+            NotifyOfPropertyChange(() => CanLöschen);
+            NotifyOfPropertyChange(() => CanReloadSelectedRoom);
+        }
+        private bool HasKnownConflict()
+        {
+            if (!missingRoom && !changedRoom) return false;
+            dialog(RoomConflictWarning, "Bearbeitungskonflikt", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return true;
+        }
+        public void ReloadSelectedRoom()
+        {
+            using var pollingPause = PausePolling();
+            var current = Rooms.FirstOrDefault(r => r.Id == editingRoomId);
+            if (current == null) return;
+            if (dialog("Aktuellen Zimmerstand in das Formular übernehmen? Ihre ungespeicherten Eingaben werden verworfen.",
+                "Aktuellen Stand übernehmen", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+            _selectedRoom = current;
+            NotifyOfPropertyChange(() => SelectedRoom);
+            BeginEditing(current); // Explicit user decision, never a polling callback.
         }
 
         // Property für ZimmerNumber
@@ -216,16 +307,7 @@ namespace Nest.ViewModels.Admin
 
         public void LoadRooms()
         {
-            try
-            {
-                var zimmer = _roomRepository.GetAll();
-                Rooms = new ObservableCollection<Room>(zimmer);
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("Die Zimmerliste konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
-                    "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            RequestPollingRefresh();
         }
 
         // Zimmer selected
@@ -236,19 +318,27 @@ namespace Nest.ViewModels.Admin
             get => _selectedRoom;
             set
             {
+                if (ReferenceEquals(_selectedRoom, value)) return;
                 _selectedRoom = value;
                 NotifyOfPropertyChange(() => SelectedRoom);
-
-                if (_selectedRoom != null)
-                {
-                    RoomNumber = _selectedRoom.RoomNumber;
-                    Capacity = _selectedRoom.Capacity;
-                    PriceText = _selectedRoom.PricePerNight.ToString("0.00");
-                    SelectedTypeIndex = GetTypeIndex(_selectedRoom.Type);
-                    SelectedStatusIndex = GetStatusIndex(_selectedRoom.Status);
-                    Beschreibung = _selectedRoom.Description;
-                }
+                if (applyingSnapshot) return;
+                BeginEditing(value);
             }
+        }
+        private void BeginEditing(Room? room)
+        {
+            editingRoomId = room?.Id;
+            editBaseline = room == null ? null : Capture(room);
+            if (room != null)
+            {
+                RoomNumber = room.RoomNumber;
+                Capacity = room.Capacity;
+                PriceText = room.PricePerNight.ToString("0.00");
+                SelectedTypeIndex = GetTypeIndex(room.Type);
+                SelectedStatusIndex = GetStatusIndex(room.Status);
+                Beschreibung = room.Description;
+            }
+            UpdateConflict();
         }
 
         private int GetTypeIndex(string type)
@@ -302,6 +392,9 @@ namespace Nest.ViewModels.Admin
         // Buttons
         public void ClearForm()
         {
+            using var pollingPause = PausePolling();
+            SelectedRoom = null;
+            BeginEditing(null);
             RoomNumber = null;
             Capacity = 1;
             PriceText = "0,00";
@@ -313,6 +406,7 @@ namespace Nest.ViewModels.Admin
         // Button hinzufügen
         public void Hinzufügen()
         {
+            using var pollingPause = PausePolling();
             if (RoomNumber == null)
                 return;
 
@@ -343,16 +437,18 @@ namespace Nest.ViewModels.Admin
                 Description = Beschreibung
             };
 
-            ExecuteRoomWrite(() => _roomRepository.Add(room), "Zimmer erfolgreich hinzugefügt!", clearForm: true);
+            ExecuteRoomWrite(() => addRoom(room), "Zimmer erfolgreich hinzugefügt!", clearForm: true);
         }
 
         //Button löschen
         public void Löschen()
         {
+            using var pollingPause = PausePolling();
+            if (HasKnownConflict()) return;
             if (SelectedRoom == null)
                 return;
 
-            var result = MessageBox.Show(
+            var result = dialog(
                 "Zimmer wirklich löschen?",
                 "Bestätigung",
                 MessageBoxButton.YesNo,
@@ -362,12 +458,14 @@ namespace Nest.ViewModels.Admin
                 return;
 
             var roomId = SelectedRoom.Id;
-            ExecuteRoomWrite(() => _roomRepository.Delete(roomId), "Zimmer gelöscht.", clearForm: false);
+            ExecuteRoomWrite(() => deleteRoom(roomId), "Zimmer gelöscht.", clearForm: false);
         }
 
         // Button aktualisieren
         public void Aktualisieren()
         {
+            using var pollingPause = PausePolling();
+            if (HasKnownConflict()) return;
             if (SelectedRoom == null)
                 return;
 
@@ -399,7 +497,7 @@ namespace Nest.ViewModels.Admin
                 Description = Beschreibung
             };
 
-            ExecuteRoomWrite(() => _roomRepository.Update(room), "Zimmer aktualisiert!", clearForm: true);
+            ExecuteRoomWrite(() => updateRoom(room), "Zimmer aktualisiert!", clearForm: true);
         }
 
         private void ExecuteRoomWrite(Func<RoomWriteResult> write, string successMessage, bool clearForm)
@@ -425,22 +523,21 @@ namespace Nest.ViewModels.Admin
                     RoomWriteResult.UncertainOutcome => "Das Ergebnis konnte nicht bestätigt werden. Bitte prüfen Sie den tatsächlichen Zimmerzustand, bevor Sie den Vorgang erneut ausführen.",
                     _ => "Das Zimmer konnte aufgrund eines technischen Fehlers nicht gespeichert werden. Bitte prüfen Sie den tatsächlichen Zimmerzustand, bevor Sie den Vorgang erneut ausführen."
                 };
-                MessageBox.Show(message, "Hinweis", MessageBoxButton.OK, MessageBoxImage.Warning);
+                dialog(message, "Hinweis", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             // Erst nach bestätigtem Commit laden. Bei Ladefehlern bleiben Liste, Auswahl und Formular erhalten.
             try
             {
-                var rooms = new ObservableCollection<Room>(_roomRepository.GetAll());
-                Rooms = rooms;
+                RequestPollingRefresh();
                 if (clearForm)
                     ClearForm();
-                MessageBox.Show(successMessage, "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
+                dialog(successMessage, "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception)
             {
-                MessageBox.Show(
+                dialog(
                     "Die Änderung wurde gespeichert, aber die Zimmerliste konnte nicht aktualisiert werden. Bitte laden Sie die Daten neu.",
                     "Hinweis", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
