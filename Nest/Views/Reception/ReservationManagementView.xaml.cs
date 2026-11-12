@@ -101,6 +101,9 @@ namespace Nest.Views.Reception
                 GuestFormPanel.Visibility = wide || showForm ? Visibility.Visible : Visibility.Collapsed;
                 ListPanel.Visibility = wide || !showForm ? Visibility.Visible : Visibility.Collapsed;
                 PaneSwitcher.Visibility = wide ? Visibility.Collapsed : Visibility.Visible;
+                // In compact mode the selected pane choice already names the active area.
+                FormTitle.Visibility = wide ? Visibility.Visible : Visibility.Collapsed;
+                ListTitle.Visibility = wide ? Visibility.Visible : Visibility.Collapsed;
                 FormPaneChoice.IsChecked = showForm;
                 ListPaneChoice.IsChecked = !showForm;
                 foreach (var pair in pairs)
@@ -110,7 +113,7 @@ namespace Nest.Views.Reception
                     var second = (FrameworkElement)pair.Children[1];
                     Grid.SetColumn(second, narrow ? 0 : 2);
                     Grid.SetRow(second, narrow ? 1 : 0);
-                    second.Margin = narrow ? new Thickness(0, 6, 0, 0) : new Thickness(0);
+                    second.Margin = narrow ? new Thickness(0, 8, 0, 0) : new Thickness(0);
                 }
             }
             finally { updating = false; }

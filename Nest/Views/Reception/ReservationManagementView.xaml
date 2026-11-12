@@ -6,23 +6,95 @@
         xmlns:cal="http://www.caliburnproject.org"        mc:Ignorable="d"
         d:Height="1080" d:Width="1480">
 
+    <UserControl.Resources>
+        <Style x:Key="ReservationSectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource PageHeaderBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style x:Key="ReservationFlexibleCellText" TargetType="TextBlock"
+               BasedOn="{x:Static DataGridTextColumn.DefaultElementStyle}">
+            <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+        </Style>
+        <Style x:Key="ReservationCellStyle" TargetType="DataGridCell"
+               BasedOn="{StaticResource StandardDataGridCellStyle}">
+            <Setter Property="Padding" Value="6,0,6,0"/>
+        </Style>
+        <Style x:Key="ReservationStatusCellText" TargetType="TextBlock"
+               BasedOn="{StaticResource ReservationStatusTextStyle}">
+            <!-- Match DataGridTextColumn.DefaultElementStyle's horizontal text margins. -->
+            <Setter Property="Margin" Value="2,0,2,0"/>
+        </Style>
+        <!-- Keep native RadioButton keyboard/UI Automation behavior; only replace its visual. -->
+        <Style x:Key="ReservationPaneChoiceStyle" TargetType="RadioButton">
+            <Setter Property="MinHeight" Value="44"/>
+            <Setter Property="MinWidth" Value="150"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{StaticResource PageHeaderBrush}"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PortalBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid>
+                            <Border x:Name="ChoiceSurface" Margin="3" Padding="{TemplateBinding Padding}"
+                                    Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                                <ContentPresenter RecognizesAccessKey="True"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            </Border>
+                            <Border x:Name="ChoiceFocus" BorderThickness="2" CornerRadius="6"
+                                    BorderBrush="{DynamicResource {x:Static SystemColors.WindowTextBrushKey}}"
+                                    Visibility="Collapsed" IsHitTestVisible="False"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource PortalBorderBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" Value="{StaticResource PageHeaderBrush}"/>
+                                <Setter Property="BorderBrush" Value="{StaticResource PageHeaderBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="ChoiceFocus" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ChoiceSurface" Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <StackPanel x:Name="StatusArea" Grid.Row="0" Margin="10,4">
+        <StackPanel x:Name="StatusArea" Grid.Row="0" Margin="12,8">
             <TextBlock Text="{Binding SynchronizationStatus}" TextWrapping="Wrap"/>
             <TextBlock Text="{Binding DraftRoomWarning}" TextWrapping="Wrap"/>
         </StackPanel>
-        <WrapPanel x:Name="PaneSwitcher" Grid.Row="1" Margin="10,4" Visibility="Collapsed"
+        <WrapPanel x:Name="PaneSwitcher" Grid.Row="1" Margin="12,4,4,0" Visibility="Collapsed"
                    AutomationProperties.Name="Reservierungsbereich auswählen">
             <RadioButton x:Name="ListPaneChoice" Content="Reservierungen" GroupName="ReservationPane"
-                         IsChecked="True" Checked="PaneChoice_Checked" MinHeight="32" Padding="8,4" Margin="0,0,12,0"
+                         IsChecked="True" Checked="PaneChoice_Checked" Style="{StaticResource ReservationPaneChoiceStyle}"
                          AutomationProperties.Name="Liste der Reservierungen anzeigen"/>
             <RadioButton x:Name="FormPaneChoice" Content="Neue Reservierung" GroupName="ReservationPane"
-                         Checked="PaneChoice_Checked" MinHeight="32" Padding="8,4"
+                         Checked="PaneChoice_Checked" Style="{StaticResource ReservationPaneChoiceStyle}"
                          AutomationProperties.Name="Formular für eine neue Reservierung anzeigen"/>
         </WrapPanel>
     <Grid x:Name="Workspace" Grid.Row="2">
@@ -33,12 +105,15 @@
 
         <!-- Gastinformationen -->
         <Border x:Name="GuestFormPanel" Grid.Column="0" Background="#F0F4F8">
-            <Grid Margin="15,3,15,3">
+            <Grid Margin="12">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <ScrollViewer x:Name="FormScroller" Grid.Row="0"
+                <TextBlock x:Name="FormTitle" Grid.Row="0" Text="Neue Reservierung"
+                           Style="{StaticResource ReservationSectionTitle}"/>
+                <ScrollViewer x:Name="FormScroller" Grid.Row="1"
                               VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
                 <Grid>
@@ -65,9 +140,9 @@
                            FontSize="16"
                            FontWeight="Bold"
                            Foreground="#FF174A92"
-                           Margin="0,0,0,3"/>
+                           Margin="0,0,0,8"/>
 
-                <Grid x:Name="NamePair" Grid.Row="1" Margin="0,0,0,3">
+                <Grid x:Name="NamePair" Grid.Row="1" Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -85,7 +160,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid x:Name="ContactPair" Grid.Row="2" Margin="0,0,0,3">
+                <Grid x:Name="ContactPair" Grid.Row="2" Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -103,7 +178,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid x:Name="IdentityPair" Grid.Row="3" Margin="0,0,0,3">
+                <Grid x:Name="IdentityPair" Grid.Row="3" Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -123,7 +198,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid Grid.Row="4" Margin="0,0,0,3">
+                <Grid Grid.Row="4" Margin="0,0,0,8">
                     <StackPanel>
                         <TextBlock Style="{StaticResource RecLabel}" Text="Nationalität"/>
                         <TextBox Style="{StaticResource RecTextBox}"
@@ -138,9 +213,9 @@
                            FontSize="14"
                            FontWeight="Bold"
                            Foreground="#FF174A92"
-                           Margin="0,0,0,3"/>
+                           Margin="0,0,0,8"/>
 
-                <Grid Grid.Row="7" Margin="0,0,0,3">
+                <Grid Grid.Row="7" Margin="0,0,0,8">
                     <StackPanel>
                         <TextBlock Style="{StaticResource RecLabel}" Text="Zimmer *"/>
                         <ComboBox Style="{StaticResource RecComboBox}"
@@ -150,7 +225,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid x:Name="DatesPair" Grid.Row="8" Margin="0,0,0,3">
+                <Grid x:Name="DatesPair" Grid.Row="8" Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -168,7 +243,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid x:Name="PricePair" Grid.Row="9" Margin="0,0,0,3">
+                <Grid x:Name="PricePair" Grid.Row="9" Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -186,7 +261,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid x:Name="PeoplePair" Grid.Row="10" Margin="0,0,0,3">
+                <Grid x:Name="PeoplePair" Grid.Row="10" Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -206,7 +281,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid x:Name="PaymentPair" Grid.Row="11" Margin="0,0,0,3">
+                <Grid x:Name="PaymentPair" Grid.Row="11" Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -236,18 +311,20 @@
                 </Grid>
                 </ScrollViewer>
 
+                <Border x:Name="FormActionPanel" Grid.Row="2" Margin="0,12,0,0" Padding="0,12,0,0"
+                        BorderBrush="{StaticResource PortalBorderBrush}" BorderThickness="0,1,0,0">
                 <Button x:Name="SaveReservation"
-                        Grid.Row="1"
                         Style="{StaticResource BlueButton}"
                         Content="RESERVIERUNG SPEICHERN"
                         Height="40"
                         FontSize="13"/>
+                </Border>
             </Grid>
         </Border>
 
         <!-- Content Panel -->
         <Border x:Name="ListPanel" Grid.Column="1" Background="#F0F4F8">
-            <Grid Margin="5">
+            <Grid Margin="12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
@@ -274,20 +351,11 @@
                             </Style.Triggers>
                         </Style>
                     </Grid.Style>
-                    <TextBlock Grid.Row="0" Text="Neue Reservierung"
-                               FontSize="20"
-                               FontWeight="Bold"
-                               Foreground="#174A92"
-                               Margin="0,0,0,5"/>
-
-                    <TextBlock Grid.Row="1" Text="📋 Aktuelle Reservierungen"
-                               FontSize="16"
-                               FontWeight="Bold"
-                               Foreground="#FF174A92"
-                               Margin="0,0,0,5"/>
+                    <TextBlock x:Name="ListTitle" Grid.Row="1" Text="Aktuelle Reservierungen"
+                               Style="{StaticResource ReservationSectionTitle}"/>
 
                     <!-- SUCHE -->
-                    <Grid Grid.Row="2" Margin="0,0,0,10">
+                    <Grid Grid.Row="2" Margin="0,0,0,12">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -308,7 +376,7 @@
                     </Grid>
 
                     <!-- AKTIONEN -->
-                    <WrapPanel Grid.Row="3" Margin="0,0,0,10">
+                    <WrapPanel Grid.Row="3" Margin="0,0,0,8">
                         <Button x:Name="CheckIn"
                                 Content="Check-in"
                                 Width="100" Height="32"
@@ -328,6 +396,7 @@
 
                     <!-- DataGrid -->
                     <DataGrid x:Name="ReservationGrid" Grid.Row="4" Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding Reservations}"
+                              CellStyle="{StaticResource ReservationCellStyle}"
                               SelectedItem="{Binding SelectedReservation}"
                               AutoGenerateColumns="False"
                               CanUserDeleteRows="False"
@@ -339,16 +408,18 @@
                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
                               IsReadOnly="True">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Buchungsnr." Binding="{Binding ReservationCode}" Width="110"/>
-                            <DataGridTextColumn Header="Gast" Binding="{Binding GastName}" Width="120"/>
-                            <DataGridTextColumn Header="Zimmer" Binding="{Binding RoomNumber}" Width="60"/>
-                            <DataGridTextColumn Header="Typ" Binding="{Binding RoomType}" Width="80"/>
-                            <DataGridTextColumn Header="Check-out" Binding="{Binding CheckOut, StringFormat={}{0:dd.MM.yyyy}}" Width="90"/>
-                            <DataGridTextColumn Header="Nächte" Binding="{Binding Nights}" Width="60"/>
-                            <DataGridTextColumn Header="Betrag (€)" Binding="{Binding Amount, StringFormat={}{0:F2}}" Width="80"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90">
+                            <DataGridTextColumn Header="Buchungsnr." Binding="{Binding ReservationCode}" Width="*" MinWidth="220"
+                                                ElementStyle="{StaticResource ReservationFlexibleCellText}"/>
+                            <DataGridTextColumn Header="Gast" Binding="{Binding GastName}" Width="2*" MinWidth="120"
+                                                ElementStyle="{StaticResource ReservationFlexibleCellText}"/>
+                            <DataGridTextColumn Header="Zimmer" Binding="{Binding RoomNumber}" Width="88" MinWidth="88"/>
+                            <DataGridTextColumn Header="Typ" Binding="{Binding RoomType}" Width="80" MinWidth="80"/>
+                            <DataGridTextColumn Header="Check-out" Binding="{Binding CheckOut, StringFormat={}{0:dd.MM.yyyy}}" Width="104" MinWidth="104"/>
+                            <DataGridTextColumn Header="Nächte" Binding="{Binding Nights}" Width="80" MinWidth="80"/>
+                            <DataGridTextColumn Header="Betrag (€)" Binding="{Binding Amount, StringFormat={}{0:F2}}" Width="104" MinWidth="104"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="104" MinWidth="104">
                                 <DataGridTextColumn.ElementStyle>
-                                <StaticResource ResourceKey="ReservationStatusTextStyle"/>
+                                <StaticResource ResourceKey="ReservationStatusCellText"/>
                             </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
                         </DataGrid.Columns>

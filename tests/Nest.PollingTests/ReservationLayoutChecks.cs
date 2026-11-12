@@ -54,9 +54,119 @@ internal static partial class Program
         LayoutCheck(!string.IsNullOrWhiteSpace(peer.GetName()), "accessible pane name");
         ((ISelectionItemProvider)peer.GetPattern(PatternInterface.SelectionItem)).Select();
     }
-    private static PollingSnapshot LayoutData(string status = "Reserviert") => new(Data().Rooms,
+    private static PollingSnapshot LayoutData(string? status = null) => new(Data().Rooms,
         Enumerable.Range(0, 1000).Select(i => Data().Bookings[0] with
-        { Code = "BNR-" + i.ToString("D16"), Guest = "Guest " + i, Status = status }));
+        { Code = i == 4 ? "BNR-3319A520FB404ADE" : "BNR-" + i.ToString("D16"), Guest = "Guest " + i,
+            Status = status ?? new[] { "Reserviert", "Eingecheckt", "Ausgecheckt", "Storniert" }[i % 4] }));
+
+    private static double CheckBookingCodeWidth(DataGrid grid)
+    {
+        var column = (DataGridTextColumn)grid.Columns[0];
+        var cell = Visuals<DataGridCell>(grid).First(c => c.Column == column);
+        var text = Visuals<TextBlock>(cell).First();
+        double TextWidth(string value) => new FormattedText(value,
+            System.Globalization.CultureInfo.InvariantCulture, text.FlowDirection,
+            new Typeface(text.FontFamily, text.FontStyle, text.FontWeight, text.FontStretch),
+            text.FontSize, Brushes.Black, VisualTreeHelper.GetDpi(text).PixelsPerDip)
+            .WidthIncludingTrailingWhitespace;
+        // Reception generates BNR- plus 16 uppercase hexadecimal characters (20 total).
+        // Cover every possible hexadecimal glyph, not just one conveniently narrow GUID.
+        var widestHex = "0123456789ABCDEF".OrderByDescending(c => TextWidth(c.ToString())).First();
+        var samples = new[] { "BNR-3319A520FB404ADE", "BNR-0123456789ABCDEF",
+            "BNR-" + new string(widestHex, 16), "0123ABCD" }; // Guest portal: 8 hex characters.
+        var inset = cell.Padding.Left + cell.Padding.Right + cell.BorderThickness.Left +
+            cell.BorderThickness.Right + text.Margin.Left + text.Margin.Right;
+        foreach (var sample in samples)
+        {
+            var required = Math.Ceiling(TextWidth(sample) + inset + 2); // Pixel-rounding reserve.
+            LayoutCheck(column.MinWidth >= required, "minimum fits complete code with real font/insets: " + sample);
+            LayoutCheck(column.ActualWidth >= required, "actual column fits complete code: " + sample);
+            // A left-aligned TextBlock/ContentPresenter is sized to the current value.
+            // The cell, minus its actual insets, bounds the text's available viewport.
+            LayoutCheck(cell.ActualWidth - inset >= TextWidth(sample),
+                $"realized cell fits complete code: {sample}; cell={cell.ActualWidth}; inset={inset}; text={TextWidth(sample)}");
+        }
+        var header = Visuals<System.Windows.Controls.Primitives.DataGridColumnHeader>(grid)
+            .First(h => h.Column == column);
+        var headerText = new FormattedText("Buchungsnr.", System.Globalization.CultureInfo.InvariantCulture,
+            header.FlowDirection, new Typeface(header.FontFamily, header.FontStyle, header.FontWeight, header.FontStretch),
+            header.FontSize, Brushes.Black, VisualTreeHelper.GetDpi(header).PixelsPerDip);
+        LayoutCheck(column.MinWidth >= headerText.WidthIncludingTrailingWhitespace +
+            header.Padding.Left + header.Padding.Right + 20, "header has room for sort glyph");
+        LayoutCheck(column.Width.IsStar && column.MinWidth == 220 && column.ActualWidth >= 220,
+            "star allocation never shrinks protected minimum");
+        LayoutCheck(text.ToolTip is string tooltip && tooltip == text.Text,
+            "realized booking cell retains full-value tooltip");
+        LayoutCheck(ScrollViewer.GetHorizontalScrollBarVisibility(grid) == ScrollBarVisibility.Auto,
+            "horizontal overflow remains available");
+        return Math.Ceiling(samples.Max(TextWidth) + inset + 2);
+    }
+
+    private static void CheckColumnMeasurements(DataGrid grid)
+    {
+        var values = new[] { new[] { "BNR-3319A520FB404ADE" }, new[] { "Alexandra Mustermann" },
+            new[] { "9999" }, new[] { "Standard", "Deluxe", "Suite", "Executive" },
+            new[] { "31.12.2026" }, new[] { "365" }, new[] { "99999,99" },
+            new[] { "Reserviert", "Eingecheckt", "Ausgecheckt", "Storniert" } };
+        for (var i = 0; i < grid.Columns.Count; i++)
+        {
+            var column = grid.Columns[i];
+            var header = Visuals<System.Windows.Controls.Primitives.DataGridColumnHeader>(grid).First(h => h.Column == column);
+            var cell = Visuals<DataGridCell>(grid).First(c => c.Column == column);
+            var text = Visuals<TextBlock>(cell).First();
+            double Width(string value, TextBlock element) => new FormattedText(value,
+                System.Globalization.CultureInfo.InvariantCulture, element.FlowDirection,
+                new Typeface(element.FontFamily, element.FontStyle, element.FontWeight, element.FontStretch),
+                element.FontSize, Brushes.Black, VisualTreeHelper.GetDpi(element).PixelsPerDip).WidthIncludingTrailingWhitespace;
+            var title = new FormattedText(column.Header.ToString(), System.Globalization.CultureInfo.InvariantCulture,
+                header.FlowDirection, new Typeface(header.FontFamily, header.FontStyle, header.FontWeight, header.FontStretch),
+                header.FontSize, Brushes.Black, VisualTreeHelper.GetDpi(header).PixelsPerDip);
+            var headerRequired = Math.Ceiling(title.WidthIncludingTrailingWhitespace + header.Padding.Left + header.Padding.Right + 20 + 2);
+            var valueRequired = Math.Ceiling(values[i].Max(value => Width(value, text)) + cell.Padding.Left + cell.Padding.Right +
+                cell.BorderThickness.Left + cell.BorderThickness.Right + text.Margin.Left + text.Margin.Right + 2);
+            LayoutCheck(column.MinWidth >= headerRequired, "header fits with sorting indicator: " + column.Header);
+            if (i != 1) // Guest names have no bounded length; keep the flexible column and tooltip.
+                LayoutCheck(column.MinWidth >= valueRequired, "representative values fit: " + column.Header);
+            LayoutCheck(cell.Padding == new Thickness(6, 0, 6, 0) && text.Margin.Left == 2 && text.Margin.Right == 2,
+                "consistent symmetric content insets: " + column.Header);
+            var originalDirection = column.SortDirection;
+            try
+            {
+                foreach (var direction in new[] { ListSortDirection.Ascending, ListSortDirection.Descending })
+                {
+                    column.SortDirection = direction;
+                    header.UpdateLayout();
+                    // Native themes may draw the arrow in DataGridHeaderBorder.OnRender,
+                    // rather than expose a Path. Test the actual arranged title instead.
+                    var titleElement = Visuals<TextBlock>(header).First(t => t.Text == column.Header.ToString());
+                    LayoutCheck(titleElement.ActualWidth + 1 >= title.WidthIncludingTrailingWhitespace,
+                        "sorted header title is not clipped: " + column.Header);
+                    LayoutCheck(header.ActualWidth >= headerRequired,
+                        "real sorted header fits full title and glyph: " + column.Header);
+                }
+            }
+            finally { column.SortDirection = originalDirection; }
+            Console.WriteLine($"COLUMN {column.Header}: headerWithSort={headerRequired}, sampleWithInsets={valueRequired}, min={column.MinWidth}, width={column.Width}");
+        }
+        CheckStatusCells(grid);
+    }
+
+    private static void CheckStatusCells(DataGrid grid)
+    {
+        var cells = Visuals<DataGridCell>(grid).Where(c => c.Column == grid.Columns[7]).ToArray();
+        LayoutCheck(cells.Length > 0, "status cells realized in current viewport");
+        foreach (var status in new[] { "Reserviert", "Eingecheckt", "Ausgecheckt", "Storniert" })
+        {
+            var text = cells.SelectMany(Visuals<TextBlock>).First(t => t.Text == status);
+            var cell = cells.First(c => Visuals<TextBlock>(c).Contains(text));
+            var measured = new FormattedText(status, System.Globalization.CultureInfo.InvariantCulture,
+                text.FlowDirection, new Typeface(text.FontFamily, text.FontStyle, text.FontWeight, text.FontStretch),
+                text.FontSize, Brushes.Black, VisualTreeHelper.GetDpi(text).PixelsPerDip).WidthIncludingTrailingWhitespace;
+            LayoutCheck(cell.ActualWidth >= measured + cell.Padding.Left + cell.Padding.Right +
+                text.Margin.Left + text.Margin.Right + 2, "realized full status fits: " + status);
+            LayoutCheck(text.ActualWidth + 1 >= measured, "status TextBlock not text-clipped: " + status);
+        }
+    }
 
     private static async Task ReservationLayoutChecks(Ui ui)
     {
@@ -94,7 +204,28 @@ internal static partial class Program
             {
                 LayoutCheck(view.IsLoaded, "real loaded View");
                 var grid = Named<DataGrid>(view, "ReservationGrid");
+                CheckColumnMeasurements(grid);
                 var form = Named<ScrollViewer>(view, "FormScroller");
+                var paths = new[] { "ReservationCode", "GastName", "RoomNumber", "RoomType", "CheckOut", "Nights", "Amount", "Status" };
+                LayoutCheck(grid.Columns.Count == 8 && grid.Columns.Cast<DataGridTextColumn>()
+                    .Select(c => ((Binding)c.Binding).Path.Path).SequenceEqual(paths), "all eight business column bindings");
+                LayoutCheck(grid.Columns.Select(c => c.SortMemberPath).SequenceEqual(paths) &&
+                    grid.Columns.All(c => c.CanUserSort), "all eight column sort paths");
+                LayoutCheck(grid.HeadersVisibility == DataGridHeadersVisibility.All && grid.RowHeaderWidth == 40,
+                    "standard left row header retained at 40 DIP");
+                LayoutCheck(grid.Columns[0].Width.IsStar && grid.Columns[0].Width.Value == 1 &&
+                    grid.Columns[1].Width.IsStar && grid.Columns[1].Width.Value == 2 &&
+                    grid.Columns[0].MinWidth == 220 && grid.Columns[1].MinWidth == 120, "flexible columns protect complete booking codes and retain guest minimum");
+                var codeText = new FormattedText("BNR-0123456789ABCDEF", System.Globalization.CultureInfo.InvariantCulture,
+                    FlowDirection.LeftToRight, new Typeface(grid.FontFamily, grid.FontStyle, grid.FontWeight, grid.FontStretch),
+                    grid.FontSize, Brushes.Black, VisualTreeHelper.GetDpi(grid).PixelsPerDip);
+                LayoutCheck(grid.Columns[0].ActualWidth >= codeText.WidthIncludingTrailingWhitespace + 12,
+                    "wide mode uses spare space to display full generated booking codes");
+                LayoutCheck(grid.Columns.Select(c => c.MinWidth).SequenceEqual(new double[] {220,120,88,80,104,80,104,104}) &&
+                    grid.Columns.All(c => c.CanUserResize), "no column narrower than before; manual resizing retained");
+                LayoutCheck(((DataGridTextColumn)grid.Columns[0]).ElementStyle.Setters.OfType<Setter>()
+                    .Any(s => s.Property == FrameworkElement.ToolTipProperty && s.Value is Binding binding && binding.Path.Path == "Text"),
+                    "full code/guest text available without adding trimming");
                 var price = Visuals<TextBox>(form).Single(t => BindingOperations.GetBinding(t, TextBox.TextProperty)?.Path?.Path == "Price");
                 price.Text = "not-a-price";
                 var collectionView = CollectionViewSource.GetDefaultView(vm.Reservations);
@@ -136,6 +267,9 @@ internal static partial class Program
                         var listPanel = Named<Border>(view, "ListPanel");
                         LayoutCheck(formPanel.Visibility == (wide || showForm ? Visibility.Visible : Visibility.Collapsed), "form visibility");
                         LayoutCheck(listPanel.Visibility == (wide || !showForm ? Visibility.Visible : Visibility.Collapsed), "list visibility");
+                        LayoutCheck(Named<TextBlock>(view, "FormTitle").Visibility == (wide ? Visibility.Visible : Visibility.Collapsed) &&
+                            Named<TextBlock>(view, "ListTitle").Visibility == (wide ? Visibility.Visible : Visibility.Collapsed), "section titles only in wide mode; selector labels compact mode");
+                        LayoutCheck(!Visuals<TextBlock>(listPanel).Any(t => t.Text == "Neue Reservierung"), "no creation heading inside the booking list");
                         LayoutCheck(ReferenceEquals(state.grid, Named<DataGrid>(view, "ReservationGrid")) &&
                             ReferenceEquals(state.form, Named<ScrollViewer>(view, "FormScroller")), "control identity");
                         if (wide || showForm)
@@ -145,6 +279,11 @@ internal static partial class Program
                             LayoutCheck(position.Y >= 0 && position.Y + save.ActualHeight <= height + 1, "save within vertical bounds");
                             LayoutCheck(position.X >= 0 && position.X + save.ActualWidth <= width + 1, "save within horizontal bounds");
                             LayoutCheck(state.form.ViewportHeight > 0 && state.form.HorizontalScrollBarVisibility == ScrollBarVisibility.Disabled, "form viewport");
+                            LayoutCheck(Visuals<TextBlock>(formPanel).Any(t => t.Text == "Gästeinformationen") &&
+                                Visuals<TextBlock>(formPanel).Any(t => t.Text == "Zimmer Aufenthalt"), "useful form section headings retained");
+                            var actionPanel = Named<Border>(view, "FormActionPanel");
+                            LayoutCheck(ReferenceEquals(actionPanel.Child, save) && !Visuals<Button>(state.form).Contains(save) &&
+                                actionPanel.BorderThickness.Top == 1 && actionPanel.Padding.Top == 12, "separated save footer outside scrolling fields");
                             var pair = Named<Grid>(view, "NamePair");
                             LayoutCheck(Grid.GetRow((UIElement)pair.Children[1]) == (narrow ? 1 : 0), "single column pairs");
                         }
@@ -153,6 +292,20 @@ internal static partial class Program
                             var realized = Visuals<DataGridRow>(state.grid).Count();
                             LayoutCheck(realized > 0 && realized < 100, "row virtualization");
                             LayoutCheck(state.grid.ActualHeight > 0 && state.grid.ActualHeight < height, "bounded table");
+                            LayoutCheck(Visuals<System.Windows.Controls.Primitives.DataGridRowHeader>(state.grid)
+                                .All(h => Math.Abs(h.ActualWidth - 40) < 1), "realized row headers keep original width");
+                            var scroll = Visuals<ScrollViewer>(state.grid).First();
+                            var available = state.grid.ActualWidth - state.grid.BorderThickness.Left - state.grid.BorderThickness.Right -
+                                state.grid.RowHeaderWidth - (scroll.ComputedVerticalScrollBarVisibility == Visibility.Visible ? SystemParameters.VerticalScrollBarWidth : 0);
+                            var total = state.grid.Columns.Sum(c => c.ActualWidth);
+                            var minimum = 220 + 120 + 88 + 80 + 104 + 80 + 104 + 104;
+                            var codeRequired = CheckBookingCodeWidth(state.grid);
+                            if (available >= minimum)
+                                LayoutCheck(Math.Abs(total - available) <= 2, "flex columns consume spare width, not a ninth column");
+                            else
+                                LayoutCheck(total >= minimum - 1 && scroll.ScrollableWidth > 0, "horizontal scrolling, never squeeze columns below minima");
+                            if (cycle == 0 && !showForm)
+                                Console.WriteLine($"UI2.1 {width}x{height}: grid={state.grid.ActualWidth:F0}, columns={total:F0}, available={available:F0}, horizontalScroll={scroll.ScrollableWidth:F0}, rowHeader={state.grid.RowHeaderWidth:F0}, codeRequired={codeRequired:F0}, codeMin={state.grid.Columns[0].MinWidth:F0}");
                             foreach (var name in new[] { "ReservationSearch", "ClearSearch", "CheckIn", "CheckOut", "CancelReservation" })
                             {
                                 var control = Named<FrameworkElement>(view, name);
@@ -166,6 +319,25 @@ internal static partial class Program
                         LayoutCheck(vm.SelectedReservation?.ReservationCode == state.selected && ReferenceEquals(state.grid.SelectedItem, vm.SelectedReservation), "selection retained");
                         LayoutCheck(ReferenceEquals(vm.Reservations, state.collection) && state.collectionView.SortDescriptions.Count == 1, "collection and sort retained");
                         LayoutCheck(vm.ActiveItem == null && vm.IsActive, "no business navigation or deactivation");
+                        if (!wide)
+                        foreach (var name in new[] { "ListPaneChoice", "FormPaneChoice" })
+                        {
+                            var choice = Named<RadioButton>(view, name);
+                            var selected = name == (showForm ? "FormPaneChoice" : "ListPaneChoice");
+                            LayoutCheck(choice.IsChecked == selected && choice.ActualHeight >= 44 && choice.ActualWidth >= 150,
+                                "selected pane and pointer target size");
+                            var brush = (SolidColorBrush)choice.Background;
+                            var activeBrush = (SolidColorBrush)view.FindResource("PageHeaderBrush");
+                            LayoutCheck(brush.Color == (selected ? activeBrush.Color : Colors.White) &&
+                                choice.FontWeight == (selected ? FontWeights.Bold : FontWeights.Normal), "visible selected/unselected style");
+                            var focus = (Border)choice.Template.FindName("ChoiceFocus", choice);
+                            LayoutCheck(focus.BorderThickness.Left >= 2 && choice.Template.Triggers.OfType<Trigger>()
+                                .Any(t => t.Property == UIElement.IsKeyboardFocusedProperty && t.Setters.OfType<Setter>()
+                                    .Any(s => s.TargetName == "ChoiceFocus" && s.Property == UIElement.VisibilityProperty && Equals(s.Value, Visibility.Visible))),
+                                "explicit keyboard-focus visual retained");
+                            LayoutCheck(choice.Focusable && choice.IsTabStop && new RadioButtonAutomationPeer(choice)
+                                .GetPattern(PatternInterface.SelectionItem) is ISelectionItemProvider, "native radio keyboard and UIA semantics retained");
+                        }
                         return true;
                     });
                 }
@@ -217,6 +389,13 @@ internal static partial class Program
                 LayoutCheck(Math.Abs(listScroll.VerticalOffset - listOffsets.VerticalOffset) < 1 &&
                     Math.Abs(listScroll.HorizontalOffset - listOffsets.HorizontalOffset) < 1, "table scroll restored");
                 LayoutCheck(source.Calls == 1, "mode changes neither resubscribe nor request reads");
+                listScroll.ScrollToRightEnd();
+                return true;
+            });
+            await SetLayout(ui, host, 600, 500);
+            await ui.Call(() =>
+            {
+                CheckStatusCells(state.grid); // Compact viewport, after scrolling to the rightmost column.
                 SelectPane(view, true);
                 return true;
             });
