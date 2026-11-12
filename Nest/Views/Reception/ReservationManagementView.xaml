@@ -4,22 +4,44 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:cal="http://www.caliburnproject.org"        mc:Ignorable="d"
-        d:Height="1080" d:Width="1480" Width="1444">
+        d:Height="1080" d:Width="1480">
 
-    <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Margin="10,4">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel x:Name="StatusArea" Grid.Row="0" Margin="10,4">
             <TextBlock Text="{Binding SynchronizationStatus}" TextWrapping="Wrap"/>
             <TextBlock Text="{Binding DraftRoomWarning}" TextWrapping="Wrap"/>
         </StackPanel>
-    <Grid>
+        <WrapPanel x:Name="PaneSwitcher" Grid.Row="1" Margin="10,4" Visibility="Collapsed"
+                   AutomationProperties.Name="Reservierungsbereich auswählen">
+            <RadioButton x:Name="ListPaneChoice" Content="Reservierungen" GroupName="ReservationPane"
+                         IsChecked="True" Checked="PaneChoice_Checked" MinHeight="32" Padding="8,4" Margin="0,0,12,0"
+                         AutomationProperties.Name="Liste der Reservierungen anzeigen"/>
+            <RadioButton x:Name="FormPaneChoice" Content="Neue Reservierung" GroupName="ReservationPane"
+                         Checked="PaneChoice_Checked" MinHeight="32" Padding="8,4"
+                         AutomationProperties.Name="Formular für eine neue Reservierung anzeigen"/>
+        </WrapPanel>
+    <Grid x:Name="Workspace" Grid.Row="2">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="440"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition x:Name="FormColumn" Width="440"/>
+            <ColumnDefinition x:Name="ListColumn" Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- Gastinformationen -->
         <Border x:Name="GuestFormPanel" Grid.Column="0" Background="#F0F4F8">
             <Grid Margin="15,3,15,3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <ScrollViewer x:Name="FormScroller" Grid.Row="0"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -35,7 +57,6 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
                 <!-- Gästinformationen -->
@@ -46,7 +67,7 @@
                            Foreground="#FF174A92"
                            Margin="0,0,0,3"/>
 
-                <Grid Grid.Row="1" Margin="0,0,0,3">
+                <Grid x:Name="NamePair" Grid.Row="1" Margin="0,0,0,3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -64,7 +85,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid Grid.Row="2" Margin="0,0,0,3">
+                <Grid x:Name="ContactPair" Grid.Row="2" Margin="0,0,0,3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -82,7 +103,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid Grid.Row="3" Margin="0,0,0,3">
+                <Grid x:Name="IdentityPair" Grid.Row="3" Margin="0,0,0,3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -129,7 +150,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid Grid.Row="8" Margin="0,0,0,3">
+                <Grid x:Name="DatesPair" Grid.Row="8" Margin="0,0,0,3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -147,7 +168,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid Grid.Row="9" Margin="0,0,0,3">
+                <Grid x:Name="PricePair" Grid.Row="9" Margin="0,0,0,3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -165,7 +186,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid Grid.Row="10" Margin="0,0,0,3">
+                <Grid x:Name="PeoplePair" Grid.Row="10" Margin="0,0,0,3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -185,7 +206,7 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid Grid.Row="11" Margin="0,0,0,3">
+                <Grid x:Name="PaymentPair" Grid.Row="11" Margin="0,0,0,3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
@@ -212,9 +233,11 @@
                          Text="{Binding SpecialRequests, UpdateSourceTrigger=PropertyChanged}"
                          TextWrapping="Wrap"
                          VerticalScrollBarVisibility="Auto"/>
+                </Grid>
+                </ScrollViewer>
 
                 <Button x:Name="SaveReservation"
-                        Grid.Row="14"
+                        Grid.Row="1"
                         Style="{StaticResource BlueButton}"
                         Content="RESERVIERUNG SPEICHERN"
                         Height="40"
@@ -223,7 +246,7 @@
         </Border>
 
         <!-- Content Panel -->
-        <Border Grid.Column="1" Background="#F0F4F8">
+        <Border x:Name="ListPanel" Grid.Column="1" Background="#F0F4F8">
             <Grid Margin="5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -233,9 +256,16 @@
                 <ContentControl cal:View.Model="{Binding ActiveItem}"
                 Grid.Row="0" Grid.RowSpan="2" />
                 
-                <StackPanel Grid.Row="0" Grid.RowSpan="2">
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
+                <Grid Grid.Row="0" Grid.RowSpan="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.Style>
+                        <Style TargetType="Grid">
                             <Setter Property="Visibility" Value="Collapsed"/>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding ActiveItem}" Value="{x:Null}">
@@ -243,54 +273,70 @@
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </StackPanel.Style>
-                    <TextBlock Text="Neue Reservierung"
+                    </Grid.Style>
+                    <TextBlock Grid.Row="0" Text="Neue Reservierung"
                                FontSize="20"
                                FontWeight="Bold"
                                Foreground="#174A92"
                                Margin="0,0,0,5"/>
 
-                    <TextBlock Text="📋 Aktuelle Reservierungen"
+                    <TextBlock Grid.Row="1" Text="📋 Aktuelle Reservierungen"
                                FontSize="16"
                                FontWeight="Bold"
                                Foreground="#FF174A92"
                                Margin="0,0,0,5"/>
 
                     <!-- SUCHE -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <TextBlock Style="{StaticResource ToolbarLabelStyle}" Text="Suche:"/>
-                        <TextBox Style="{StaticResource ToolbarSearchTextBoxStyle}" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                 Width="250"/>
+                    <Grid Grid.Row="2" Margin="0,0,0,10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Style="{StaticResource ToolbarLabelStyle}" Text="Suche:"/>
+                        <TextBox x:Name="ReservationSearch" Grid.Row="1" Style="{StaticResource ToolbarSearchTextBoxStyle}"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 AutomationProperties.Name="Reservierungen nach Gast oder Buchungsnummer suchen"/>
                         <Button x:Name="ClearSearch"
+                                Grid.Row="1" Grid.Column="1" Margin="8,0,0,0"
                                 Content="Zurücksetzen"
                                 Width="100" Height="30"
                                 Style="{StaticResource ResetButtonStyle}"/>
-                    </StackPanel>
+                    </Grid>
 
                     <!-- AKTIONEN -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <WrapPanel Grid.Row="3" Margin="0,0,0,10">
                         <Button x:Name="CheckIn"
                                 Content="Check-in"
                                 Width="100" Height="32"
                                 Style="{StaticResource SuccessButtonStyle}"
-                                FontWeight="Bold" Margin="0,0,10,0"/>
+                                FontWeight="Bold" Margin="0,0,10,4"/>
                         <Button x:Name="CheckOut"
                                 Content="Check-out"
                                 Width="100" Height="32"
                                 Style="{StaticResource PrimaryButtonStyle}"
-                                FontWeight="Bold" Margin="0,0,10,0"/>
+                                FontWeight="Bold" Margin="0,0,10,4"/>
                         <Button x:Name="CancelReservation"
                                 Content="Stornieren"
                                 Width="100" Height="32"
                                 Style="{StaticResource DangerButtonStyle}"
-                                FontWeight="Bold"/>
-                    </StackPanel>
+                                FontWeight="Bold" Margin="0,0,0,4"/>
+                    </WrapPanel>
 
                     <!-- DataGrid -->
-                    <DataGrid Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding Reservations}"
+                    <DataGrid x:Name="ReservationGrid" Grid.Row="4" Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding Reservations}"
                               SelectedItem="{Binding SelectedReservation}"
                               AutoGenerateColumns="False"
                               CanUserDeleteRows="False"
+                              EnableRowVirtualization="True"
+                              EnableColumnVirtualization="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling"
+                              ScrollViewer.CanContentScroll="True"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
                               IsReadOnly="True">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Buchungsnr." Binding="{Binding ReservationCode}" Width="110"/>
@@ -308,9 +354,9 @@
                         </DataGrid.Columns>
                     </DataGrid>
 
-                </StackPanel>
+                </Grid>
             </Grid>
         </Border>
     </Grid>
-    </DockPanel>
+    </Grid>
 </UserControl>
