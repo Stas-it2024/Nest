@@ -1,6 +1,7 @@
 <UserControl x:Class="Nest.Views.Admin.EventView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:layout="clr-namespace:Nest.Views.Behaviors"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Nest.Views.Admin"
@@ -214,7 +215,7 @@
         </ScrollViewer>
 
 
-        <DataGrid Style="{StaticResource StandardDataGridStyle}" Grid.Row="1" Grid.Column="1"
+        <DataGrid layout:DataGridColumnWidthSession.TableKey="Admin.EventView.0" Style="{StaticResource StandardResizableDataGridStyle}" Grid.Row="1" Grid.Column="1"
                   AutoGenerateColumns="False"
                   ItemsSource="{Binding Events}"
                   SelectedItem="{Binding SelectedEvent}">
@@ -222,32 +223,25 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Titel"
                                     Binding="{Binding Title}"
-                                    Width="*"
-                                   />
+                                    Width="2*" MinWidth="44" layout:DataGridColumnWidthSession.InitialMinWidth="180" ElementStyle="{StaticResource StandardGridTextStyle}"/>
                 <DataGridTextColumn Header="Datum"
                                     Binding="{Binding EventDate, StringFormat={}{0:dd.MM.yyyy}}"
-                                    Width="*"
-                                   />
+                                    Width="104" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
                 <DataGridTextColumn Header="Uhrzeit"
                                     Binding="{Binding EventTime}"
-                                    Width="*"
-                                   />
+                                    Width="104" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
                 <DataGridTextColumn Header="Ort"
                                     Binding="{Binding Location}"
-                                    Width="*"
-                                   />
+                                    Width="*" MinWidth="44" layout:DataGridColumnWidthSession.InitialMinWidth="160" ElementStyle="{StaticResource StandardGridTextStyle}"/>
                 <DataGridTextColumn Header="Ticketpreis"
                                     Binding="{Binding TicketPrice, StringFormat={}{0:F2} €}"
-                                    Width="*"
-                                   />
+                                    Width="120" MinWidth="44" ElementStyle="{StaticResource StandardGridNumberStyle}"/>
                 <DataGridTextColumn Header="Tickets"
                                     Binding="{Binding MaxTickets}"
-                                    Width="*"
-                                   />
+                                    Width="88" MinWidth="44" ElementStyle="{StaticResource StandardGridNumberStyle}"/>
                 <DataGridTextColumn Header="Status"
-                                    Binding="{Binding Status}" 
-                                    Width="Auto"
-                                   />
+                                    Binding="{Binding Status}"
+                                    Width="120" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

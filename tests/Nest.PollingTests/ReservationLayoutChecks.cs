@@ -215,13 +215,13 @@ internal static partial class Program
                     "standard left row header retained at 40 DIP");
                 LayoutCheck(grid.Columns[0].Width.IsStar && grid.Columns[0].Width.Value == 1 &&
                     grid.Columns[1].Width.IsStar && grid.Columns[1].Width.Value == 2 &&
-                    grid.Columns[0].MinWidth == 220 && grid.Columns[1].MinWidth == 120, "flexible columns protect complete booking codes and retain guest minimum");
+                    grid.Columns[0].MinWidth == 220 && grid.Columns[1].MinWidth == 132, "flexible columns protect complete booking codes and measured guest minimum");
                 var codeText = new FormattedText("BNR-0123456789ABCDEF", System.Globalization.CultureInfo.InvariantCulture,
                     FlowDirection.LeftToRight, new Typeface(grid.FontFamily, grid.FontStyle, grid.FontWeight, grid.FontStretch),
                     grid.FontSize, Brushes.Black, VisualTreeHelper.GetDpi(grid).PixelsPerDip);
                 LayoutCheck(grid.Columns[0].ActualWidth >= codeText.WidthIncludingTrailingWhitespace + 12,
                     "wide mode uses spare space to display full generated booking codes");
-                LayoutCheck(grid.Columns.Select(c => c.MinWidth).SequenceEqual(new double[] {220,120,88,80,104,80,104,104}) &&
+                LayoutCheck(grid.Columns.Select(c => c.MinWidth).SequenceEqual(new double[] {220,132,88,80,104,80,104,104}) &&
                     grid.Columns.All(c => c.CanUserResize), "no column narrower than before; manual resizing retained");
                 LayoutCheck(((DataGridTextColumn)grid.Columns[0]).ElementStyle.Setters.OfType<Setter>()
                     .Any(s => s.Property == FrameworkElement.ToolTipProperty && s.Value is Binding binding && binding.Path.Path == "Text"),
@@ -298,7 +298,7 @@ internal static partial class Program
                             var available = state.grid.ActualWidth - state.grid.BorderThickness.Left - state.grid.BorderThickness.Right -
                                 state.grid.RowHeaderWidth - (scroll.ComputedVerticalScrollBarVisibility == Visibility.Visible ? SystemParameters.VerticalScrollBarWidth : 0);
                             var total = state.grid.Columns.Sum(c => c.ActualWidth);
-                            var minimum = 220 + 120 + 88 + 80 + 104 + 80 + 104 + 104;
+                            var minimum = 220 + 132 + 88 + 80 + 104 + 80 + 104 + 104;
                             var codeRequired = CheckBookingCodeWidth(state.grid);
                             if (available >= minimum)
                                 LayoutCheck(Math.Abs(total - available) <= 2, "flex columns consume spare width, not a ninth column");

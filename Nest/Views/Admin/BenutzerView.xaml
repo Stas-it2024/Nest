@@ -4,6 +4,7 @@
 
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 
+             xmlns:layout="clr-namespace:Nest.Views.Behaviors"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
@@ -166,7 +167,7 @@
         </ScrollViewer>
 
 
-        <DataGrid Style="{StaticResource StandardDataGridStyle}" Grid.Row="1" Grid.Column="1"
+        <DataGrid layout:DataGridColumnWidthSession.TableKey="Admin.BenutzerView.0" Style="{StaticResource StandardResizableDataGridStyle}" Grid.Row="1" Grid.Column="1"
 
                   ItemsSource="{Binding Users}"
 
@@ -181,37 +182,27 @@
 
                                     Binding="{Binding UserName}"
 
-                                    Width="*"
-
-                                   />
+                                    Width="*" MinWidth="44" layout:DataGridColumnWidthSession.InitialMinWidth="160" ElementStyle="{StaticResource StandardGridTextStyle}"/>
                 <DataGridTextColumn Header="Name"
 
                                     Binding="{Binding FullName}"
 
-                                    Width="*"
-
-                                   />
+                                    Width="2*" MinWidth="44" layout:DataGridColumnWidthSession.InitialMinWidth="180" ElementStyle="{StaticResource StandardGridTextStyle}"/>
                 <DataGridTextColumn Header="Rolle"
 
                                     Binding="{Binding Role}"
 
-                                    Width="*"
-
-                                   />
+                                    Width="136" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
                 <DataGridTextColumn Header="Status"
 
                                     Binding="{Binding Status}"
 
-                                    Width="*"
-
-                                   />
+                                    Width="104" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
                 <DataGridTextColumn Header="Erstellt"
 
                                     Binding="{Binding DateAdded, StringFormat={}{0:dd.MM.yyyy}}"
 
-                                Width="Auto"
-
-                               />
+                                Width="112" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

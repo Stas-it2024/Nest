@@ -1,6 +1,7 @@
 <UserControl x:Class="Nest.Views.Admin.DienstleistungView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:layout="clr-namespace:Nest.Views.Behaviors"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Nest.Views.Admin"
@@ -141,28 +142,24 @@
         </ScrollViewer>
 
 
-        <DataGrid Style="{StaticResource StandardDataGridStyle}" Grid.Row="1" Grid.Column="1"
+        <DataGrid layout:DataGridColumnWidthSession.TableKey="Admin.DienstleistungView.0" Style="{StaticResource StandardResizableDataGridStyle}" Grid.Row="1" Grid.Column="1"
                   AutoGenerateColumns="False"
                   ItemsSource="{Binding Services}"
                   SelectedItem="{Binding SelectedService}">
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Dienstleistung"
-                                    Width="*"
                                     Binding="{Binding ServiceName}"
-                                   />
+                                    Width="2*" MinWidth="44" layout:DataGridColumnWidthSession.InitialMinWidth="180" ElementStyle="{StaticResource StandardGridTextStyle}"/>
                 <DataGridTextColumn Header="Kategorie"
-                                    Width="*"
                                     Binding="{Binding CategoryDisplay}"
-                                   />
+                                    Width="*" MinWidth="44" layout:DataGridColumnWidthSession.InitialMinWidth="184" ElementStyle="{StaticResource StandardGridTextStyle}"/>
                 <DataGridTextColumn Header="Preis (EUR)"
-                                    Width="*"
                                     Binding="{Binding Price, StringFormat={}{0:F2} €}"
-                                   />
+                                    Width="120" MinWidth="44" ElementStyle="{StaticResource StandardGridNumberStyle}"/>
                 <DataGridTextColumn Header="Status"
-                                    Width="*"
                                     Binding="{Binding Status, Converter={StaticResource GermanValueConverter}, Mode=TwoWay}"
-                                   />
+                                    Width="144" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:layout="clr-namespace:Nest.Views.Behaviors"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:cal="http://www.caliburnproject.org"        mc:Ignorable="d"
         d:Height="1080" d:Width="1480">
 
@@ -19,11 +20,12 @@
             <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
         </Style>
         <Style x:Key="ReservationCellStyle" TargetType="DataGridCell"
-               BasedOn="{StaticResource StandardDataGridCellStyle}">
+               BasedOn="{StaticResource StandardResizableCellStyle}">
             <Setter Property="Padding" Value="6,0,6,0"/>
         </Style>
         <Style x:Key="ReservationStatusCellText" TargetType="TextBlock"
                BasedOn="{StaticResource ReservationStatusTextStyle}">
+            <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
             <!-- Match DataGridTextColumn.DefaultElementStyle's horizontal text margins. -->
             <Setter Property="Margin" Value="2,0,2,0"/>
         </Style>
@@ -395,7 +397,7 @@
                     </WrapPanel>
 
                     <!-- DataGrid -->
-                    <DataGrid x:Name="ReservationGrid" Grid.Row="4" Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding Reservations}"
+                    <DataGrid layout:DataGridColumnWidthSession.TableKey="Reception.ReservationManagementView.0" x:Name="ReservationGrid" Grid.Row="4" Style="{StaticResource StandardResizableDataGridStyle}" ItemsSource="{Binding Reservations}"
                               CellStyle="{StaticResource ReservationCellStyle}"
                               SelectedItem="{Binding SelectedReservation}"
                               AutoGenerateColumns="False"
@@ -403,21 +405,20 @@
                               EnableRowVirtualization="True"
                               EnableColumnVirtualization="True"
                               VirtualizingPanel.VirtualizationMode="Recycling"
-                              ScrollViewer.CanContentScroll="True"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
                               IsReadOnly="True">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Buchungsnr." Binding="{Binding ReservationCode}" Width="*" MinWidth="220"
-                                                ElementStyle="{StaticResource ReservationFlexibleCellText}"/>
-                            <DataGridTextColumn Header="Gast" Binding="{Binding GastName}" Width="2*" MinWidth="120"
-                                                ElementStyle="{StaticResource ReservationFlexibleCellText}"/>
-                            <DataGridTextColumn Header="Zimmer" Binding="{Binding RoomNumber}" Width="88" MinWidth="88"/>
-                            <DataGridTextColumn Header="Typ" Binding="{Binding RoomType}" Width="80" MinWidth="80"/>
-                            <DataGridTextColumn Header="Check-out" Binding="{Binding CheckOut, StringFormat={}{0:dd.MM.yyyy}}" Width="104" MinWidth="104"/>
-                            <DataGridTextColumn Header="Nächte" Binding="{Binding Nights}" Width="80" MinWidth="80"/>
-                            <DataGridTextColumn Header="Betrag (€)" Binding="{Binding Amount, StringFormat={}{0:F2}}" Width="104" MinWidth="104"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="104" MinWidth="104">
+                            <DataGridTextColumn Header="Buchungsnr." Binding="{Binding ReservationCode}"
+                                                ElementStyle="{StaticResource ReservationFlexibleCellText}" Width="*" MinWidth="44" layout:DataGridColumnWidthSession.InitialMinWidth="220"/>
+                            <DataGridTextColumn Header="Gast" Binding="{Binding GastName}"
+                                                ElementStyle="{StaticResource ReservationFlexibleCellText}" Width="2*" MinWidth="44" layout:DataGridColumnWidthSession.InitialMinWidth="132"/>
+                            <DataGridTextColumn Header="Zimmer" Binding="{Binding RoomNumber}" Width="88" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                            <DataGridTextColumn Header="Typ" Binding="{Binding RoomType}" Width="80" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                            <DataGridTextColumn Header="Check-out" Binding="{Binding CheckOut, StringFormat={}{0:dd.MM.yyyy}}" Width="104" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                            <DataGridTextColumn Header="Nächte" Binding="{Binding Nights}" Width="80" MinWidth="44" ElementStyle="{StaticResource StandardGridNumberStyle}"/>
+                            <DataGridTextColumn Header="Betrag (€)" Binding="{Binding Amount, StringFormat={}{0:F2}}" Width="104" MinWidth="44" ElementStyle="{StaticResource StandardGridNumberStyle}"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="104" MinWidth="44">
                                 <DataGridTextColumn.ElementStyle>
                                 <StaticResource ResourceKey="ReservationStatusCellText"/>
                             </DataGridTextColumn.ElementStyle>

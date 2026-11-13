@@ -5,12 +5,48 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Runtime.CompilerServices;
+using Caliburn.Micro;
+using Nest.ViewModels.Admin;
+using Nest.ViewModels.Reception;
 
 namespace Nest.Views.Behaviors;
 
 // Presentation state only. The owner chooses its lifetime; no files, database or View references.
 public sealed class DataGridColumnWidthSession
 {
+    private static readonly ConditionalWeakTable<object, DataGridColumnWidthSession> Sessions = new();
+    private static readonly DependencyProperty TrackedProperty = DependencyProperty.RegisterAttached(
+        "Tracked", typeof(bool), typeof(DataGridColumnWidthSession), new PropertyMetadata(false));
+    public static readonly DependencyProperty TableKeyProperty = DependencyProperty.RegisterAttached(
+        "TableKey", typeof(string), typeof(DataGridColumnWidthSession), new PropertyMetadata(null, TableKeyChanged));
+    public static string GetTableKey(DependencyObject target) => (string)target.GetValue(TableKeyProperty);
+    public static void SetTableKey(DependencyObject target, string value) => target.SetValue(TableKeyProperty, value);
+
+    private static void TableKeyChanged(DependencyObject target, DependencyPropertyChangedEventArgs args)
+    {
+        if (target is not DataGrid grid || args.NewValue is not string key || string.IsNullOrWhiteSpace(key)) return;
+        grid.Loaded += Attach;
+        if (grid.IsLoaded) Attach(grid, new RoutedEventArgs());
+        void Attach(object sender, RoutedEventArgs e)
+        {
+            if ((bool)grid.GetValue(TrackedProperty)) return;
+            object? owner = null;
+            for (DependencyObject? node = grid; node != null; node = VisualTreeHelper.GetParent(node))
+            {
+                if (node is not FrameworkElement element) continue;
+                var context = element.DataContext;
+                if (context is AdminViewModel or ReceptionViewModel) owner = context;
+                else if (context is Screen { Parent: AdminViewModel or ReceptionViewModel } screen) owner = screen.Parent;
+                if (owner != null) break;
+            }
+            // Detached previews have a local lifetime. Real navigation uses a fresh role owner after login.
+            var session = owner == null ? new DataGridColumnWidthSession() : Sessions.GetValue(owner, _ => new());
+            session.Track(grid, key);
+            grid.SetValue(TrackedProperty, true);
+            grid.Loaded -= Attach;
+        }
+    }
     // Initial automatic allocation is distinct from the user's technical resize minimum.
     public static readonly DependencyProperty InitialMinWidthProperty = DependencyProperty.RegisterAttached(
         "InitialMinWidth", typeof(double), typeof(DataGridColumnWidthSession), new PropertyMetadata(0d));

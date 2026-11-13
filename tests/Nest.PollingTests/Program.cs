@@ -17,7 +17,7 @@ internal static partial class Program
         new[] { new RoomSnapshot(1, 101, "Standard", 50, 2, "Verfuegbar", null, null, new DateTime(2026, 1, 1), null) },
         new[] { new BookingSnapshot("CODE", "Guest", "101", "Standard", new DateTime(2026, 1, 1), new DateTime(2026, 1, 2), 1, 1, 0, 50, 0, "Bar", status) });
 
-    private static async Task Main()
+    private static async Task<int> Main()
     {
         var oldMode = Environment.GetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ModeVariable);
         var oldConnection = Environment.GetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ConnectionVariable);
@@ -26,7 +26,14 @@ internal static partial class Program
             // Any accidental real Repository call must fail before opening a connection.
             Environment.SetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ModeVariable, "invalid-offline-test");
             Environment.SetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ConnectionVariable, null);
-            await Run().WaitAsync(TimeSpan.FromSeconds(45));
+            await Run().WaitAsync(TimeSpan.FromSeconds(120));
+            return 0;
+        }
+        catch (Exception error)
+        {
+            // Report a genuine failure/nonzero exit without an unhandled-exception Windows dialog.
+            Console.Error.WriteLine(error);
+            return 1;
         }
         finally
         {
@@ -50,6 +57,7 @@ internal static partial class Program
         await RoomChecks(ui);
         await ReservationLayoutChecks(ui);
         await AllBookingsGridChecks(ui);
+        await RemainingGridChecks(ui);
         Check(ReferenceEquals(PollingCoordinator.Shared, PollingCoordinator.Shared));
         }
         // Shared was never subscribed: no production read, even during shutdown.

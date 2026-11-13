@@ -64,7 +64,10 @@ public static class EmptyDataGridExtent
             rows ??= FindRows(grid);
             if (rows == null) return;
             if (!applied) { originalMinimum = rows.MinWidth; applied = true; }
-            var width = Math.Max(originalMinimum, grid.Columns.Where(c => c.Visibility == Visibility.Visible).Sum(c => c.ActualWidth));
+            // WPF can retain the realized row-header gutter after the last row disappears.
+            // Use its actual offset (zero for a never-populated grid), not the configured header width.
+            var width = Math.Max(originalMinimum, grid.CellsPanelHorizontalOffset +
+                grid.Columns.Where(c => c.Visibility == Visibility.Visible).Sum(c => c.ActualWidth));
             // One corrective measure at most per changed column sum, not an endless layout loop.
             if (Math.Abs(rows.MinWidth - width) > 0.1) rows.SetCurrentValue(FrameworkElement.MinWidthProperty, width);
         }
