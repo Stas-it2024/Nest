@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:layout="clr-namespace:Nest.Views.Behaviors"
              mc:Ignorable="d"
              d:DesignHeight="800" d:DesignWidth="1200">
 
@@ -31,64 +32,69 @@
         </Border>
 
         <!-- TOOLBAR -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="{Binding ToolbarMargin}">
+        <WrapPanel x:Name="SearchToolbar" Grid.Row="1" Margin="{Binding ToolbarMargin}">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
             <TextBlock Style="{StaticResource ToolbarLabelStyle}" Text="Suche:"/>
             <TextBox Style="{StaticResource ToolbarSearchTextBoxStyle}" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                      Width="200"/>
+            </StackPanel>
 
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
             <TextBlock Style="{StaticResource ToolbarLabelStyle}" Text="Status:"/>
             <ComboBox ItemsSource="{Binding StatusOptions}"
                       SelectedItem="{Binding SelectedStatus}"
                       Width="120"
                       Height="30"
                       Margin="0,0,10,0"/>
+            </StackPanel>
 
             <Button x:Name="FilterReservations"
                     Content="Suchen"
                     Width="80"
                     Height="30"
+                    Margin="0,0,10,8"
                     Style="{StaticResource SearchButtonStyle}"/>
 
             <Button x:Name="ClearSearch"
                     Content="Zurücksetzen"
                     Width="100"
                     Height="30"
-                    Margin="10,0,0,0"
+                    Margin="0,0,10,8"
                     Style="{StaticResource ResetButtonStyle}"/>
 
             <Button x:Name="Refresh"
                     Content="Aktualisieren"
                     Width="100"
                     Height="30"
-                    Margin="10,0,0,0"
+                    Margin="0,0,10,8"
                     Style="{StaticResource SearchButtonStyle}"/>
-        </StackPanel>
+        </WrapPanel>
 
         <!-- TABS + TABELLE -->
-        <TabControl Grid.Row="2" Margin="0,0,0,10">
+        <TabControl x:Name="BookingTabs" Grid.Row="2" Margin="0,0,0,10">
 
             <!-- TAB 1: Zimmer-Reservierungen -->
             <TabItem Header="Zimmer-Reservierungen" FontWeight="Bold" IsSelected="True">
-                <DataGrid Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding Reservations}"
+                <DataGrid x:Name="BookingGrid" Style="{StaticResource StandardResizableDataGridStyle}" ItemsSource="{Binding Reservations}"
                           SelectedItem="{Binding SelectedReservation}"
                           AutoGenerateColumns="False"
                           CanUserDeleteRows="False"
                           IsReadOnly="True">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Buchung" Binding="{Binding ReservationCode}" Width="110"/>
-                        <DataGridTextColumn Header="Gast" Binding="{Binding Guest}" Width="140"/>
-                        <DataGridTextColumn Header="Zimmer" Binding="{Binding Room}" Width="70"/>
-                        <DataGridTextColumn Header="Typ" Binding="{Binding Type}" Width="90"/>
-                        <DataGridTextColumn Header="Check-in" Binding="{Binding CheckInDate, StringFormat={}{0:dd.MM.yyyy}}" Width="95"/>
-                        <DataGridTextColumn Header="Check-out" Binding="{Binding CheckOutDate, StringFormat={}{0:dd.MM.yyyy}}" Width="95"/>
-                        <DataGridTextColumn Header="Nächte" Binding="{Binding Nights}" Width="60"/>
-                        <DataGridTextColumn Header="Erw." Binding="{Binding Adults}" Width="50"/>
-                        <DataGridTextColumn Header="Kinder" Binding="{Binding Children}" Width="55"/>
-                        <DataGridTextColumn Header="Betrag" Binding="{Binding TotalAmount, StringFormat={}{0:F2} €}" Width="90"/>
-                        <DataGridTextColumn Header="Zahlung" Binding="{Binding PaymentMethod, Converter={StaticResource GermanValueConverter}, Mode=OneWay}" Width="90"/>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100">
+                        <DataGridTextColumn Header="Buchung" Binding="{Binding ReservationCode}" Width="*" MinWidth="44" layout:DataGridColumnWidthSession.InitialMinWidth="220" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                        <DataGridTextColumn Header="Gast" Binding="{Binding Guest}" Width="2*" MinWidth="44" layout:DataGridColumnWidthSession.InitialMinWidth="160" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                        <DataGridTextColumn Header="Zimmer" Binding="{Binding Room}" Width="88" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                        <DataGridTextColumn Header="Typ" Binding="{Binding Type}" Width="96" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                        <DataGridTextColumn Header="Check-in" Binding="{Binding CheckInDate, StringFormat={}{0:dd.MM.yyyy}}" Width="104" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                        <DataGridTextColumn Header="Check-out" Binding="{Binding CheckOutDate, StringFormat={}{0:dd.MM.yyyy}}" Width="104" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                        <DataGridTextColumn Header="Nächte" Binding="{Binding Nights}" Width="80" MinWidth="44" ElementStyle="{StaticResource StandardGridNumberStyle}"/>
+                        <DataGridTextColumn Header="Erw." Binding="{Binding Adults}" Width="64" MinWidth="44" ElementStyle="{StaticResource StandardGridNumberStyle}"/>
+                        <DataGridTextColumn Header="Kinder" Binding="{Binding Children}" Width="80" MinWidth="44" ElementStyle="{StaticResource StandardGridNumberStyle}"/>
+                        <DataGridTextColumn Header="Betrag" Binding="{Binding TotalAmount, StringFormat={}{0:F2} €}" Width="112" MinWidth="44" ElementStyle="{StaticResource StandardGridNumberStyle}"/>
+                        <DataGridTextColumn Header="Zahlung" Binding="{Binding PaymentMethod, Converter={StaticResource GermanValueConverter}, Mode=OneWay}" Width="120" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="104" MinWidth="44">
                             <DataGridTextColumn.ElementStyle>
-                                <StaticResource ResourceKey="ReservationStatusTextStyle"/>
+                                <StaticResource ResourceKey="StandardGridReservationStatusStyle"/>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
                     </DataGrid.Columns>
@@ -97,19 +103,19 @@
 
             <!-- TAB 2: Event-Tickets -->
             <TabItem Header="Veranstaltungstickets" FontWeight="Bold">
-                <DataGrid Style="{StaticResource StandardDataGridStyle}" ItemsSource="{Binding TicketOrders}"
+                <DataGrid x:Name="TicketGrid" Style="{StaticResource StandardResizableDataGridStyle}" ItemsSource="{Binding TicketOrders}"
               AutoGenerateColumns="False"
               CanUserDeleteRows="False"
               IsReadOnly="True">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Ticket-Code" Binding="{Binding TicketCode}" Width="160"/>
-                        <DataGridTextColumn Header="Gast" Binding="{Binding GuestName}" Width="140"/>
-                        <DataGridTextColumn Header="E-Mail" Binding="{Binding GuestEmail}" Width="180"/>
-                        <DataGridTextColumn Header="Telefon" Binding="{Binding GuestPhone}" Width="120"/>
-                        <DataGridTextColumn Header="Anzahl" Binding="{Binding Quantity}" Width="70"/>
-                        <DataGridTextColumn Header="Einzelpreis" Binding="{Binding UnitPrice, StringFormat={}{0:F2} €}" Width="100"/>
-                        <DataGridTextColumn Header="Gesamt" Binding="{Binding TotalPrice, StringFormat={}{0:F2} €}" Width="100"/>
-                        <DataGridTextColumn Header="Bestellt am" Binding="{Binding DateOrdered, StringFormat={}{0:dd.MM.yyyy}}" Width="110"/>
+                        <DataGridTextColumn Header="Ticket-Code" Binding="{Binding TicketCode}" Width="256" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                        <DataGridTextColumn Header="Gast" Binding="{Binding GuestName}" Width="*" MinWidth="44" layout:DataGridColumnWidthSession.InitialMinWidth="160" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                        <DataGridTextColumn Header="E-Mail" Binding="{Binding GuestEmail}" Width="2*" MinWidth="44" layout:DataGridColumnWidthSession.InitialMinWidth="200" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                        <DataGridTextColumn Header="Telefon" Binding="{Binding GuestPhone}" Width="144" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
+                        <DataGridTextColumn Header="Anzahl" Binding="{Binding Quantity}" Width="88" MinWidth="44" ElementStyle="{StaticResource StandardGridNumberStyle}"/>
+                        <DataGridTextColumn Header="Einzelpreis" Binding="{Binding UnitPrice, StringFormat={}{0:F2} €}" Width="112" MinWidth="44" ElementStyle="{StaticResource StandardGridNumberStyle}"/>
+                        <DataGridTextColumn Header="Gesamt" Binding="{Binding TotalPrice, StringFormat={}{0:F2} €}" Width="112" MinWidth="44" ElementStyle="{StaticResource StandardGridNumberStyle}"/>
+                        <DataGridTextColumn Header="Bestellt am" Binding="{Binding DateOrdered, StringFormat={}{0:dd.MM.yyyy}}" Width="112" MinWidth="44" ElementStyle="{StaticResource StandardGridTextStyle}"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>

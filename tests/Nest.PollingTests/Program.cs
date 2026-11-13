@@ -49,6 +49,7 @@ internal static partial class Program
         await ScreenChecks(ui);
         await RoomChecks(ui);
         await ReservationLayoutChecks(ui);
+        await AllBookingsGridChecks(ui);
         Check(ReferenceEquals(PollingCoordinator.Shared, PollingCoordinator.Shared));
         }
         // Shared was never subscribed: no production read, even during shutdown.
