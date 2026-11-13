@@ -179,8 +179,10 @@ internal static partial class Program
                             {
                                 var scroll = Visuals<ScrollViewer>(grid).First();
                                 Grid42Check(grid.ActualWidth > 0 && grid.ActualWidth <= width && grid.ActualHeight > 30, "bounded grid viewport");
-                                var overflow = grid.Columns.Sum(c => c.ActualWidth) > scroll.ViewportWidth + 1;
-                                Grid42Check(overflow ? scroll.ScrollableWidth > 0 : scroll.ScrollableWidth < 1, "appropriate scroll extent, empty=" + !populated);
+                                // The native extent includes the realized row-header gutter as well as columns.
+                                var overflow = grid.Columns.Sum(c => c.ActualWidth) + grid.CellsPanelHorizontalOffset > scroll.ViewportWidth + 1;
+                                Grid42Check(overflow ? scroll.ScrollableWidth > 0 : scroll.ScrollableWidth < 1,
+                                    $"appropriate scroll extent: {DataGridColumnWidthSession.GetTableKey(grid)}, empty={!populated}, window={width}, columns={grid.Columns.Sum(c => c.ActualWidth)}, viewport={scroll.ViewportWidth}, extent={scroll.ExtentWidth}, scrollable={scroll.ScrollableWidth}");
                                 scroll.ScrollToRightEnd();
                             }
                             if (view is GastManagementView)
@@ -264,7 +266,12 @@ internal static partial class Program
                     await ui.Call(() =>
                     {
                         grids = Visuals<DataGrid>(view).ToArray();
-                        Grid42Check(grids.Select((g, i) => g.Columns.Select(c => c.Width).SequenceEqual(original[i])).All(x => x), "new authenticated session restores XAML defaults");
+                        // DataGridLength equality also compares transient desired/display doubles.
+                        // Assert the exact XAML unit/value and visible width with DIP rounding tolerance.
+                        Grid42Check(grids.Select((g, i) => g.Columns.Select((c, j) =>
+                            c.Width.UnitType == original[i][j].UnitType && c.Width.Value == original[i][j].Value &&
+                            Math.Abs(c.ActualWidth - original[i][j].DisplayValue) < 1).All(x => x)).All(x => x),
+                            "new authenticated session restores XAML defaults: " + view.GetType().Name);
                         host.Child = null; return true;
                     });
                     await SetLayout(ui, host, 800, 700);

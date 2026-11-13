@@ -19,7 +19,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Border"
+                        <Border x:Name="Border" BorderBrush="Transparent" BorderThickness="2"
                                 Background="{TemplateBinding Background}">
                             <ContentPresenter
                                 VerticalAlignment="Center"
@@ -29,6 +29,9 @@
                         </Border>
 
                         <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="White"/>
+                            </Trigger>
 
                             <!-- Hover -->
                             <Trigger Property="IsMouseOver" Value="True">
@@ -52,14 +55,19 @@
 
     </UserControl.Resources>
 
-    <Grid>
+    <Grid x:Name="NavigationRoot" ClipToBounds="True">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240"/>
+            <ColumnDefinition x:Name="SidebarColumn" Width="240"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- LEFT MENU -->
-        <Border Grid.Column="0" Background="{StaticResource StaffSidebarBrush}">
+        <Border x:Name="SidebarPanel" Grid.Column="0" Width="240" HorizontalAlignment="Left"
+                Panel.ZIndex="20" Background="{StaticResource StaffSidebarBrush}"
+                AutomationProperties.Name="Hauptnavigation Administration">
+            <Border.RenderTransform>
+                <TranslateTransform x:Name="SidebarShift"/>
+            </Border.RenderTransform>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -67,6 +75,12 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
+                <Button x:Name="CloseNavigation" Grid.Row="0" Content="✕" Width="44" Height="40"
+                        HorizontalAlignment="Right" Margin="4" Visibility="Collapsed"
+                        Click="CloseNavigation_Click" ToolTip="Menü schließen (Esc)"
+                        AutomationProperties.Name="Navigationsmenü schließen"/>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
                 <!-- Logo -->
                 <StackPanel Margin="10,20">
                     <TextBlock Style="{StaticResource StaffBrandTextStyle}" Text="Grand Horizon"/>
@@ -81,7 +95,7 @@
                 </StackPanel>
 
                 <!-- Navigation -->
-                <StackPanel Grid.Row="1">
+                <StackPanel>
 
                     <Button x:Name="ShowDashboard"
                             Tag="Dashboard"
@@ -119,6 +133,8 @@
                             Style="{StaticResource MenuButtonStyle}"
                             Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=AlleReservierungen}"/>
                 </StackPanel>
+                </StackPanel>
+                </ScrollViewer>
 
                 <!-- Bottom buttons -->
                 <StackPanel Grid.Row="2" Margin="0" Background="#0F284B">
@@ -133,7 +149,20 @@
             </Grid>
         </Border>
 
-        <ContentControl x:Name="ActiveItem" Grid.Column="1"/>
+        <Grid x:Name="ContentHost" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Border x:Name="CompactToolbar" Visibility="Collapsed" Background="{StaticResource StaffSidebarBrush}">
+                <Button x:Name="OpenNavigation" Content="☰" Width="44" Height="40" Margin="4"
+                        HorizontalAlignment="Left" Click="OpenNavigation_Click"
+                        ToolTip="Menü öffnen" AutomationProperties.Name="Navigationsmenü öffnen"/>
+            </Border>
+            <ContentControl x:Name="ActiveItem" Grid.Row="1"/>
+        </Grid>
+        <Border x:Name="NavigationScrim" Grid.ColumnSpan="2" Panel.ZIndex="10"
+                Background="#55000000" Visibility="Collapsed" MouseLeftButtonDown="NavigationScrim_Click"/>
     </Grid>
 </UserControl>
 
