@@ -6,6 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Nest.Views.Admin"
+             layout:CrudPaneLayout.IsEnabled="True"
              mc:Ignorable="d" 
              d:DesignHeight="1080" d:DesignWidth="1920">
     <UserControl.Resources>
@@ -27,10 +28,11 @@
             <Button x:Name="ReloadSelectedRoom" Content="Aktuellen Stand übernehmen"
                     HorizontalAlignment="Left" Margin="0,4" Padding="8,3"/>
         </StackPanel>
-    <Grid>
+    <Grid x:Name="CrudWorkspace">
 
         <Grid.RowDefinitions>
             <RowDefinition Height="70"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -42,7 +44,20 @@
         <Border Background="{StaticResource PageHeaderBrush}" Grid.Row="0" Grid.ColumnSpan="2">
             <TextBlock Style="{StaticResource PageHeaderTextStyle}" Text="Zimmerverwaltung"/>
         </Border>
-        <ScrollViewer Grid.Row="1" Grid.Column="0"
+        <WrapPanel x:Name="CrudPaneChoices" Grid.Row="1" Grid.ColumnSpan="2" Margin="10,4" Visibility="Collapsed">
+            <RadioButton x:Name="CrudListChoice" Content="Liste" GroupName="ZimmerPane" IsChecked="True"
+                         Padding="10,8" Margin="0,0,8,0" VerticalContentAlignment="Center"
+                         AutomationProperties.Name="Liste anzeigen"/>
+            <RadioButton x:Name="CrudFormChoice" Content="Formular" GroupName="ZimmerPane"
+                         Padding="10,8" Margin="0,0,8,0" VerticalContentAlignment="Center"
+                         AutomationProperties.Name="Formular anzeigen"/>
+            <Button x:Name="OpenNewForm" Content="Neue Eingabe" Padding="10,6" Margin="0,0,8,4"
+                    ToolTip="Formular öffnen. Mit Leeren eine neue Eingabe beginnen."
+                    AutomationProperties.Name="Formular für neue Eingabe öffnen"/>
+            <Button x:Name="OpenEditForm" Content="Bearbeiten" Padding="10,6" Margin="0,0,0,4"
+                    AutomationProperties.Name="Ausgewählten Eintrag bearbeiten"/>
+        </WrapPanel>
+        <ScrollViewer x:Name="CrudForm" Grid.Row="2" Grid.Column="0"
                       Background="White"
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
@@ -190,7 +205,7 @@
         </ScrollViewer>
         
         
-        <DataGrid layout:DataGridColumnWidthSession.TableKey="Admin.ZimmerView.0" Style="{StaticResource StandardResizableDataGridStyle}" Grid.Row="1" Grid.Column="1"
+        <DataGrid x:Name="CrudGrid" layout:DataGridColumnWidthSession.TableKey="Admin.ZimmerView.0" Style="{StaticResource StandardResizableDataGridStyle}" Grid.Row="2" Grid.Column="1"
                   ItemsSource="{Binding Rooms}"
                   SelectedItem="{Binding SelectedRoom}"
                   IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False"

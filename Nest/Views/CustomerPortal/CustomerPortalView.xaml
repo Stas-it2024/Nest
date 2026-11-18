@@ -45,7 +45,7 @@
         </Grid>
 
         <!-- TabControl -->
-        <TabControl Grid.Row="1"
+        <TabControl x:Name="PortalTabs" Grid.Row="1"
                     Background="#F3F5F9"
                     BorderBrush="{StaticResource PortalBorderBrush}"
                     BorderThickness="1"
@@ -64,7 +64,7 @@
                         <GroupBox Header="Ihre Kontaktdaten"
                                   Margin="0,0,0,15"
                                   Style="{StaticResource KontaktBereichStil}">
-                            <Grid Margin="15">
+                            <Grid x:Name="ContactFields" Margin="15">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition/>
                                     <ColumnDefinition/>
@@ -300,7 +300,7 @@
                                 </Grid>
 
                                 <!-- Erwachsene / Kinder -->
-                                <Grid Grid.Row="3" Margin="0,20,0,0">
+                                <Grid x:Name="PeopleFields" Grid.Row="3" Margin="0,20,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="200"/>
                                         <ColumnDefinition Width="200"/>
@@ -845,13 +845,13 @@
                                            Foreground="{StaticResource PortalHeadingBrush}"
                                            Margin="0,24,0,12"/>
 
-                                <Grid Grid.Row="3">
+                                <Grid x:Name="ReservationCodeFields" Grid.Row="3">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="210"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <StackPanel Grid.Column="0">
+                                    <StackPanel x:Name="ReservationCodeInput" Grid.Column="0">
                                         <TextBlock Text="Reservierungscode *"
                                                    Style="{StaticResource KundenFormLabelStil}"/>
                                         <!-- Die sofortige Übergabe erlaubt dem ViewModel, den Code zu normalisieren und alte Anzeigedaten zu leeren. -->
@@ -860,7 +860,7 @@
                                                  CharacterCasing="Upper"/>
                                     </StackPanel>
 
-                                    <Button Grid.Column="1"
+                                    <Button x:Name="LoadReservationButton" Grid.Column="1"
                                             Content="RESERVIERUNG LADEN"
                                             cal:Message.Attach="[Action ReservierungLaden]"
                                             Style="{StaticResource PrimaerAktionButtonStil}"
@@ -1015,13 +1015,13 @@
                                                TextWrapping="Wrap"/>
                                 </Border>
 
-                                <Grid Grid.Row="9" Margin="0,14,0,0">
+                                <Grid x:Name="PdfFields" Grid.Row="9" Margin="0,14,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="210"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <TextBlock Grid.Column="0"
+                                    <TextBlock x:Name="PdfPathText" Grid.Column="0"
                                                Text="{Binding LetzterPdfPfadText}"
                                                Foreground="#5B6472"
                                                VerticalAlignment="Center"
@@ -1029,7 +1029,7 @@
                                                Margin="0,0,16,0"/>
 
                                     <!-- Das Öffnen ist eine eigene Aktion, damit ein bereits erzeugter Beleg erneut angezeigt werden kann. -->
-                                    <Button Grid.Column="1"
+                                    <Button x:Name="OpenPdfButton" Grid.Column="1"
                                             Content="PDF-ZAHLUNGSBELEG ÖFFNEN"
                                             cal:Message.Attach="[Action PdfOeffnen]"
                                             Style="{StaticResource PrimaerAktionButtonStil}"

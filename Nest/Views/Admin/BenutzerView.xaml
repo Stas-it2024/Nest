@@ -11,6 +11,7 @@
 
              xmlns:local="clr-namespace:Nest.Views.Admin"
 
+             layout:CrudPaneLayout.IsEnabled="True"
              mc:Ignorable="d" 
 
              d:DesignHeight="450" d:DesignWidth="800">
@@ -26,10 +27,11 @@
         <!-- TextBox -->
         <Style TargetType="TextBox" BasedOn="{StaticResource AdminFormTextBoxStyle}"/>
     </UserControl.Resources>
-    <Grid>
+    <Grid x:Name="CrudWorkspace">
 
         <Grid.RowDefinitions>
             <RowDefinition Height="70"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -41,7 +43,20 @@
         <Border Background="{StaticResource PageHeaderBrush}" Grid.Row="0" Grid.ColumnSpan="2">
             <TextBlock Style="{StaticResource PageHeaderTextStyle}" Text="Benutzerverwaltung"/>
         </Border>
-        <ScrollViewer Grid.Row="1" Grid.Column="0"
+        <WrapPanel x:Name="CrudPaneChoices" Grid.Row="1" Grid.ColumnSpan="2" Margin="10,4" Visibility="Collapsed">
+            <RadioButton x:Name="CrudListChoice" Content="Liste" GroupName="BenutzerPane" IsChecked="True"
+                         Padding="10,8" Margin="0,0,8,0" VerticalContentAlignment="Center"
+                         AutomationProperties.Name="Liste anzeigen"/>
+            <RadioButton x:Name="CrudFormChoice" Content="Formular" GroupName="BenutzerPane"
+                         Padding="10,8" Margin="0,0,8,0" VerticalContentAlignment="Center"
+                         AutomationProperties.Name="Formular anzeigen"/>
+            <Button x:Name="OpenNewForm" Content="Neue Eingabe" Padding="10,6" Margin="0,0,8,4"
+                    ToolTip="Formular öffnen. Mit Leeren eine neue Eingabe beginnen."
+                    AutomationProperties.Name="Formular für neue Eingabe öffnen"/>
+            <Button x:Name="OpenEditForm" Content="Bearbeiten" Padding="10,6" Margin="0,0,0,4"
+                    AutomationProperties.Name="Ausgewählten Eintrag bearbeiten"/>
+        </WrapPanel>
+        <ScrollViewer x:Name="CrudForm" Grid.Row="2" Grid.Column="0"
 
                   Background="White"
 
@@ -167,7 +182,7 @@
         </ScrollViewer>
 
 
-        <DataGrid layout:DataGridColumnWidthSession.TableKey="Admin.BenutzerView.0" Style="{StaticResource StandardResizableDataGridStyle}" Grid.Row="1" Grid.Column="1"
+        <DataGrid x:Name="CrudGrid" layout:DataGridColumnWidthSession.TableKey="Admin.BenutzerView.0" Style="{StaticResource StandardResizableDataGridStyle}" Grid.Row="2" Grid.Column="1"
 
                   ItemsSource="{Binding Users}"
 

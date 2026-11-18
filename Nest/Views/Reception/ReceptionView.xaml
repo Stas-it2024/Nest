@@ -34,13 +34,16 @@
             <Setter Property="Height" Value="45"/>
         </Style>
     </UserControl.Resources>
-    <Grid>
+    <Grid x:Name="NavigationRoot" ClipToBounds="True">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240"/>
+            <ColumnDefinition x:Name="SidebarColumn" Width="240"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="0" Background="{StaticResource StaffSidebarBrush}">
+        <Border x:Name="SidebarPanel" Grid.Column="0" Width="240" HorizontalAlignment="Left"
+                Panel.ZIndex="20" Background="{StaticResource StaffSidebarBrush}"
+                AutomationProperties.Name="Hauptnavigation Rezeption">
+            <Border.RenderTransform><TranslateTransform x:Name="SidebarShift"/></Border.RenderTransform>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -48,6 +51,13 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
+                <Button x:Name="CloseNavigation" Grid.Row="0" Content="✕" Width="44" Height="40"
+                        HorizontalAlignment="Right" Margin="4" Visibility="Collapsed"
+                        Click="CloseNavigation_Click" ToolTip="Menü schließen (Esc)"
+                        AutomationProperties.Name="Navigationsmenü schließen"/>
+                <ScrollViewer x:Name="MenuScroller" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
                 <StackPanel Margin="10,20">
                     <TextBlock Style="{StaticResource StaffBrandTextStyle}" Text="Grand Horizon"/>
                     <TextBlock Style="{StaticResource StaffHotelTextStyle}" Text="Hotel"/>
@@ -56,7 +66,7 @@
                     <TextBlock Style="{StaticResource StaffInfoTextStyle}" Text="(Rezeptionist)"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="1">
+                <StackPanel>
                     <Button x:Name="ShowReservations" Content="Reservierungen"
                             Style="{StaticResource ReceptionMenuButtonStyle}"
                             Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=Reservations}"/>
@@ -70,6 +80,8 @@
                             Style="{StaticResource ReceptionMenuButtonStyle}"
                             Background="{Binding SelectedSection, Converter={StaticResource SectionBackgroundConverter}, ConverterParameter=CustomerPortal}"/>
                 </StackPanel>
+                </StackPanel>
+                </ScrollViewer>
 
                 <StackPanel Grid.Row="2" Background="#0F284B">
                     <Button x:Name="Logout" Content="Abmelden" Foreground="#FFB6B6"
@@ -80,17 +92,25 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Column="1" Background="#F3F5F8">
+        <Grid x:Name="ContentHost" Grid.Column="1" Background="#F3F5F8">
             <Grid.RowDefinitions>
-                <RowDefinition Height="70"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-
-            <Border Background="{StaticResource PageHeaderBrush}">
-                <TextBlock Style="{StaticResource PageHeaderTextStyle}" Text="{Binding PageTitle}"/>
+            <Border x:Name="CompactToolbar" Grid.Row="0" Height="48" Visibility="Collapsed"
+                    Background="{StaticResource StaffSidebarBrush}">
+                <Button x:Name="OpenNavigation" Content="☰" Width="44" Height="40" Margin="4"
+                        HorizontalAlignment="Left" Click="OpenNavigation_Click"
+                        ToolTip="Menü öffnen" AutomationProperties.Name="Navigationsmenü öffnen"/>
             </Border>
-
-            <ContentControl x:Name="ActiveItem" Grid.Row="1"/>
+            <Border Grid.Row="1" Background="{StaticResource PageHeaderBrush}" MinHeight="70">
+                <TextBlock x:Name="PageHeading" Text="{Binding PageTitle}" TextWrapping="Wrap"
+                           Style="{StaticResource PageHeaderTextStyle}" Margin="25,10"/>
+            </Border>
+            <ContentControl x:Name="ActiveItem" Grid.Row="2"/>
         </Grid>
+        <Border x:Name="NavigationScrim" Grid.ColumnSpan="2" Background="#66000000"
+                Panel.ZIndex="10" Visibility="Collapsed" MouseLeftButtonDown="NavigationScrim_Click"/>
     </Grid>
 </UserControl>

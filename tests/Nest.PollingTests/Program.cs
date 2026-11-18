@@ -17,7 +17,7 @@ internal static partial class Program
         new[] { new RoomSnapshot(1, 101, "Standard", 50, 2, "Verfuegbar", null, null, new DateTime(2026, 1, 1), null) },
         new[] { new BookingSnapshot("CODE", "Guest", "101", "Standard", new DateTime(2026, 1, 1), new DateTime(2026, 1, 2), 1, 1, 0, 50, 0, "Bar", status) });
 
-    private static async Task<int> Main()
+    private static async Task<int> Main(string[] args)
     {
         var oldMode = Environment.GetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ModeVariable);
         var oldConnection = Environment.GetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ConnectionVariable);
@@ -26,7 +26,13 @@ internal static partial class Program
             // Any accidental real Repository call must fail before opening a connection.
             Environment.SetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ModeVariable, "invalid-offline-test");
             Environment.SetEnvironmentVariable(Nest.Data.IntegrationConnectionSettings.ConnectionVariable, null);
-            await Run().WaitAsync(TimeSpan.FromSeconds(120));
+            if (args.SequenceEqual(new[] { "--responsive44" }))
+            {
+                using var ui = new Ui();
+                await Responsive44Checks(ui).WaitAsync(TimeSpan.FromSeconds(120));
+            }
+            else if (args.Length == 0) await Run().WaitAsync(TimeSpan.FromSeconds(120));
+            else throw new ArgumentException("Unsupported offline test arguments.");
             return 0;
         }
         catch (Exception error)
@@ -60,6 +66,7 @@ internal static partial class Program
         await RemainingGridChecks(ui);
         await DashboardLayoutChecks(ui);
         await AdminDrawerChecks(ui);
+        await Responsive44Checks(ui);
         Check(ReferenceEquals(PollingCoordinator.Shared, PollingCoordinator.Shared));
         }
         // Shared was never subscribed: no production read, even during shutdown.
