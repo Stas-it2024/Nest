@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Caliburn.Micro" Version="5.0.258" />
+    <Compile Include="../../Nest/Models/Event.cs" Link="Production/Event.cs" />
+    <Compile Include="../../Nest/Models/Veranstaltung.cs" Link="Production/Veranstaltung.cs" />
+  </ItemGroup>
+  <!-- Current production bodies; only transport, namespace and dialogs are replaced.
+       No Nest/MySql reference: this executable cannot open a database connection. -->
+  <UsingTask TaskName="GenerateEventIsolation" TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)/Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Root ParameterType="System.String" Required="true" />
+      <OutputDirectory ParameterType="System.String" Required="true" />
+      <Sources ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        Directory.CreateDirectory(OutputDirectory);
+        var files = new[] { "Nest/Data/EventRepository.cs", "Nest/ViewModels/Admin/EventViewModel.cs",
+                           "Nest/ViewModels/CustomerPortal/VeranstaltungenViewModel.cs" };
+        var sources = new System.Collections.Generic.List<Microsoft.Build.Framework.ITaskItem>();
+        foreach (var file in files) {
+          var source = File.ReadAllText(Path.Combine(Root, file));
+          if (file.Contains("Repository")) {
+            if (!source.Contains("using MySql.Data.MySqlClient;") || !source.Contains("namespace Nest.Data"))
+              throw new System.InvalidOperationException("Event isolation anchors changed.");
+            source = source.Replace("using MySql.Data.MySqlClient;", "using EventTests.Fakes;")
+                           .Replace("namespace Nest.Data", "namespace EventTests.Data");
+          } else {
+            if (!source.Contains("using Nest.Data;") || !source.Contains("MessageBox.Show"))
+              throw new System.InvalidOperationException("Event UI isolation anchors changed.");
+            source = source.Replace("using Nest.Data;", "using EventTests.Data;")
+                           .Replace("namespace Nest.ViewModels.", "namespace EventTests.Ui.")
+                           .Replace("MessageBox.Show", "EventTests.Dialog.Show");
+          }
+          var path = Path.Combine(OutputDirectory, Path.GetFileName(file));
+          File.WriteAllText(path, source);
+          sources.Add(new Microsoft.Build.Utilities.TaskItem(path));
+        }
+        Sources = sources.ToArray();
+      ]]></Code>
+    </Task>
+  </UsingTask>
+  <Target Name="GenerateEventSources" BeforeTargets="CoreCompile">
+    <GenerateEventIsolation Root="$(MSBuildProjectDirectory)/../.." OutputDirectory="$(IntermediateOutputPath)EventIsolation">
+      <Output TaskParameter="Sources" ItemName="Compile" />
+    </GenerateEventIsolation>
+  </Target>
+</Project>

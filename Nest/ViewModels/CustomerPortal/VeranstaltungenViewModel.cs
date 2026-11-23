@@ -17,6 +17,7 @@ namespace Nest.ViewModels.CustomerPortal
         private string _anzahlTickets = "1";
         private string _statusmeldung = string.Empty;
         private bool _buchungLaeuft;
+        private bool _buchungUngeklaert;
 
         public VeranstaltungenViewModel()
             : this(new EventRepository(), null)
@@ -114,6 +115,7 @@ namespace Nest.ViewModels.CustomerPortal
 
         public void TicketKaufen(Veranstaltung? veranstaltung)
         {
+            if (_buchungLaeuft || _buchungUngeklaert) return;
             // Die Prüfung im ViewModel liefert schnelle, verständliche Rückmeldungen.
             // Das Repository prüft kritische Werte innerhalb der Transaktion erneut.
             var validierungsfehler = ErmittleValidierungsfehler(veranstaltung, out var anzahl);
@@ -127,6 +129,7 @@ namespace Nest.ViewModels.CustomerPortal
             _buchungLaeuft = true;
             NotifyOfPropertyChange(nameof(CanTicketKaufen));
 
+            var confirmed = false;
             try
             {
                 var result = _eventRepository.BookTickets(new TicketBookingRequest
@@ -140,7 +143,8 @@ namespace Nest.ViewModels.CustomerPortal
                     ReservationId = null
                 });
 
-                if (result.Status != TicketBookingStatus.Success)
+                confirmed = result.Status is TicketBookingStatus.Success or TicketBookingStatus.CommittedWithCleanupFailure;
+                if (!confirmed)
                 {
                     ZeigeRepositoryFehler(result);
                     LadeVeranstaltungen();
@@ -148,6 +152,12 @@ namespace Nest.ViewModels.CustomerPortal
                 }
 
                 LadeVeranstaltungen();
+                if (result.Status == TicketBookingStatus.CommittedWithCleanupFailure)
+                {
+                    Statusmeldung = $"Ticketbestellung gespeichert: {result.TicketCode}. Technischer Fehler beim Freigeben der Ressourcen; bitte nicht erneut kaufen.";
+                    MessageBox.Show(Statusmeldung, "Ticketbestellung gespeichert", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
                 Statusmeldung =
                     $"Ticketbestellung erfolgreich: {result.TicketCode} – Gesamtpreis {result.TotalPrice:F2} €.";
                 MessageBox.Show(
@@ -161,14 +171,27 @@ namespace Nest.ViewModels.CustomerPortal
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
             }
+            catch (EventCommitUncertainException ex)
+            {
+                _buchungUngeklaert = true;
+                Statusmeldung = $"Das Ergebnis der Ticketbestellung ist ungeklärt. Die Bestellung kann gespeichert sein. Bitte nicht erneut kaufen; zuerst prüfen. Referenz: {ex.TicketCode}";
+                MessageBox.Show(Statusmeldung, "Ergebnis ungeklärt", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (EventRollbackUncertainException)
+            {
+                _buchungUngeklaert = true;
+                Statusmeldung = "Der Rollback konnte nicht bestätigt werden. Bitte nicht erneut kaufen; zuerst den Datenbankstand prüfen.";
+                MessageBox.Show(Statusmeldung, "Ergebnis ungeklärt", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
             catch (Exception ex)
             {
-                Statusmeldung = "Die Ticketbestellung wurde nicht gespeichert.";
-                MessageBox.Show(
-                    $"Die Ticketbestellung konnte nicht gespeichert werden. Alle Änderungen wurden zurückgesetzt.\n{ex.Message}",
-                    "Datenbankfehler",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                Statusmeldung = confirmed
+                    ? "Die Ticketbestellung wurde gespeichert, aber die Anzeige konnte nicht aktualisiert werden. Bitte nicht erneut kaufen."
+                    : ex.Data["RollbackConfirmed"] is true
+                        ? "Die Ticketbestellung wurde nicht gespeichert. Die Transaktion wurde zurückgesetzt."
+                        : "Die Ticketbestellung konnte nicht bestätigt werden. Bitte zuerst den Datenbankstand prüfen.";
+                if (!confirmed && ex.Data["RollbackConfirmed"] is not true) _buchungUngeklaert = true;
+                MessageBox.Show(Statusmeldung, "Technischer Hinweis", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
             finally
             {
@@ -181,7 +204,7 @@ namespace Nest.ViewModels.CustomerPortal
         public bool CanTicketKaufen(Veranstaltung? veranstaltung)
         {
             // Caliburn.Micro nutzt diese Methode, um die zugehörige Aktion nur bei gültigem Zustand zu erlauben.
-            return !_buchungLaeuft
+            return !_buchungLaeuft && !_buchungUngeklaert
                 && veranstaltung != null
                 && veranstaltung.Startzeit >= DateTime.Now
                 && veranstaltung.VerfuegbareTickets > 0;
@@ -259,6 +282,10 @@ namespace Nest.ViewModels.CustomerPortal
             {
                 TicketBookingStatus.EventNotFound =>
                     "Die ausgewählte Veranstaltung existiert nicht mehr.",
+                TicketBookingStatus.EventNotActive =>
+                    "Die ausgewählte Veranstaltung ist nicht für den Ticketverkauf aktiv.",
+                TicketBookingStatus.InvalidInventory =>
+                    "Der Ticketbestand ist inkonsistent. Bitte den Datenbankstand prüfen.",
                 TicketBookingStatus.EventInPast =>
                     "Die ausgewählte Veranstaltung liegt bereits in der Vergangenheit.",
                 TicketBookingStatus.InvalidQuantity =>

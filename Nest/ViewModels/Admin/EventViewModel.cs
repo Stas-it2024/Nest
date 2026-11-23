@@ -17,6 +17,7 @@ namespace Nest.ViewModels.Admin
     {
         // The EventRepository is used to interact with the database for event-related operations.
         private readonly EventRepository _eventRepository;
+        private bool _updateOutcomeUnknown;
 
         // Private fields to hold the values of the event properties.
         private string _title = "";
@@ -421,6 +422,11 @@ namespace Nest.ViewModels.Admin
         // This method is responsible for updating an existing event. It first checks if an event is selected and if the required fields (Title and Location) are filled. If not, it shows a warning message. Then, it retrieves the values from the form fields, updates the properties of the selected event, saves the changes to the database, updates the Events collection, shows a success message, and finally clears the form.
         public void Aktualisieren()
         {
+            if (_updateOutcomeUnknown)
+            {
+                MessageBox.Show("Das Ergebnis der letzten Änderung ist ungeklärt. Bitte zuerst den Datenbankstand prüfen; nicht erneut speichern.", "Ergebnis ungeklärt");
+                return;
+            }
             if (SelectedEvent == null)
             {
                 MessageBox.Show(
@@ -478,17 +484,6 @@ namespace Nest.ViewModels.Admin
                 return;
             }
 
-            if (maxTickets < SelectedEvent.SoldTickets)
-            {
-                MessageBox.Show(
-                    $"Die maximale Ticketanzahl darf nicht kleiner als die bereits verkauften Tickets ({SelectedEvent.SoldTickets}) sein.",
-                    "Fehler",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-
-                return;
-            }
-
             if (!TimeSpan.TryParse(EventTimeText, out TimeSpan eventTime))
             {
                 MessageBox.Show(
@@ -514,39 +509,52 @@ namespace Nest.ViewModels.Admin
 
             decimal ticketPrice = GetTicketPrice();
 
-            // Neues Objekt für die aktualisierten Daten
-            var updatedEvent = new Event
+            var confirmed = false;
+            try
             {
-                Id = SelectedEvent.Id,
-                Title = Title.Trim(),
-                Description = Description?.Trim(),
-                EventDate = EventDate,
-                EventTime = eventTime,
-                Location = Location.Trim(),
-                TicketPrice = ticketPrice,
-                MaxTickets = maxTickets,
-                SoldTickets = SelectedEvent.SoldTickets,
-                ImageUrl = SelectedEvent.ImageUrl,
-                Status = Status,
-                CreatedBy = SelectedEvent.CreatedBy,
-                DateCreated = SelectedEvent.DateCreated
-            };
-
-            _eventRepository.Update(updatedEvent);
-
-            // UI aktualisieren
-            int index = Events.IndexOf(SelectedEvent);
-
-            if (index >= 0)
-            {
-                Events[index] = updatedEvent;
+                var result = _eventRepository.Update(new EventUpdateRequest(
+                    SelectedEvent.Id, Title.Trim(), Description?.Trim(), EventDate, eventTime,
+                    Location.Trim(), ticketPrice, maxTickets, SelectedEvent.ImageUrl, Status));
+                confirmed = result.Status is EventUpdateStatus.Success or EventUpdateStatus.CommittedWithCleanupFailure;
+                if (!confirmed)
+                {
+                    var message = result.Status switch
+                    {
+                        EventUpdateStatus.NotFound => "Die Veranstaltung existiert nicht mehr.",
+                        EventUpdateStatus.CapacityBelowSold => $"Die maximale Ticketanzahl darf nicht kleiner als die aktuell verkauften Tickets ({result.Current?.SoldTickets}) sein.",
+                        EventUpdateStatus.InvalidCapacity => "Die Anzahl der Tickets muss größer als 0 sein.",
+                        EventUpdateStatus.InvalidStatus => "Der Veranstaltungsstatus ist ungültig.",
+                        _ => "Der Ticketbestand ist inkonsistent. Bitte den Datenbankstand prüfen."
+                    };
+                    MessageBox.Show(message, "Änderung nicht gespeichert", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return; // Keep all draft fields and selection on a business refusal.
+                }
+                int index = Events.IndexOf(SelectedEvent);
+                if (index >= 0 && result.Current != null)
+                {
+                    Events[index] = result.Current;
+                    SelectedEvent = result.Current;
+                }
+                MessageBox.Show(result.Status == EventUpdateStatus.CommittedWithCleanupFailure
+                    ? "Die Änderung wurde gespeichert. Beim Freigeben der Ressourcen trat ein Fehler auf. Bitte nicht erneut speichern."
+                    : "Die Veranstaltung wurde erfolgreich aktualisiert.", "Gespeichert");
             }
-
-            MessageBox.Show(
-                "Die Veranstaltung wurde erfolgreich aktualisiert.",
-                "Erfolgreich",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            catch (EventCommitUncertainException)
+            {
+                _updateOutcomeUnknown = true;
+                MessageBox.Show("Das Ergebnis der Änderung konnte nicht bestätigt werden. Sie kann gespeichert sein. Bitte den Datenbankstand prüfen und nicht erneut speichern.", "Ergebnis ungeklärt");
+            }
+            catch (EventRollbackUncertainException)
+            {
+                _updateOutcomeUnknown = true;
+                MessageBox.Show("Der Rollback konnte nicht bestätigt werden. Bitte den Datenbankstand prüfen und nicht erneut speichern.", "Ergebnis ungeklärt");
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(confirmed
+                    ? "Die Änderung wurde gespeichert, aber die Anzeige konnte nicht aktualisiert werden. Bitte nicht erneut speichern."
+                    : "Die Änderung konnte nicht ausgeführt werden. Bitte den Datenbankstand prüfen.", "Technischer Hinweis");
+            }
         }
 
         // This method is responsible for deleting an existing event. It first checks if an event is selected. If not, it shows a warning message. Then, it asks for confirmation from the user before proceeding with the deletion. If confirmed, it deletes the event from the database, removes it from the Events collection, shows a success message, and finally clears the form.

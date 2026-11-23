@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Nest/Nest.csproj" />
+    <Compile Include="../Nest.IntegrationBootstrap/WindowsCredentialReader.cs" Link="WindowsCredentialReader.cs" />
+    <None Include="../../Nest/Data/EventRepository.cs" Link="SafetyInputs/EventRepository.source.txt" CopyToOutputDirectory="Always" />
+    <None Include="EventDiagnostics.cs" Link="SafetyInputs/EventDiagnostics.source.txt" CopyToOutputDirectory="Always" />
+    <None Include="Program.cs" Link="SafetyInputs/Program.source.txt" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+</Project>
