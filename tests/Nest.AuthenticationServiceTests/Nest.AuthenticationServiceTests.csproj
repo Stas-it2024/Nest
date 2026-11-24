@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <!-- Exact production services/hasher, no Nest/WPF/MySql/Credential Manager dependency. -->
+  <ItemGroup>
+    <Compile Include="../../Nest/Security/PasswordHasher.cs" Link="Production/PasswordHasher.cs" />
+    <Compile Include="../../Nest/Security/Authentication/*.cs" Link="Production/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>
