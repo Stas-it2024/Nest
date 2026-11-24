@@ -100,9 +100,12 @@
                 <Label Grid.Column="0" Grid.Row="4"
 
                        Content="Passwort (leer = unverändert)"/>
-                <TextBox Grid.Column="0" Grid.Row="5" 
-
-                         Text="{Binding Password}"/>
+                <PasswordBox x:Name="PasswordDraftBox" Grid.Column="0" Grid.Row="5"
+                             Height="30" Margin="10,0,10,10" FontSize="16"
+                             VerticalContentAlignment="Center"
+                             AutomationProperties.Name="Neues Passwort (leer = unverändert)"
+                             layout:PasswordDraftBinding.IsEnabled="True"
+                             layout:PasswordDraftBinding.Value="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                 <!-- Rolle -->
                 <Label Grid.Column="0" Grid.Row="6"

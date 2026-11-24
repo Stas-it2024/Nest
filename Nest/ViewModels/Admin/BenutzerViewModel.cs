@@ -36,6 +36,7 @@ namespace Nest.ViewModels.Admin
             get => _selectedUser;
             set
             {
+                if (!ReferenceEquals(_selectedUser, value)) Password = string.Empty;
                 _selectedUser = value;
 
                 if (_selectedUser != null)
@@ -136,7 +137,11 @@ namespace Nest.ViewModels.Admin
                 DateAdded = DateTime.Now
             };
 
-            if (!_userRepository.Add(user))
+            bool saved;
+            try { saved = _userRepository.Add(user); }
+            finally { user.Password = null; } // Do not retain a plaintext request in Users.
+
+            if (!saved)
             {
                 MessageBox.Show(
                     "Ein Benutzer mit diesem Benutzernamen existiert bereits.",
@@ -146,6 +151,7 @@ namespace Nest.ViewModels.Admin
                 return;
             }
 
+            Password = string.Empty; // Only after Repository acknowledged success.
             Users.Add(user);
 
             MessageBox.Show(
@@ -203,6 +209,7 @@ namespace Nest.ViewModels.Admin
                         MessageBoxImage.Warning);
                     return;
                 }
+                Password = string.Empty; // A later list-reload failure does not undo the saved change.
             }
             catch (MySqlException ex) when (ex.Number == 1062)
             {
@@ -222,6 +229,7 @@ namespace Nest.ViewModels.Admin
                     MessageBoxImage.Error);
                 return;
             }
+            finally { updatedUser.Password = null; }
 
             List<User> updatedUsers;
             try

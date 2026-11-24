@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:cal="http://www.caliburnproject.org"
+             xmlns:input="clr-namespace:Nest.Views.Behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="650" d:DesignWidth="900">
     <Grid>
@@ -57,7 +58,8 @@
                 <Grid>
                     <!-- Passwort versteckt -->
                     <PasswordBox Style="{StaticResource LoginPasswordBoxStyle}" x:Name="PasswordBox"
-                                 cal:Message.Attach="[Event PasswordChanged] = [Action SetPassword($source)]"
+                                 input:PasswordDraftBinding.IsEnabled="True"
+                                 input:PasswordDraftBinding.Value="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  Visibility="{Binding PasswordBoxVisibility}"/>
 
                     <!-- Passwort sichtbar -->
