@@ -13,7 +13,8 @@ namespace Nest.Data
     public static class DB
     {
         private sealed record ConnectionContext(string Configuration, string? TestUser);
-        private static readonly ConditionalWeakTable<MySqlConnection, ConnectionContext> Contexts = new();
+        private sealed record RegisteredConnection(ConnectionContext Source, string ExpectedConfiguration);
+        private static readonly ConditionalWeakTable<MySqlConnection, RegisteredConnection> Contexts = new();
         private static readonly object ConfigurationGate = new();
         private static ConnectionContext? ProcessConfiguration;
         // Eine zentrale Verbindungszeichenfolge verhindert unterschiedliche Datenbankeinstellungen in den Repositories.
@@ -25,7 +26,22 @@ namespace Nest.Data
             // Jeder Aufruf liefert eine neue Verbindung, deren Lebensdauer das aufrufende Repository kontrolliert.
             var context = GetProcessConfiguration();
             var connection = new MySqlConnection(context.Configuration);
-            Contexts.Add(connection, context);
+            Contexts.Add(connection, new RegisteredConnection(context, context.Configuration));
+            return connection;
+        }
+
+        // Fixed transport policy for Account Store only; no caller-controlled overrides.
+        internal static MySqlConnection GetAccountStoreConnection()
+        {
+            var source = GetProcessConfiguration();
+            var settings = new MySqlConnectionStringBuilder(source.Configuration)
+            {
+                Pooling = false,
+                DefaultCommandTimeout = 10
+            };
+            var expected = settings.ConnectionString;
+            var connection = new MySqlConnection(expected);
+            Contexts.Add(connection, new RegisteredConnection(source, expected));
             return connection;
         }
 
@@ -52,19 +68,19 @@ namespace Nest.Data
 
             try
             {
-                if (context != GetProcessConfiguration() ||
-                    !string.Equals(connection.ConnectionString, context.Configuration, StringComparison.Ordinal))
+                if (context.Source != GetProcessConfiguration() ||
+                    !string.Equals(connection.ConnectionString, context.ExpectedConfiguration, StringComparison.Ordinal))
                     throw new InvalidOperationException("Die Verbindungskonfiguration wurde nach ihrer Erstellung geändert.");
 
                 connection.Open();
-                if (context.TestUser == null)
+                if (context.Source.TestUser == null)
                     return;
 
                 using var command = new MySqlCommand("SELECT DATABASE(), CURRENT_USER(), @@port", connection);
                 using var reader = command.ExecuteReader();
                 if (!reader.Read() || reader.IsDBNull(0) ||
                     reader.GetString(0) != IntegrationConnectionSettings.DatabaseName ||
-                    reader.GetString(1) != context.TestUser + "@localhost" || reader.GetUInt32(2) != 3306)
+                    reader.GetString(1) != context.Source.TestUser + "@localhost" || reader.GetUInt32(2) != 3306)
                     throw new InvalidOperationException("Die tatsächliche Testverbindung ist nicht zulässig.");
             }
             catch

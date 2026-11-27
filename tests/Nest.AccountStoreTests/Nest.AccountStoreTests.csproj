@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="9.7.0" />
+    <Compile Include="../../Nest/Data/Authentication/*.cs" Link="Production/%(Filename)%(Extension)" />
+    <Compile Include="../../Nest/Security/Authentication/*.cs" Link="Production/%(Filename)%(Extension)" />
+    <Compile Include="../../Nest/Data/DB.cs" Link="Production/DB.cs" />
+    <Compile Include="../../Nest/Data/IntegrationConnectionSettings.cs" Link="Production/IntegrationConnectionSettings.cs" />
+    <Compile Include="../../Nest/Security/PasswordHasher.cs" Link="Production/PasswordHasher.cs" />
+  </ItemGroup>
+  <!-- Real DB factory is tested only in guarded child processes with synthetic settings. No WPF or Credential Manager. -->
+</Project>

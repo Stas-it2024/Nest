@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="9.7.0" />
+    <!-- Compile the actual production sources; never load Nest.App/Bootstrapper/WPF. -->
+    <Compile Include="../../Nest/Data/Authentication/SqlAccountStore.cs" Link="Production/SqlAccountStore.cs" />
+    <Compile Include="../../Nest/Data/Authentication/AccountStoreSession.cs" Link="Production/AccountStoreSession.cs" />
+    <Compile Include="../../Nest/Data/Authentication/AccountStoreSchemaGuard.cs" Link="Production/AccountStoreSchemaGuard.cs" />
+    <Compile Include="../../Nest/Data/DB.cs" Link="Production/DB.cs" />
+    <Compile Include="../../Nest/Data/IntegrationConnectionSettings.cs" Link="Production/IntegrationConnectionSettings.cs" />
+    <Compile Include="../../Nest/Security/PasswordHasher.cs" Link="Production/PasswordHasher.cs" />
+    <Compile Include="../../Nest/Security/Authentication/*.cs" Link="Production/%(Filename)%(Extension)" />
+    <Compile Include="../Nest.IntegrationBootstrap/WindowsCredentialReader.cs" Link="Infrastructure/WindowsCredentialReader.cs" />
+  </ItemGroup>
+</Project>
